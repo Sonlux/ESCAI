@@ -1,0 +1,1 @@
+"""Core processing components for the ESCAI framework."""
