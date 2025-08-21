@@ -356,13 +356,15 @@ def safe_serialize(obj: Any, format: str = 'json', fallback_to_str: bool = True)
     Returns:
         Serialized data
     """
+    # Check format first - invalid formats should always raise an error
+    if format not in ['json', 'pickle']:
+        raise SerializationError(f"Unsupported format: {format}")
+    
     try:
         if format == 'json':
             return to_json(obj)
         elif format == 'pickle':
             return to_pickle(obj)
-        else:
-            raise SerializationError(f"Unsupported format: {format}")
     except SerializationError:
         if fallback_to_str:
             return str(obj) if format == 'json' else to_pickle(str(obj))

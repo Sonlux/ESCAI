@@ -54,7 +54,8 @@ def validate_string(value: Any, field_name: str, min_length: int = 1, max_length
     if not allow_empty and not value.strip():
         raise ValidationError("String cannot be empty or whitespace only", field_name, value)
     
-    if len(value) < min_length:
+    # Only check min_length if not allowing empty strings or if the string is not empty
+    if len(value) < min_length and not (allow_empty and len(value) == 0):
         raise ValidationError(f"String length must be at least {min_length}", field_name, value)
     
     if max_length is not None and len(value) > max_length:
