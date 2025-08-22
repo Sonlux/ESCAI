@@ -39,6 +39,8 @@ The ESCAI framework requires the following key dependencies:
 - **Core**: pandas, numpy, python-dateutil, pyyaml
 - **Statistical Analysis**: scipy, scikit-learn, statsmodels
 - **Causal Inference**: dowhy (for structural causal models)
+- **Database**: sqlalchemy, asyncpg, psycopg2-binary, alembic
+- **MongoDB**: pymongo, motor, pydantic (for unstructured data storage)
 - **Development**: pytest, black, isort, flake8, mypy
 
 All dependencies are automatically installed when you install the framework.
@@ -358,6 +360,25 @@ python examples/basic_usage.py
 
 Demonstrates core data models and basic functionality.
 
+### Storage Examples
+
+```bash
+# PostgreSQL structured data storage
+python examples/postgresql_storage_example.py
+
+# MongoDB unstructured data storage
+python examples/mongodb_storage_example.py
+```
+
+Shows database integration including:
+
+- Multi-database setup and configuration
+- Repository pattern usage
+- Data validation and serialization
+- Advanced querying and aggregation
+- Text search and analytics
+- Data cleanup and optimization
+
 ### Causal Analysis Example
 
 ```bash
@@ -394,8 +415,17 @@ The ESCAI framework follows a modular architecture with the following key compon
 - **Core Processing**: Engines for extracting insights, causal inference, temporal analysis, and explanation generation
 - **Analytics**: Machine learning models, statistical analysis, and Granger causality testing
 - **API**: REST and WebSocket interfaces for real-time access
-- **Storage**: Multi-database architecture for different data types
+- **Storage**: Hybrid multi-database architecture with PostgreSQL for structured data and MongoDB for unstructured data
 - **Visualization**: Dashboard and reporting components
+
+### Storage Architecture
+
+The ESCAI framework uses a hybrid storage approach:
+
+- **PostgreSQL**: Structured data including agent metadata, epistemic states, behavioral patterns, causal relationships, and predictions
+- **MongoDB**: Unstructured data including raw logs, processed events, explanations, configurations, and analytics results
+
+This dual-database approach provides optimal performance for different data types while maintaining data consistency and enabling complex queries across both structured and unstructured data.
 
 ## Data Models
 
@@ -418,6 +448,140 @@ Contains performance predictions with risk factors and recommended interventions
 ### ExplanationEngine
 
 Generates human-readable explanations for agent behavior, decisions, causal relationships, and predictions with configurable styles and quality metrics.
+
+## Storage and Database
+
+The ESCAI framework provides comprehensive data storage capabilities with support for both structured and unstructured data:
+
+### Database Setup
+
+```python
+from escai_framework.storage.database import DatabaseManager
+
+# Initialize database manager
+db_manager = DatabaseManager()
+
+# Configure with both PostgreSQL and MongoDB
+db_manager.initialize(
+    database_url='postgresql://user:password@localhost:5432/escai',
+    async_database_url='postgresql+asyncpg://user:password@localhost:5432/escai',
+    mongo_url='mongodb://localhost:27017',
+    mongo_db_name='escai_unstructured'
+)
+
+# Create tables and collections
+await db_manager.create_tables()
+```
+
+### PostgreSQL Storage (Structured Data)
+
+```python
+from escai_framework.storage.repositories import AgentRepository, EpistemicStateRepository
+
+# Use PostgreSQL repositories for structured data
+async with db_manager.get_async_session() as session:
+    agent_repo = AgentRepository()
+
+    # Create agent record
+    agent = await agent_repo.create(
+        session,
+        agent_id="demo_agent",
+        name="Demo Agent",
+        framework="langchain",
+        version="1.0.0"
+    )
+
+    # Store epistemic state
+    epistemic_repo = EpistemicStateRepository()
+    state = await epistemic_repo.create(
+        session,
+        agent_id=agent.id,
+        beliefs={"task": "classification"},
+        goals=["complete_task"],
+        confidence_level=0.85
+    )
+```
+
+### MongoDB Storage (Unstructured Data)
+
+```python
+from escai_framework.storage.mongo_models import RawLogDocument, ProcessedEventDocument
+
+# Access MongoDB repositories
+mongo_manager = db_manager.mongo_manager
+
+# Store raw logs
+raw_log = RawLogDocument(
+    agent_id="demo_agent",
+    session_id="session_123",
+    framework="langchain",
+    log_level="INFO",
+    message="Processing user request",
+    metadata={"user_id": "user123"},
+    timestamp=datetime.utcnow()
+)
+
+log_id = await mongo_manager.raw_logs.insert_one(raw_log)
+
+# Store processed events
+event = ProcessedEventDocument(
+    agent_id="demo_agent",
+    session_id="session_123",
+    event_type="decision_made",
+    event_data={"decision": "use_tool", "confidence": 0.9},
+    timestamp=datetime.utcnow()
+)
+
+event_id = await mongo_manager.processed_events.insert_one(event)
+
+# Query with advanced filters
+recent_logs = await mongo_manager.raw_logs.find_by_agent(
+    "demo_agent",
+    start_time=datetime.utcnow() - timedelta(hours=1),
+    log_level="ERROR"
+)
+
+# Text search capabilities
+search_results = await mongo_manager.raw_logs.search_logs(
+    "database connection",
+    agent_id="demo_agent"
+)
+
+# Analytics and statistics
+stats = await mongo_manager.raw_logs.get_log_statistics(
+    agent_id="demo_agent",
+    hours_back=24
+)
+```
+
+### Storage Features
+
+- **Automatic Indexing**: Optimized indexes for time-series queries, text search, and aggregations
+- **Data Validation**: Pydantic models ensure data integrity and type safety
+- **TTL Policies**: Automatic cleanup of old data with configurable retention periods
+- **Connection Pooling**: Efficient connection management for high-throughput scenarios
+- **Graceful Degradation**: System continues to function if MongoDB is unavailable
+- **Migration Support**: Alembic integration for PostgreSQL schema migrations
+- **Repository Pattern**: Clean separation of concerns with specialized repositories for different data types
+
+### Available Repositories
+
+**PostgreSQL Repositories:**
+
+- `AgentRepository`: Agent metadata and configuration
+- `MonitoringSessionRepository`: Session tracking and management
+- `EpistemicStateRepository`: Structured epistemic state data
+- `BehavioralPatternRepository`: Pattern analysis results
+- `CausalRelationshipRepository`: Causal inference results
+- `PredictionRepository`: Performance predictions and outcomes
+
+**MongoDB Repositories:**
+
+- `RawLogRepository`: Raw agent execution logs with text search
+- `ProcessedEventRepository`: Structured events with timeline analysis
+- `ExplanationRepository`: Generated explanations with confidence scoring
+- `ConfigurationRepository`: System and user configurations with versioning
+- `AnalyticsResultRepository`: ML model results and performance metrics
 
 ## Testing
 
@@ -526,8 +690,12 @@ If you use the ESCAI framework in your research, please cite:
 - [x] **Core Data Models**: Epistemic states, behavioral patterns, causal relationships, and predictions
 - [x] **Temporal Analysis**: Event sequence analysis and pattern discovery
 - [x] **Explanation Engine**: Human-readable explanations with natural language generation
+- [x] **Database Storage Layer**: PostgreSQL for structured data and MongoDB for unstructured data with comprehensive repository pattern
 - [ ] Complete remaining core processing engines
 - [ ] Framework-specific instrumentors (LangChain, AutoGen, CrewAI, OpenAI)
+- [ ] Redis caching and real-time data streaming
+- [ ] InfluxDB time-series metrics storage
+- [ ] Neo4j graph database for causal relationships
 - [ ] REST API implementation
 - [ ] WebSocket real-time interface
 - [ ] Machine learning models for prediction
