@@ -351,3 +351,41 @@ class ValidationContext:
     def has_errors(self) -> bool:
         """Check if any validation errors were collected."""
         return len(self.errors) > 0
+
+
+def validate_time_series_data(data: Any, field_name: str = "time_series_data") -> Any:
+    """
+    Validate time series data structure.
+    
+    Args:
+        data: The data to validate (should be pandas DataFrame or similar)
+        field_name: Name of the field being validated
+    
+    Returns:
+        The validated time series data
+    
+    Raises:
+        ValidationError: If validation fails
+    """
+    try:
+        import pandas as pd
+        
+        if not isinstance(data, pd.DataFrame):
+            raise ValidationError(f"Expected pandas DataFrame, got {type(data).__name__}", field_name, data)
+        
+        if data.empty:
+            raise ValidationError("Time series data cannot be empty", field_name, data)
+        
+        # Check for numeric columns
+        numeric_columns = data.select_dtypes(include=['number']).columns
+        if len(numeric_columns) == 0:
+            raise ValidationError("Time series data must contain at least one numeric column", field_name, data)
+        
+        return data
+        
+    except ImportError:
+        # If pandas is not available, do basic validation
+        if data is None:
+            raise ValidationError("Time series data cannot be None", field_name, data)
+        
+        return data

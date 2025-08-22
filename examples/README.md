@@ -19,6 +19,21 @@ Run the example:
 python examples/basic_usage.py
 ```
 
+### `causal_analysis_example.py`
+
+Advanced example demonstrating the causal inference capabilities:
+
+- **Temporal Causality Detection**: Discover cause-effect relationships from event sequences
+- **Granger Causality Testing**: Statistical testing for time series causality
+- **Intervention Analysis**: Estimate effects of hypothetical interventions
+- **Causal Graph Construction**: Build and analyze causal relationship networks
+
+Run the example:
+
+```bash
+python examples/causal_analysis_example.py
+```
+
 ## Example Output
 
 The basic usage example will demonstrate:
@@ -51,8 +66,12 @@ pip install -e ".[dev]"
 # Run the comprehensive example
 python examples/basic_usage.py
 
+# Run the causal analysis example
+python examples/causal_analysis_example.py
+
 # Run with Python module syntax
 python -m examples.basic_usage
+python -m examples.causal_analysis_example
 ```
 
 ## Example Use Cases
