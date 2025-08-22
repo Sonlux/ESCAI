@@ -777,3 +777,154 @@ class LangChainInstrumentor(BaseInstrumentor):
             
         except Exception as e:
             self.logger.error(f"Error processing memory/context: {str(e)}")
+    
+    async def monitor_memory_usage(self, session_id: str, memory_data: Dict[str, Any]) -> None:
+        """
+        Monitor memory usage for a LangChain session.
+        
+        Args:
+            session_id: Session identifier
+            memory_data: Memory usage information
+        """
+        try:
+            if session_id not in self._memory_usage:
+                return
+            
+            # Create memory usage event
+            memory_event = self.create_event(
+                event_type=EventType.MEMORY_READ,
+                agent_id=self._get_session(session_id).agent_id if self._get_session(session_id) else "unknown",
+                session_id=session_id,
+                message="Memory usage monitored",
+                component="memory",
+                operation="usage_check",
+                data=memory_data
+            )
+            
+            await self._queue_event(memory_event)
+            
+        except Exception as e:
+            self.logger.error(f"Error monitoring memory usage: {str(e)}")
+    
+    async def monitor_context_window(self, session_id: str, context_data: Dict[str, Any]) -> None:
+        """
+        Monitor context window changes for a LangChain session.
+        
+        Args:
+            session_id: Session identifier
+            context_data: Context window information
+        """
+        try:
+            if session_id not in self._context_windows:
+                return
+            
+            # Create context update event
+            context_event = self.create_event(
+                event_type=EventType.CONTEXT_UPDATE,
+                agent_id=self._get_session(session_id).agent_id if self._get_session(session_id) else "unknown",
+                session_id=session_id,
+                message="Context window updated",
+                component="context",
+                operation="window_update",
+                data=context_data
+            )
+            
+            await self._queue_event(context_event)
+            
+        except Exception as e:
+            self.logger.error(f"Error monitoring context window: {str(e)}")
+    
+    def extract_reasoning_from_chain_output(self, chain_output: str) -> Optional[str]:
+        """
+        Extract reasoning patterns from chain output.
+        
+        Args:
+            chain_output: Output text from chain execution
+            
+        Returns:
+            Extracted reasoning trace or None
+        """
+        try:
+            # Common reasoning patterns in LangChain outputs
+            reasoning_patterns = [
+                r"Thought:\s*(.+?)(?=\n|Action:|$)",
+                r"Reasoning:\s*(.+?)(?=\n|Action:|$)",
+                r"Analysis:\s*(.+?)(?=\n|Action:|$)",
+                r"I need to\s*(.+?)(?=\n|Action:|$)",
+                r"Let me\s*(.+?)(?=\n|Action:|$)"
+            ]
+            
+            import re
+            extracted_reasoning = []
+            
+            for pattern in reasoning_patterns:
+                matches = re.findall(pattern, chain_output, re.IGNORECASE | re.MULTILINE)
+                extracted_reasoning.extend(matches)
+            
+            if extracted_reasoning:
+                return " | ".join(extracted_reasoning)
+            
+            return None
+            
+        except Exception as e:
+            self.logger.error(f"Error extracting reasoning: {str(e)}")
+            return None
+    
+    def get_memory_summary(self, session_id: str) -> Dict[str, Any]:
+        """
+        Get memory usage summary for a session.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            Memory usage summary
+        """
+        try:
+            if session_id not in self._memory_usage:
+                return {}
+            
+            memory_data = self._memory_usage[session_id]
+            snapshots = memory_data.get("memory_snapshots", [])
+            
+            if not snapshots:
+                return {"total_snapshots": 0}
+            
+            memory_values = [s.get("memory_usage_mb", 0) for s in snapshots if s.get("memory_usage_mb")]
+            
+            return {
+                "total_snapshots": len(snapshots),
+                "peak_memory_mb": max(memory_values) if memory_values else 0,
+                "average_memory_mb": sum(memory_values) / len(memory_values) if memory_values else 0,
+                "memory_trend": "increasing" if len(memory_values) > 1 and memory_values[-1] > memory_values[0] else "stable"
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error getting memory summary: {str(e)}")
+            return {}
+    
+    def get_context_summary(self, session_id: str) -> Dict[str, Any]:
+        """
+        Get context window summary for a session.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            Context window summary
+        """
+        try:
+            if session_id not in self._context_windows:
+                return {}
+            
+            context_updates = self._context_windows[session_id]
+            
+            return {
+                "total_updates": len(context_updates),
+                "update_types": list(set(u.get("event_type", "unknown") for u in context_updates)),
+                "last_update": context_updates[-1].get("timestamp") if context_updates else None
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error getting context summary: {str(e)}")
+            return {}

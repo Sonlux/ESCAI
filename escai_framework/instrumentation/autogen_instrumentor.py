@@ -750,6 +750,173 @@ class AutoGenInstrumentor(BaseInstrumentor):
         except Exception as e:
             self.logger.error(f"Failed to restore agent methods: {str(e)}")
     
+    def analyze_conversation_patterns(self, session_id: str) -> Dict[str, Any]:
+        """
+        Analyze conversation patterns for a session.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            Conversation pattern analysis
+        """
+        try:
+            interceptor = self.get_message_interceptor(session_id)
+            if not interceptor:
+                return {}
+            
+            conversation_summary = interceptor.get_conversation_summary()
+            
+            # Analyze message flow patterns
+            conversation_history = interceptor._conversation_history
+            if not conversation_history:
+                return conversation_summary
+            
+            # Calculate conversation metrics
+            message_intervals = []
+            for i in range(1, len(conversation_history)):
+                prev_msg = conversation_history[i-1]
+                curr_msg = conversation_history[i]
+                interval = (curr_msg["timestamp"] - prev_msg["timestamp"]).total_seconds()
+                message_intervals.append(interval)
+            
+            # Identify dominant speakers
+            speaker_counts = {}
+            for msg in conversation_history:
+                speaker = msg.get("sender", msg.get("agent", "unknown"))
+                speaker_counts[speaker] = speaker_counts.get(speaker, 0) + 1
+            
+            # Calculate conversation balance
+            total_messages = len(conversation_history)
+            speaker_balance = {
+                speaker: count / total_messages 
+                for speaker, count in speaker_counts.items()
+            } if total_messages > 0 else {}
+            
+            conversation_summary.update({
+                "message_intervals": {
+                    "average_seconds": sum(message_intervals) / len(message_intervals) if message_intervals else 0,
+                    "min_seconds": min(message_intervals) if message_intervals else 0,
+                    "max_seconds": max(message_intervals) if message_intervals else 0
+                },
+                "speaker_distribution": speaker_counts,
+                "speaker_balance": speaker_balance,
+                "conversation_flow": "balanced" if all(0.1 <= balance <= 0.6 for balance in speaker_balance.values()) else "unbalanced"
+            })
+            
+            return conversation_summary
+            
+        except Exception as e:
+            self.logger.error(f"Error analyzing conversation patterns: {str(e)}")
+            return {}
+    
+    def analyze_group_decision_patterns(self, session_id: str) -> Dict[str, Any]:
+        """
+        Analyze group decision-making patterns for a session.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            Group decision pattern analysis
+        """
+        try:
+            interceptor = self.get_message_interceptor(session_id)
+            if not interceptor:
+                return {}
+            
+            group_decisions = interceptor._group_decisions
+            if not group_decisions:
+                return {"total_decisions": 0}
+            
+            # Analyze decision patterns
+            decision_types = {}
+            selected_speakers = {}
+            
+            for decision in group_decisions:
+                decision_type = decision.get("type", "unknown")
+                decision_types[decision_type] = decision_types.get(decision_type, 0) + 1
+                
+                if decision_type == "speaker_selection":
+                    speaker = decision.get("selected_speaker", "unknown")
+                    selected_speakers[speaker] = selected_speakers.get(speaker, 0) + 1
+            
+            # Calculate selection fairness
+            total_selections = sum(selected_speakers.values())
+            selection_distribution = {
+                speaker: count / total_selections 
+                for speaker, count in selected_speakers.items()
+            } if total_selections > 0 else {}
+            
+            return {
+                "total_decisions": len(group_decisions),
+                "decision_types": decision_types,
+                "speaker_selections": selected_speakers,
+                "selection_distribution": selection_distribution,
+                "selection_fairness": "fair" if all(0.1 <= dist <= 0.5 for dist in selection_distribution.values()) else "biased"
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error analyzing group decision patterns: {str(e)}")
+            return {}
+    
+    def get_agent_coordination_metrics(self, session_id: str) -> Dict[str, Any]:
+        """
+        Get agent coordination metrics for a session.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            Agent coordination metrics
+        """
+        try:
+            conversation_analysis = self.analyze_conversation_patterns(session_id)
+            decision_analysis = self.analyze_group_decision_patterns(session_id)
+            
+            # Calculate coordination score
+            coordination_factors = []
+            
+            # Factor 1: Conversation balance (0-1)
+            if conversation_analysis.get("conversation_flow") == "balanced":
+                coordination_factors.append(0.8)
+            else:
+                coordination_factors.append(0.4)
+            
+            # Factor 2: Decision fairness (0-1)
+            if decision_analysis.get("selection_fairness") == "fair":
+                coordination_factors.append(0.9)
+            else:
+                coordination_factors.append(0.3)
+            
+            # Factor 3: Response time consistency (0-1)
+            intervals = conversation_analysis.get("message_intervals", {})
+            avg_interval = intervals.get("average_seconds", 0)
+            max_interval = intervals.get("max_seconds", 0)
+            if max_interval > 0 and avg_interval > 0:
+                consistency = 1 - min(1, (max_interval - avg_interval) / max_interval)
+                coordination_factors.append(consistency)
+            else:
+                coordination_factors.append(0.5)
+            
+            coordination_score = sum(coordination_factors) / len(coordination_factors) if coordination_factors else 0
+            
+            return {
+                "coordination_score": coordination_score,
+                "coordination_level": "high" if coordination_score > 0.7 else "medium" if coordination_score > 0.4 else "low",
+                "conversation_analysis": conversation_analysis,
+                "decision_analysis": decision_analysis,
+                "coordination_factors": {
+                    "conversation_balance": coordination_factors[0] if len(coordination_factors) > 0 else 0,
+                    "decision_fairness": coordination_factors[1] if len(coordination_factors) > 1 else 0,
+                    "response_consistency": coordination_factors[2] if len(coordination_factors) > 2 else 0
+                }
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error getting coordination metrics: {str(e)}")
+            return {}
+    
     async def _process_conversation_context(self, event: AgentEvent) -> None:
         """Process conversation and decision context from events."""
         try:

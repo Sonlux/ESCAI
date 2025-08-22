@@ -761,6 +761,43 @@ class CrewAIInstrumentor(BaseInstrumentor):
         except Exception as e:
             self.logger.error(f"Failed to instrument crew: {str(e)}")
     
+    async def _instrument_crew(self, session_id: str, crew: Any,
+                             monitor: CrewAIWorkflowMonitor) -> None:
+        """Instrument a Crew instance."""
+        try:
+            if not hasattr(crew, 'kickoff'):
+                self.logger.warning(f"Crew {id(crew)} does not have kickoff method")
+                return
+            
+            # Store original method
+            original_kickoff = crew.kickoff
+            crew_key = f"crew_{id(crew)}_kickoff"
+            self._original_methods[session_id][crew_key] = original_kickoff
+            
+            # Create wrapped method
+            def wrapped_kickoff():
+                return monitor.monitor_crew_kickoff(original_kickoff, crew)
+            
+            # Replace method
+            crew.kickoff = wrapped_kickoff
+            
+            # Track crew
+            self._monitored_crews[session_id].add(crew)
+            
+            # Also instrument agents and tasks within the crew
+            if hasattr(crew, 'agents'):
+                for agent in crew.agents:
+                    await self._instrument_agent(session_id, agent, monitor)
+            
+            if hasattr(crew, 'tasks'):
+                for task in crew.tasks:
+                    await self._instrument_task(session_id, task, monitor)
+            
+            self.logger.debug(f"Instrumented crew with {len(getattr(crew, 'agents', []))} agents and {len(getattr(crew, 'tasks', []))} tasks")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to instrument crew: {str(e)}")
+    
     async def _instrument_agent(self, session_id: str, agent: Any,
                               monitor: CrewAIWorkflowMonitor) -> None:
         """Instrument an Agent instance."""
@@ -897,3 +934,178 @@ class CrewAIInstrumentor(BaseInstrumentor):
             
         except Exception as e:
             self.logger.error(f"Error processing workflow context: {str(e)}")
+    
+    def analyze_task_delegation_patterns(self, session_id: str) -> Dict[str, Any]:
+        """
+        Analyze task delegation patterns for a session.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            Task delegation pattern analysis
+        """
+        try:
+            monitor = self.get_workflow_monitor(session_id)
+            if not monitor:
+                return {}
+            
+            workflow_summary = monitor.get_workflow_summary()
+            
+            # Analyze task distribution
+            task_assignments = workflow_summary.get("workflow_hierarchy", {})
+            agent_performance = workflow_summary.get("agent_performance_summary", {})
+            
+            # Calculate delegation efficiency
+            total_tasks = workflow_summary.get("total_tasks", 0)
+            completed_tasks = workflow_summary.get("completed_tasks", 0)
+            failed_tasks = workflow_summary.get("failed_tasks", 0)
+            
+            success_rate = completed_tasks / total_tasks if total_tasks > 0 else 0
+            
+            # Analyze agent workload distribution
+            agent_workloads = {}
+            for agent_name, perf in agent_performance.items():
+                total_agent_tasks = perf.get("tasks_completed", 0) + perf.get("tasks_failed", 0)
+                agent_workloads[agent_name] = total_agent_tasks
+            
+            # Calculate workload balance
+            if agent_workloads:
+                max_workload = max(agent_workloads.values())
+                min_workload = min(agent_workloads.values())
+                workload_balance = 1 - (max_workload - min_workload) / max_workload if max_workload > 0 else 1
+            else:
+                workload_balance = 0
+            
+            return {
+                "total_tasks": total_tasks,
+                "success_rate": success_rate,
+                "agent_workloads": agent_workloads,
+                "workload_balance": workload_balance,
+                "delegation_efficiency": "high" if success_rate > 0.8 and workload_balance > 0.7 else "medium" if success_rate > 0.6 else "low",
+                "task_assignments": task_assignments
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error analyzing task delegation patterns: {str(e)}")
+            return {}
+    
+    def analyze_crew_collaboration_patterns(self, session_id: str) -> Dict[str, Any]:
+        """
+        Analyze crew collaboration patterns for a session.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            Crew collaboration pattern analysis
+        """
+        try:
+            monitor = self.get_workflow_monitor(session_id)
+            if not monitor:
+                return {}
+            
+            workflow_summary = monitor.get_workflow_summary()
+            collaboration_patterns = workflow_summary.get("collaboration_patterns", [])
+            
+            if not collaboration_patterns:
+                return {"total_patterns": 0}
+            
+            # Analyze collaboration metrics
+            total_patterns = len(collaboration_patterns)
+            
+            # Calculate average collaboration scores
+            collaboration_scores = []
+            for pattern in collaboration_patterns:
+                agent_utilization = pattern.get("agent_utilization", {})
+                if agent_utilization:
+                    # Calculate collaboration score based on agent utilization balance
+                    utilization_values = [util.get("success_rate", 0) for util in agent_utilization.values()]
+                    if utilization_values:
+                        avg_success = sum(utilization_values) / len(utilization_values)
+                        collaboration_scores.append(avg_success)
+            
+            avg_collaboration_score = sum(collaboration_scores) / len(collaboration_scores) if collaboration_scores else 0
+            
+            # Analyze skill utilization
+            all_skills = set()
+            for pattern in collaboration_patterns:
+                agent_utilization = pattern.get("agent_utilization", {})
+                for agent_data in agent_utilization.values():
+                    all_skills.update(agent_data.get("skills_count", 0) for _ in range(1))
+            
+            return {
+                "total_patterns": total_patterns,
+                "average_collaboration_score": avg_collaboration_score,
+                "collaboration_quality": "excellent" if avg_collaboration_score > 0.9 else "good" if avg_collaboration_score > 0.7 else "needs_improvement",
+                "unique_skills_utilized": len(all_skills),
+                "patterns_analyzed": collaboration_patterns
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error analyzing crew collaboration patterns: {str(e)}")
+            return {}
+    
+    def get_role_based_performance_metrics(self, session_id: str) -> Dict[str, Any]:
+        """
+        Get role-based performance metrics for a session.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            Role-based performance metrics
+        """
+        try:
+            monitor = self.get_workflow_monitor(session_id)
+            if not monitor:
+                return {}
+            
+            workflow_summary = monitor.get_workflow_summary()
+            agent_performance = workflow_summary.get("agent_performance_summary", {})
+            
+            # Group performance by role
+            role_performance = {}
+            for agent_name, perf in agent_performance.items():
+                # Extract role from agent performance data (assuming it's stored)
+                role = perf.get("role", "unknown_role")
+                
+                if role not in role_performance:
+                    role_performance[role] = {
+                        "agents": [],
+                        "total_tasks": 0,
+                        "total_completed": 0,
+                        "total_failed": 0,
+                        "total_execution_time": 0.0,
+                        "skills_used": set()
+                    }
+                
+                role_data = role_performance[role]
+                role_data["agents"].append(agent_name)
+                role_data["total_tasks"] += perf.get("tasks_completed", 0) + perf.get("tasks_failed", 0)
+                role_data["total_completed"] += perf.get("tasks_completed", 0)
+                role_data["total_failed"] += perf.get("tasks_failed", 0)
+                role_data["total_execution_time"] += perf.get("average_execution_time", 0) * (perf.get("tasks_completed", 0) + perf.get("tasks_failed", 0))
+                role_data["skills_used"].update(range(perf.get("skills_count", 0)))  # Placeholder for actual skills
+            
+            # Calculate role metrics
+            for role, data in role_performance.items():
+                total_tasks = data["total_tasks"]
+                data["success_rate"] = data["total_completed"] / total_tasks if total_tasks > 0 else 0
+                data["average_execution_time"] = data["total_execution_time"] / total_tasks if total_tasks > 0 else 0
+                data["agent_count"] = len(data["agents"])
+                data["skills_count"] = len(data["skills_used"])
+                
+                # Convert set to list for JSON serialization
+                data["skills_used"] = list(data["skills_used"])
+            
+            return {
+                "role_performance": role_performance,
+                "total_roles": len(role_performance),
+                "best_performing_role": max(role_performance.keys(), key=lambda r: role_performance[r]["success_rate"]) if role_performance else None,
+                "most_utilized_role": max(role_performance.keys(), key=lambda r: role_performance[r]["total_tasks"]) if role_performance else None
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error getting role-based performance metrics: {str(e)}")
+            return {}

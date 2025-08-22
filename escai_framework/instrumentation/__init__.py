@@ -12,9 +12,21 @@ from .event_stream import (
     create_time_window_filter, create_framework_filter
 )
 
+# Framework-specific instrumentors
+from .langchain_instrumentor import LangChainInstrumentor
+from .autogen_instrumentor import AutoGenInstrumentor
+from .crewai_instrumentor import CrewAIInstrumentor
+from .openai_instrumentor import OpenAIInstrumentor
+
 __all__ = [
     # Base classes
     "BaseInstrumentor",
+    
+    # Framework-specific instrumentors
+    "LangChainInstrumentor",
+    "AutoGenInstrumentor", 
+    "CrewAIInstrumentor",
+    "OpenAIInstrumentor",
     
     # Events
     "AgentEvent",

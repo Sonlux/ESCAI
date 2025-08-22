@@ -990,3 +990,195 @@ class OpenAIInstrumentor(BaseInstrumentor):
             
         except Exception as e:
             self.logger.error(f"Error processing assistant context: {str(e)}")
+    
+    def analyze_function_usage_patterns(self, session_id: str) -> Dict[str, Any]:
+        """
+        Analyze function usage patterns for a session.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            Function usage pattern analysis
+        """
+        try:
+            monitor = self.get_assistant_monitor(session_id)
+            if not monitor:
+                return {}
+            
+            assistant_summary = monitor.get_assistant_summary()
+            tool_usage = assistant_summary.get("tool_usage_summary", {})
+            
+            if not tool_usage:
+                return {"total_functions": 0}
+            
+            # Analyze function call patterns
+            total_calls = sum(usage.get("call_count", 0) for usage in tool_usage.values())
+            successful_calls = sum(usage.get("success_count", 0) for usage in tool_usage.values())
+            failed_calls = sum(usage.get("error_count", 0) for usage in tool_usage.values())
+            
+            success_rate = successful_calls / total_calls if total_calls > 0 else 0
+            
+            # Find most used functions
+            most_used_function = max(tool_usage.keys(), key=lambda f: tool_usage[f].get("call_count", 0)) if tool_usage else None
+            
+            # Calculate average execution time
+            total_execution_time = sum(usage.get("total_execution_time", 0) for usage in tool_usage.values())
+            avg_execution_time = total_execution_time / total_calls if total_calls > 0 else 0
+            
+            return {
+                "total_functions": len(tool_usage),
+                "total_calls": total_calls,
+                "success_rate": success_rate,
+                "most_used_function": most_used_function,
+                "average_execution_time": avg_execution_time,
+                "function_details": tool_usage,
+                "usage_efficiency": "high" if success_rate > 0.9 else "medium" if success_rate > 0.7 else "low"
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error analyzing function usage patterns: {str(e)}")
+            return {}
+    
+    def analyze_thread_conversation_patterns(self, session_id: str) -> Dict[str, Any]:
+        """
+        Analyze thread conversation patterns for a session.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            Thread conversation pattern analysis
+        """
+        try:
+            monitor = self.get_assistant_monitor(session_id)
+            if not monitor:
+                return {}
+            
+            assistant_summary = monitor.get_assistant_summary()
+            
+            total_threads = assistant_summary.get("total_threads", 0)
+            total_messages = assistant_summary.get("total_messages", 0)
+            
+            if total_threads == 0:
+                return {"total_threads": 0}
+            
+            # Calculate conversation metrics
+            avg_messages_per_thread = total_messages / total_threads
+            
+            # Analyze thread activity
+            active_threads = assistant_summary.get("active_threads", [])
+            
+            return {
+                "total_threads": total_threads,
+                "total_messages": total_messages,
+                "average_messages_per_thread": avg_messages_per_thread,
+                "active_threads_count": len(active_threads),
+                "conversation_intensity": "high" if avg_messages_per_thread > 10 else "medium" if avg_messages_per_thread > 5 else "low",
+                "active_threads": active_threads
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error analyzing thread conversation patterns: {str(e)}")
+            return {}
+    
+    def analyze_assistant_reasoning_patterns(self, session_id: str) -> Dict[str, Any]:
+        """
+        Analyze assistant reasoning patterns for a session.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            Assistant reasoning pattern analysis
+        """
+        try:
+            monitor = self.get_assistant_monitor(session_id)
+            if not monitor:
+                return {}
+            
+            assistant_summary = monitor.get_assistant_summary()
+            reasoning_traces_count = assistant_summary.get("reasoning_traces_count", 0)
+            
+            if reasoning_traces_count == 0:
+                return {"total_reasoning_traces": 0}
+            
+            # Analyze reasoning complexity
+            total_messages = assistant_summary.get("total_messages", 0)
+            reasoning_density = reasoning_traces_count / total_messages if total_messages > 0 else 0
+            
+            return {
+                "total_reasoning_traces": reasoning_traces_count,
+                "reasoning_density": reasoning_density,
+                "reasoning_complexity": "high" if reasoning_density > 0.5 else "medium" if reasoning_density > 0.2 else "low",
+                "reasoning_quality": "excellent" if reasoning_density > 0.7 else "good" if reasoning_density > 0.4 else "needs_improvement"
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error analyzing assistant reasoning patterns: {str(e)}")
+            return {}
+    
+    def get_assistant_performance_metrics(self, session_id: str) -> Dict[str, Any]:
+        """
+        Get comprehensive assistant performance metrics for a session.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            Comprehensive assistant performance metrics
+        """
+        try:
+            function_analysis = self.analyze_function_usage_patterns(session_id)
+            conversation_analysis = self.analyze_thread_conversation_patterns(session_id)
+            reasoning_analysis = self.analyze_assistant_reasoning_patterns(session_id)
+            
+            # Calculate overall performance score
+            performance_factors = []
+            
+            # Factor 1: Function usage efficiency (0-1)
+            function_efficiency = 0.5  # Default
+            if function_analysis.get("usage_efficiency") == "high":
+                function_efficiency = 0.9
+            elif function_analysis.get("usage_efficiency") == "medium":
+                function_efficiency = 0.7
+            elif function_analysis.get("usage_efficiency") == "low":
+                function_efficiency = 0.4
+            performance_factors.append(function_efficiency)
+            
+            # Factor 2: Conversation engagement (0-1)
+            conversation_intensity = conversation_analysis.get("conversation_intensity", "low")
+            if conversation_intensity == "high":
+                performance_factors.append(0.8)
+            elif conversation_intensity == "medium":
+                performance_factors.append(0.6)
+            else:
+                performance_factors.append(0.4)
+            
+            # Factor 3: Reasoning quality (0-1)
+            reasoning_quality = reasoning_analysis.get("reasoning_quality", "needs_improvement")
+            if reasoning_quality == "excellent":
+                performance_factors.append(0.95)
+            elif reasoning_quality == "good":
+                performance_factors.append(0.75)
+            else:
+                performance_factors.append(0.5)
+            
+            overall_score = sum(performance_factors) / len(performance_factors) if performance_factors else 0
+            
+            return {
+                "overall_performance_score": overall_score,
+                "performance_level": "excellent" if overall_score > 0.8 else "good" if overall_score > 0.6 else "needs_improvement",
+                "function_analysis": function_analysis,
+                "conversation_analysis": conversation_analysis,
+                "reasoning_analysis": reasoning_analysis,
+                "performance_factors": {
+                    "function_efficiency": performance_factors[0] if len(performance_factors) > 0 else 0,
+                    "conversation_engagement": performance_factors[1] if len(performance_factors) > 1 else 0,
+                    "reasoning_quality": performance_factors[2] if len(performance_factors) > 2 else 0
+                }
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error getting assistant performance metrics: {str(e)}")
+            return {}
