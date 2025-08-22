@@ -9,7 +9,8 @@ A comprehensive observability system for monitoring autonomous agent cognition i
 - **Real-time Epistemic State Monitoring**: Track agent beliefs, knowledge, and goals as they evolve
 - **Multi-Framework Support**: Compatible with LangChain, AutoGen, CrewAI, and OpenAI Assistants
 - **Behavioral Pattern Analysis**: Identify and analyze patterns in agent decision-making
-- **Causal Relationship Discovery**: Understand cause-effect relationships in agent behavior
+- **Advanced Causal Inference**: Discover cause-effect relationships using temporal analysis and Granger causality testing
+- **Intervention Analysis**: Estimate effects of hypothetical interventions with statistical confidence
 - **Performance Prediction**: Forecast task outcomes and identify potential failures early
 - **Human-Readable Explanations**: Generate natural language explanations of agent behavior
 
@@ -30,6 +31,17 @@ git clone https://github.com/escai-framework/escai.git
 cd escai
 pip install -e ".[dev]"
 ```
+
+### Dependencies
+
+The ESCAI framework requires the following key dependencies:
+
+- **Core**: pandas, numpy, python-dateutil, pyyaml
+- **Statistical Analysis**: scipy, scikit-learn, statsmodels
+- **Causal Inference**: dowhy (for structural causal models)
+- **Development**: pytest, black, isort, flake8, mypy
+
+All dependencies are automatically installed when you install the framework.
 
 ## Quick Start
 
@@ -157,6 +169,77 @@ relationship = CausalRelationship(
 print(f"Causal strength: {relationship.strength}")
 ```
 
+### Advanced Causal Inference
+
+```python
+from escai_framework.core.causal_engine import CausalEngine, TemporalEvent
+import pandas as pd
+import numpy as np
+
+# Initialize causal engine
+engine = CausalEngine(min_observations=50, significance_threshold=0.05)
+
+# Create temporal events for analysis
+events = []
+base_time = datetime.utcnow()
+
+for i in range(100):
+    # Decision event
+    decision = TemporalEvent(
+        event_id=f"decision_{i}",
+        event_type="decision",
+        timestamp=base_time + timedelta(seconds=i*10),
+        agent_id="agent_1"
+    )
+    events.append(decision)
+
+    # Action event (follows decision)
+    action = TemporalEvent(
+        event_id=f"action_{i}",
+        event_type="action",
+        timestamp=base_time + timedelta(seconds=i*10 + 2),
+        agent_id="agent_1"
+    )
+    events.append(action)
+
+# Discover causal relationships
+relationships = await engine.discover_relationships(events)
+print(f"Found {len(relationships)} causal relationships")
+
+# Test Granger causality with time series data
+data = pd.DataFrame({
+    'cause_var': np.random.randn(100),
+    'effect_var': np.random.randn(100)
+})
+
+granger_result = await engine.test_granger_causality(data, 'cause_var', 'effect_var')
+print(f"Granger causality detected: {granger_result.is_causal}")
+print(f"Confidence: {granger_result.confidence:.3f}")
+
+# Analyze intervention effects
+from escai_framework.core.causal_engine import CausalGraph
+
+graph = CausalGraph()
+graph.nodes.add("treatment")
+graph.nodes.add("outcome")
+
+intervention_data = pd.DataFrame({
+    'treatment': np.random.randn(100),
+    'outcome': 2.0 * np.random.randn(100) + np.random.randn(100) * 0.1
+})
+
+intervention_effect = await engine.analyze_interventions(
+    graph=graph,
+    intervention_variable="treatment",
+    intervention_value=1.0,
+    target_variable="outcome",
+    data=intervention_data
+)
+
+print(f"Expected intervention effect: {intervention_effect.expected_effect:.3f}")
+print(f"Confidence interval: {intervention_effect.confidence_interval}")
+```
+
 ### Performance Prediction
 
 ```python
@@ -201,14 +284,39 @@ print(f"Predicted success probability: {prediction.predicted_value}")
 print(f"Overall risk score: {prediction.calculate_overall_risk_score()}")
 ```
 
+## Examples
+
+The framework includes comprehensive examples demonstrating all capabilities:
+
+### Basic Usage Example
+
+```bash
+python examples/basic_usage.py
+```
+
+Demonstrates core data models and basic functionality.
+
+### Causal Analysis Example
+
+```bash
+python examples/causal_analysis_example.py
+```
+
+Shows advanced causal inference capabilities including:
+
+- Temporal causality detection
+- Granger causality testing
+- Intervention analysis
+- Causal graph construction
+
 ## Architecture
 
 The ESCAI framework follows a modular architecture with the following key components:
 
 - **Models**: Core data structures for epistemic states, behavioral patterns, causal relationships, and predictions
 - **Instrumentation**: Framework-specific adapters for monitoring different agent systems
-- **Core Processing**: Engines for extracting insights and performing analysis
-- **Analytics**: Machine learning models and statistical analysis tools
+- **Core Processing**: Engines for extracting insights, causal inference, and temporal analysis
+- **Analytics**: Machine learning models, statistical analysis, and Granger causality testing
 - **API**: REST and WebSocket interfaces for real-time access
 - **Storage**: Multi-database architecture for different data types
 - **Visualization**: Dashboard and reporting components
@@ -334,11 +442,14 @@ If you use the ESCAI framework in your research, please cite:
 
 ## Roadmap
 
-- [ ] Complete core processing engines
-- [ ] Framework-specific instrumentors
+- [x] **Causal Inference Engine**: Advanced causal analysis with Granger causality testing and intervention analysis
+- [x] **Core Data Models**: Epistemic states, behavioral patterns, causal relationships, and predictions
+- [x] **Temporal Analysis**: Event sequence analysis and pattern discovery
+- [ ] Complete remaining core processing engines
+- [ ] Framework-specific instrumentors (LangChain, AutoGen, CrewAI, OpenAI)
 - [ ] REST API implementation
 - [ ] WebSocket real-time interface
-- [ ] Machine learning models
+- [ ] Machine learning models for prediction
 - [ ] Visualization dashboard
 - [ ] Production deployment tools
 - [ ] Performance optimization
