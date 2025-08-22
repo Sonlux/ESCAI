@@ -284,6 +284,68 @@ print(f"Predicted success probability: {prediction.predicted_value}")
 print(f"Overall risk score: {prediction.calculate_overall_risk_score()}")
 ```
 
+### Human-Readable Explanations
+
+```python
+from escai_framework.core.explanation_engine import ExplanationEngine, ExplanationStyle
+
+# Initialize explanation engine
+engine = ExplanationEngine()
+
+# Generate behavior explanation
+behavior_explanation = await engine.explain_behavior(
+    behavioral_patterns=[pattern],
+    execution_sequences=[sequence],
+    style=ExplanationStyle.DETAILED
+)
+
+print("Behavior Analysis:")
+print(behavior_explanation.content)
+print(f"Confidence: {behavior_explanation.confidence_score:.2f}")
+
+# Generate decision pathway explanation
+decision_explanation = await engine.explain_decision_pathway(
+    epistemic_states=[epistemic_state],
+    execution_sequence=sequence,
+    style=ExplanationStyle.SIMPLE
+)
+
+print("\nDecision Pathway:")
+print(decision_explanation.content)
+
+# Generate causal explanation
+causal_explanation = await engine.explain_causal_relationship(
+    causal_relationship=relationship,
+    style=ExplanationStyle.DETAILED
+)
+
+print("\nCausal Analysis:")
+print(causal_explanation.content)
+
+# Generate prediction explanation
+prediction_explanation = await engine.explain_prediction(
+    prediction_result=prediction,
+    style=ExplanationStyle.DETAILED
+)
+
+print("\nPrediction Analysis:")
+print(prediction_explanation.content)
+
+# Compare successful vs failed attempts
+comparison = await engine.compare_success_failure(
+    successful_sequences=[successful_sequence],
+    failed_sequences=[failed_sequence],
+    style=ExplanationStyle.DETAILED
+)
+
+print("\nComparative Analysis:")
+print(comparison.content)
+
+# Get explanation quality metrics
+metrics = await engine.get_explanation_quality_metrics(behavior_explanation)
+print(f"\nExplanation Quality Metrics: {metrics}")
+```
+
 ## Examples
 
 The framework includes comprehensive examples demonstrating all capabilities:
@@ -309,13 +371,27 @@ Shows advanced causal inference capabilities including:
 - Intervention analysis
 - Causal graph construction
 
+### Explanation Engine Example
+
+```bash
+python examples/explanation_engine_example.py
+```
+
+Demonstrates human-readable explanation generation including:
+
+- Behavior summaries with pattern analysis
+- Decision pathway explanations
+- Causal relationship explanations
+- Prediction explanations with risk factors
+- Comparative analysis between success and failure
+
 ## Architecture
 
 The ESCAI framework follows a modular architecture with the following key components:
 
 - **Models**: Core data structures for epistemic states, behavioral patterns, causal relationships, and predictions
 - **Instrumentation**: Framework-specific adapters for monitoring different agent systems
-- **Core Processing**: Engines for extracting insights, causal inference, and temporal analysis
+- **Core Processing**: Engines for extracting insights, causal inference, temporal analysis, and explanation generation
 - **Analytics**: Machine learning models, statistical analysis, and Granger causality testing
 - **API**: REST and WebSocket interfaces for real-time access
 - **Storage**: Multi-database architecture for different data types
@@ -338,6 +414,10 @@ Models cause-effect relationships between events with evidence and confidence me
 ### PredictionResult
 
 Contains performance predictions with risk factors and recommended interventions.
+
+### ExplanationEngine
+
+Generates human-readable explanations for agent behavior, decisions, causal relationships, and predictions with configurable styles and quality metrics.
 
 ## Testing
 
@@ -445,6 +525,7 @@ If you use the ESCAI framework in your research, please cite:
 - [x] **Causal Inference Engine**: Advanced causal analysis with Granger causality testing and intervention analysis
 - [x] **Core Data Models**: Epistemic states, behavioral patterns, causal relationships, and predictions
 - [x] **Temporal Analysis**: Event sequence analysis and pattern discovery
+- [x] **Explanation Engine**: Human-readable explanations with natural language generation
 - [ ] Complete remaining core processing engines
 - [ ] Framework-specific instrumentors (LangChain, AutoGen, CrewAI, OpenAI)
 - [ ] REST API implementation
