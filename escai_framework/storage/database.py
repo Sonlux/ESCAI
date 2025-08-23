@@ -17,6 +17,7 @@ from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 
 from .base import Base
 from .mongo_manager import MongoManager
+from .redis_manager import RedisManager
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,7 @@ class DatabaseManager:
         self._mongo_db = None
         self._async_mongo_db = None
         self._mongo_manager = None
+        self._redis_manager = None
         self._initialized = False
     
     def initialize(
@@ -41,6 +43,7 @@ class DatabaseManager:
         async_database_url: Optional[str] = None,
         mongo_url: Optional[str] = None,
         mongo_db_name: Optional[str] = None,
+        redis_url: Optional[str] = None,
         pool_size: int = 10,
         max_overflow: int = 20,
         pool_timeout: int = 30,
@@ -124,6 +127,9 @@ class DatabaseManager:
         # Initialize MongoDB connections
         self._init_mongodb(mongo_url, mongo_db_name, pool_size)
         
+        # Initialize Redis connections
+        self._init_redis(redis_url, pool_size)
+        
         self._initialized = True
         logger.info("Database manager initialized successfully")
     
@@ -169,6 +175,22 @@ class DatabaseManager:
             self._mongo_db = None
             self._async_mongo_db = None
     
+    def _init_redis(self, redis_url: Optional[str], pool_size: int):
+        """Initialize Redis connections."""
+        try:
+            self._redis_manager = RedisManager()
+            self._redis_manager.initialize(
+                redis_url=redis_url,
+                max_connections=pool_size,
+                failover_enabled=True
+            )
+            logger.info("Redis connections initialized successfully")
+            
+        except Exception as e:
+            logger.error(f"Failed to connect to Redis: {e}")
+            # Continue without Redis for graceful degradation
+            self._redis_manager = None
+    
     async def test_mongo_connection(self) -> bool:
         """Test MongoDB connection asynchronously."""
         if not self._async_mongo_client:
@@ -179,6 +201,12 @@ class DatabaseManager:
         except Exception as e:
             logger.error(f"MongoDB connection test failed: {e}")
             return False
+    
+    async def test_redis_connection(self) -> bool:
+        """Test Redis connection asynchronously."""
+        if not self._redis_manager:
+            return False
+        return await self._redis_manager.test_connection()
     
     @property
     def async_engine(self):
@@ -248,6 +276,20 @@ class DatabaseManager:
             raise RuntimeError("MongoDB manager not available")
         return self._mongo_manager
     
+    @property
+    def redis_available(self) -> bool:
+        """Check if Redis is available."""
+        return self._redis_manager is not None and self._redis_manager.available
+    
+    @property
+    def redis_manager(self) -> RedisManager:
+        """Get the Redis manager."""
+        if not self._initialized:
+            raise RuntimeError("Database manager not initialized")
+        if not self._redis_manager:
+            raise RuntimeError("Redis manager not available")
+        return self._redis_manager
+    
     async def create_tables(self):
         """Create all database tables."""
         if not self._initialized:
@@ -281,6 +323,8 @@ class DatabaseManager:
             self._mongo_client.close()
         if self._async_mongo_client:
             self._async_mongo_client.close()
+        if self._redis_manager:
+            await self._redis_manager.close()
         self._initialized = False
         logger.info("Database connections closed")
 
