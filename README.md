@@ -808,7 +808,7 @@ If you use the ESCAI framework in your research, please cite:
 
 ## Support
 
-- **Documentation**: [https://escai-framework.readthedocs.io](https://escai-framework.readthedocs.io)
+- **Documentation**: [https://sonlux.github.io/ESCAI](https://sonlux.github.io/ESCAI)
 - **Issues**: [GitHub Issues](https://github.com/Sonlux/ESCAI/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Sonlux/ESCAI/discussions)
 
