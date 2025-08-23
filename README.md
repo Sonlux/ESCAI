@@ -19,16 +19,16 @@ A comprehensive observability system for monitoring autonomous agent cognition i
 ### From Source
 
 ```bash
-git clone https://github.com/escai-framework/escai.git
-cd escai
+git clone https://github.com/Sonlux/ESCAI.git
+cd ESCAI
 pip install -e .
 ```
 
 ### Development Installation
 
 ```bash
-git clone https://github.com/escai-framework/escai.git
-cd escai
+git clone https://github.com/Sonlux/ESCAI.git
+cd ESCAI
 pip install -e ".[dev]"
 ```
 
@@ -41,6 +41,9 @@ The ESCAI framework requires the following key dependencies:
 - **Causal Inference**: dowhy (for structural causal models)
 - **Database**: sqlalchemy, asyncpg, psycopg2-binary, alembic
 - **MongoDB**: pymongo, motor, pydantic (for unstructured data storage)
+- **Redis**: redis (for caching and real-time data streaming)
+- **InfluxDB**: influxdb-client (for time-series metrics storage)
+- **Neo4j**: neo4j, networkx (for graph database and causal relationships)
 - **Development**: pytest, black, isort, flake8, mypy
 
 All dependencies are automatically installed when you install the framework.
@@ -368,16 +371,28 @@ python examples/postgresql_storage_example.py
 
 # MongoDB unstructured data storage
 python examples/mongodb_storage_example.py
+
+# Redis caching and real-time streaming
+python examples/redis_storage_example.py
+
+# InfluxDB time-series metrics
+python examples/influxdb_storage_example.py
+
+# Neo4j graph database for causal relationships
+python examples/neo4j_storage_example.py
 ```
 
-Shows database integration including:
+Shows comprehensive database integration including:
 
+- **PostgreSQL**: Structured data with repository pattern and migrations
+- **MongoDB**: Unstructured data with text search and aggregation
+- **Redis**: Caching, session management, and real-time streaming
+- **InfluxDB**: Time-series metrics with retention policies and dashboards
+- **Neo4j**: Graph database with causal relationship analysis and advanced analytics
 - Multi-database setup and configuration
-- Repository pattern usage
 - Data validation and serialization
 - Advanced querying and aggregation
-- Text search and analytics
-- Data cleanup and optimization
+- Performance optimization and monitoring
 
 ### Causal Analysis Example
 
@@ -420,12 +435,15 @@ The ESCAI framework follows a modular architecture with the following key compon
 
 ### Storage Architecture
 
-The ESCAI framework uses a hybrid storage approach:
+The ESCAI framework uses a comprehensive multi-database storage approach:
 
 - **PostgreSQL**: Structured data including agent metadata, epistemic states, behavioral patterns, causal relationships, and predictions
 - **MongoDB**: Unstructured data including raw logs, processed events, explanations, configurations, and analytics results
+- **Redis**: Caching, session management, and real-time data streaming with pub/sub capabilities
+- **InfluxDB**: Time-series metrics for performance monitoring and system analytics
+- **Neo4j**: Graph database for causal relationships, knowledge graphs, and complex relationship analysis
 
-This dual-database approach provides optimal performance for different data types while maintaining data consistency and enabling complex queries across both structured and unstructured data.
+This multi-database approach provides optimal performance for different data types while maintaining data consistency and enabling complex queries across structured, unstructured, time-series, and graph data.
 
 ## Data Models
 
@@ -564,6 +582,95 @@ stats = await mongo_manager.raw_logs.get_log_statistics(
 - **Migration Support**: Alembic integration for PostgreSQL schema migrations
 - **Repository Pattern**: Clean separation of concerns with specialized repositories for different data types
 
+### Neo4j Graph Database (Causal Relationships)
+
+```python
+from escai_framework.storage.neo4j_manager import Neo4jManager, create_causal_relationship_graph
+from escai_framework.storage.neo4j_analytics import Neo4jAnalytics, CentralityMeasure
+from escai_framework.storage.neo4j_models import CausalNode, CausalRelationship, AgentNode
+
+# Initialize Neo4j manager
+neo4j_manager = Neo4jManager(
+    uri="bolt://localhost:7687",
+    username="neo4j",
+    password="password",
+    database="escai"
+)
+
+await neo4j_manager.connect()
+
+# Create agent node
+agent = AgentNode(
+    node_id="agent_001",
+    agent_name="Causal Analysis Agent",
+    framework="langchain",
+    capabilities=["reasoning", "causal_analysis"]
+)
+await neo4j_manager.create_node(agent)
+
+# Create causal events
+cause_event = {
+    'node_id': 'event_001',
+    'event_type': 'decision',
+    'description': 'Agent decides to use search tool',
+    'timestamp': datetime.utcnow(),
+    'agent_id': 'agent_001'
+}
+
+effect_event = {
+    'node_id': 'event_002',
+    'event_type': 'action',
+    'description': 'Agent executes search query',
+    'timestamp': datetime.utcnow() + timedelta(seconds=2),
+    'agent_id': 'agent_001'
+}
+
+# Create causal relationship
+relationship_data = {
+    'relationship_id': 'rel_001',
+    'strength': 0.9,
+    'delay_ms': 2000,
+    'evidence': ['execution_trace', 'timing_analysis'],
+    'confidence': 0.95
+}
+
+# Store causal relationship in graph
+success = await create_causal_relationship_graph(
+    neo4j_manager, cause_event, effect_event, relationship_data
+)
+
+# Perform graph analytics
+analytics = Neo4jAnalytics(neo4j_manager)
+
+# Find causal paths
+paths = await neo4j_manager.find_causal_paths("event_001", "event_005", max_depth=5)
+print(f"Found {len(paths)} causal paths")
+
+# Calculate centrality measures
+centrality = await analytics.calculate_centrality_measures(
+    CentralityMeasure.PAGERANK, max_nodes=50
+)
+print(f"Most central nodes: {list(centrality.items())[:5]}")
+
+# Discover causal patterns
+patterns = await analytics.discover_causal_patterns(
+    agent_id="agent_001", min_frequency=3, min_significance=0.7
+)
+print(f"Discovered {len(patterns)} causal patterns")
+
+# Analyze temporal patterns
+temporal_analysis = await analytics.analyze_temporal_patterns(
+    time_window_hours=24, agent_id="agent_001"
+)
+print(f"Temporal analysis completed in {temporal_analysis.execution_time_ms:.2f}ms")
+
+# Generate visualization data
+viz_data = await analytics.generate_graph_visualization_data(
+    agent_id="agent_001", max_nodes=100
+)
+print(f"Visualization: {len(viz_data['nodes'])} nodes, {len(viz_data['edges'])} edges")
+```
+
 ### Available Repositories
 
 **PostgreSQL Repositories:**
@@ -582,6 +689,27 @@ stats = await mongo_manager.raw_logs.get_log_statistics(
 - `ExplanationRepository`: Generated explanations with confidence scoring
 - `ConfigurationRepository`: System and user configurations with versioning
 - `AnalyticsResultRepository`: ML model results and performance metrics
+
+**Redis Operations:**
+
+- Session management and caching with TTL policies
+- Real-time data streaming using Redis Streams
+- Rate limiting and temporary storage with counters
+- Pub/sub messaging for real-time notifications
+
+**InfluxDB Operations:**
+
+- Time-series metrics storage with retention policies
+- Performance monitoring and system analytics
+- Batch data ingestion and querying
+- Automated data aggregation and downsampling
+
+**Neo4j Operations:**
+
+- Graph-based causal relationship storage and analysis
+- Advanced graph analytics (centrality, pattern discovery)
+- Causal path finding and relationship traversal
+- Knowledge graph construction and querying
 
 ## Testing
 
@@ -607,8 +735,8 @@ pytest -v
 
 ```bash
 # Clone the repository
-git clone https://github.com/escai-framework/escai.git
-cd escai
+git clone https://github.com/Sonlux/ESCAI.git
+cd ESCAI
 
 # Create virtual environment
 python -m venv venv
@@ -674,15 +802,15 @@ If you use the ESCAI framework in your research, please cite:
   title={ESCAI Framework: Epistemic State and Causal Analysis Intelligence},
   author={ESCAI Framework Team},
   year={2024},
-  url={https://github.com/escai-framework/escai}
+  url={https://github.com/Sonlux/ESCAI}
 }
 ```
 
 ## Support
 
 - **Documentation**: [https://escai-framework.readthedocs.io](https://escai-framework.readthedocs.io)
-- **Issues**: [GitHub Issues](https://github.com/escai-framework/escai/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/escai-framework/escai/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Sonlux/ESCAI/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Sonlux/ESCAI/discussions)
 
 ## Roadmap
 
@@ -691,11 +819,14 @@ If you use the ESCAI framework in your research, please cite:
 - [x] **Temporal Analysis**: Event sequence analysis and pattern discovery
 - [x] **Explanation Engine**: Human-readable explanations with natural language generation
 - [x] **Database Storage Layer**: PostgreSQL for structured data and MongoDB for unstructured data with comprehensive repository pattern
+- [x] **Redis Integration**: Caching, session management, and real-time data streaming
+- [x] **InfluxDB Integration**: Time-series metrics storage with retention policies and dashboards
+- [x] **Neo4j Integration**: Graph database for causal relationships with advanced analytics
 - [ ] Complete remaining core processing engines
 - [ ] Framework-specific instrumentors (LangChain, AutoGen, CrewAI, OpenAI)
-- [ ] Redis caching and real-time data streaming
-- [ ] InfluxDB time-series metrics storage
-- [ ] Neo4j graph database for causal relationships
+- [x] Redis caching and real-time data streaming
+- [x] InfluxDB time-series metrics storage
+- [x] Neo4j graph database for causal relationships
 - [ ] REST API implementation
 - [ ] WebSocket real-time interface
 - [ ] Machine learning models for prediction
