@@ -421,6 +421,169 @@ Demonstrates human-readable explanation generation including:
 - Prediction explanations with risk factors
 - Comparative analysis between success and failure
 
+## REST API
+
+The ESCAI framework includes a comprehensive REST API with WebSocket support for real-time monitoring and analysis:
+
+### Quick Start API
+
+```bash
+# Start the API server
+uvicorn escai_framework.api.main:app --reload
+
+# Test basic functionality
+python test_api_basic.py
+
+# Access API documentation
+# Swagger UI: http://localhost:8000/docs
+# ReDoc: http://localhost:8000/redoc
+```
+
+### Authentication
+
+```python
+import httpx
+
+# Login to get access token
+response = httpx.post("http://localhost:8000/api/v1/auth/login", json={
+    "username": "admin",
+    "password": "admin123"
+})
+token_data = response.json()
+headers = {"Authorization": f"Bearer {token_data['access_token']}"}
+
+# Access protected endpoints
+user_info = httpx.get("http://localhost:8000/api/v1/auth/me", headers=headers)
+print(user_info.json())
+```
+
+### Monitoring Endpoints
+
+```python
+# Start monitoring an agent
+monitoring_request = {
+    "agent_id": "my-agent-001",
+    "framework": "langchain",
+    "monitoring_config": {
+        "capture_epistemic_states": True,
+        "max_events_per_second": 100
+    }
+}
+
+response = httpx.post(
+    "http://localhost:8000/api/v1/monitor/start",
+    json=monitoring_request,
+    headers=headers
+)
+session_data = response.json()
+session_id = session_data["session_id"]
+
+# Get monitoring status
+status = httpx.get(
+    f"http://localhost:8000/api/v1/monitor/{session_id}/status",
+    headers=headers
+)
+print(status.json())
+
+# Stop monitoring
+stop_response = httpx.post(
+    f"http://localhost:8000/api/v1/monitor/{session_id}/stop",
+    headers=headers
+)
+```
+
+### Analysis Endpoints
+
+```python
+# Search epistemic states with pagination
+search_query = {
+    "agent_id": "my-agent-001",
+    "confidence_min": 0.7,
+    "start_time": "2024-01-01T00:00:00Z"
+}
+
+response = httpx.post(
+    "http://localhost:8000/api/v1/epistemic/search",
+    json=search_query,
+    headers=headers,
+    params={"page": 1, "size": 20}
+)
+epistemic_data = response.json()
+
+# Analyze behavioral patterns
+pattern_query = {
+    "agent_id": "my-agent-001",
+    "success_rate_min": 0.8
+}
+
+patterns = httpx.post(
+    "http://localhost:8000/api/v1/patterns/analyze",
+    json=pattern_query,
+    headers=headers
+)
+
+# Generate performance prediction
+prediction_request = {
+    "agent_id": "my-agent-001",
+    "prediction_horizon": 300,
+    "include_risk_factors": True
+}
+
+prediction = httpx.post(
+    "http://localhost:8000/api/v1/predictions/generate",
+    json=prediction_request,
+    headers=headers
+)
+
+# Get agent summary
+summary = httpx.get(
+    "http://localhost:8000/api/v1/agents/my-agent-001/summary?days=7",
+    headers=headers
+)
+```
+
+### WebSocket Real-time Interface
+
+```python
+import asyncio
+import websockets
+import json
+
+async def monitor_agent():
+    uri = f"ws://localhost:8000/ws/monitor/session_123?token={access_token}"
+
+    async with websockets.connect(uri) as websocket:
+        # Subscribe to epistemic updates
+        await websocket.send(json.dumps({
+            "type": "subscribe",
+            "data": {
+                "type": "epistemic_updates",
+                "agent_id": "my-agent-001"
+            }
+        }))
+
+        # Listen for real-time updates
+        async for message in websocket:
+            data = json.loads(message)
+            if data["type"] == "epistemic_update":
+                print(f"New epistemic state: {data['data']}")
+
+# Run WebSocket client
+asyncio.run(monitor_agent())
+```
+
+### API Features
+
+- **JWT Authentication**: Secure token-based authentication with refresh tokens
+- **Role-Based Access Control**: Admin, Researcher, Developer, and Viewer roles
+- **Rate Limiting**: Configurable rate limits to prevent abuse
+- **Request Validation**: Comprehensive input validation using Pydantic
+- **Error Handling**: Detailed error responses with request tracking
+- **Real-time Updates**: WebSocket subscriptions for live monitoring
+- **Pagination**: Efficient handling of large datasets
+- **Filtering**: Advanced filtering capabilities for all endpoints
+- **Documentation**: Auto-generated OpenAPI/Swagger documentation
+
 ## Architecture
 
 The ESCAI framework follows a modular architecture with the following key components:
@@ -429,7 +592,7 @@ The ESCAI framework follows a modular architecture with the following key compon
 - **Instrumentation**: Framework-specific adapters for monitoring different agent systems
 - **Core Processing**: Engines for extracting insights, causal inference, temporal analysis, and explanation generation
 - **Analytics**: Machine learning models, statistical analysis, and Granger causality testing
-- **API**: REST and WebSocket interfaces for real-time access
+- **API**: Comprehensive REST API with JWT authentication, rate limiting, and WebSocket real-time interface
 - **Storage**: Hybrid multi-database architecture with PostgreSQL for structured data and MongoDB for unstructured data
 - **Visualization**: Dashboard and reporting components
 
@@ -727,7 +890,40 @@ pytest tests/unit/test_epistemic_state.py
 
 # Run with verbose output
 pytest -v
+
+# Test API endpoints specifically
+pytest tests/integration/test_api_endpoints.py -v
+
+# Quick API functionality test
+python test_api_basic.py
 ```
+
+### API Testing
+
+The framework includes comprehensive API testing:
+
+```bash
+# Basic API functionality test
+python test_api_basic.py
+
+# Comprehensive integration tests
+pytest tests/integration/test_api_endpoints.py -v
+
+# Test specific API features
+pytest tests/integration/test_api_endpoints.py::TestAuthenticationEndpoints -v
+pytest tests/integration/test_api_endpoints.py::TestMonitoringEndpoints -v
+pytest tests/integration/test_api_endpoints.py::TestAnalysisEndpoints -v
+```
+
+The API tests cover:
+
+- Authentication and authorization
+- Rate limiting and security
+- All monitoring endpoints
+- Analysis and prediction endpoints
+- WebSocket real-time communication
+- Error handling and validation
+- Role-based access control
 
 ## Development
 
@@ -822,13 +1018,11 @@ If you use the ESCAI framework in your research, please cite:
 - [x] **Redis Integration**: Caching, session management, and real-time data streaming
 - [x] **InfluxDB Integration**: Time-series metrics storage with retention policies and dashboards
 - [x] **Neo4j Integration**: Graph database for causal relationships with advanced analytics
+- [x] **REST API Implementation**: Comprehensive FastAPI with JWT authentication, rate limiting, and monitoring endpoints
+- [x] **WebSocket Real-time Interface**: Live monitoring and analysis updates with subscription management
+- [x] **Analytics Components**: Pattern mining, failure analysis, and statistical analysis modules
 - [ ] Complete remaining core processing engines
 - [ ] Framework-specific instrumentors (LangChain, AutoGen, CrewAI, OpenAI)
-- [x] Redis caching and real-time data streaming
-- [x] InfluxDB time-series metrics storage
-- [x] Neo4j graph database for causal relationships
-- [ ] REST API implementation
-- [ ] WebSocket real-time interface
 - [ ] Machine learning models for prediction
 - [ ] Visualization dashboard
 - [ ] Production deployment tools
