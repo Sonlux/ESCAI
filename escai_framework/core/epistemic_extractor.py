@@ -894,6 +894,29 @@ class EpistemicExtractor:
         
         return entropy
     
+    async def get_current_state(self, agent_id: str) -> Optional[EpistemicState]:
+        """Get current epistemic state for an agent."""
+        try:
+            # In a real implementation, this would query the database
+            # For now, return None to indicate no state found
+            return None
+        except Exception as e:
+            self.logger.error(f"Failed to get current state for agent {agent_id}: {e}")
+            return None
+    
+    async def search_states(self, filters: Dict[str, Any], page: int = 1, size: int = 20) -> Dict[str, Any]:
+        """Search epistemic states with filtering and pagination."""
+        try:
+            # In a real implementation, this would query the database with filters
+            # For now, return empty results
+            return {
+                "items": [],
+                "total": 0
+            }
+        except Exception as e:
+            self.logger.error(f"Failed to search epistemic states: {e}")
+            raise
+
     async def extract_epistemic_state(self, agent_id: str, agent_logs: List[AgentEvent]) -> EpistemicState:
         """
         Extract complete epistemic state from agent logs.

@@ -527,6 +527,25 @@ class CausalEngine:
         
         return relationship
     
+    async def discover_relationships(
+        self, 
+        agent_id: str,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        event_types: Optional[List[str]] = None,
+        min_confidence: float = 0.5,
+        max_relationships: int = 100
+    ) -> List[CausalRelationship]:
+        """Discover causal relationships for a specific agent with filtering."""
+        try:
+            # In a real implementation, this would query events from the database
+            # and then call the existing discover_relationships method
+            # For now, return empty list
+            return []
+        except Exception as e:
+            self.logger.error(f"Failed to discover relationships for agent {agent_id}: {e}")
+            raise
+
     async def _detect_statistical_relationships(self, 
                                               event_groups: Dict[str, List[TemporalEvent]]) -> List[CausalRelationship]:
         """Detect statistical causal relationships using advanced methods."""

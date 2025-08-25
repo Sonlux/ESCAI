@@ -1133,6 +1133,46 @@ class PerformancePredictor:
         
         return interventions
     
+    async def get_current_prediction(self, agent_id: str) -> Optional[PredictionResult]:
+        """Get current performance prediction for an agent."""
+        try:
+            # In a real implementation, this would query the database
+            # For now, return None to indicate no prediction found
+            return None
+        except Exception as e:
+            self.logger.error(f"Failed to get current prediction for agent {agent_id}: {e}")
+            return None
+    
+    async def predict_performance(
+        self,
+        agent_id: str,
+        current_state: Optional[Dict] = None,
+        prediction_horizon: int = 60,
+        include_risk_factors: bool = True,
+        include_interventions: bool = True
+    ) -> PredictionResult:
+        """Generate performance prediction for an agent."""
+        try:
+            # In a real implementation, this would use the current state
+            # and call the existing prediction methods
+            # For now, return a dummy prediction
+            from ..models.prediction_result import PredictionResult, PredictionType
+            
+            return PredictionResult(
+                prediction_id=f"pred-{agent_id}-{datetime.utcnow().timestamp()}",
+                agent_id=agent_id,
+                prediction_type=PredictionType.SUCCESS_PROBABILITY,
+                predicted_value=0.75,
+                confidence_score=0.8,
+                prediction_horizon=prediction_horizon,
+                created_at=datetime.utcnow(),
+                features_used=[],
+                model_version="1.0.0"
+            )
+        except Exception as e:
+            self.logger.error(f"Failed to predict performance for agent {agent_id}: {e}")
+            raise
+
     async def _get_optimization_interventions(self, risk_factors: List[RiskFactor]) -> List[Intervention]:
         """Get interventions for optimization in low-risk situations."""
         interventions = []

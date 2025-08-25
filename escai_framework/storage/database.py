@@ -37,7 +37,7 @@ class DatabaseManager:
         self._redis_manager = None
         self._initialized = False
     
-    def initialize(
+    async def initialize(
         self,
         database_url: Optional[str] = None,
         async_database_url: Optional[str] = None,
@@ -313,6 +313,41 @@ class DatabaseManager:
             await conn.run_sync(Base.metadata.drop_all)
         logger.info("Database tables dropped successfully")
     
+    async def health_check(self) -> Dict[str, Any]:
+        """Check health of all database connections."""
+        health_status = {
+            "overall": True,
+            "postgresql": False,
+            "mongodb": False,
+            "redis": False
+        }
+        
+        try:
+            # Check PostgreSQL
+            if self._async_engine:
+                health_status["postgresql"] = await self.test_postgresql_connection()
+            
+            # Check MongoDB
+            if self._mongo_manager:
+                health_status["mongodb"] = await self.test_mongodb_connection()
+            
+            # Check Redis
+            if self._redis_manager:
+                health_status["redis"] = await self.test_redis_connection()
+            
+            # Overall health is true if at least one service is healthy
+            health_status["overall"] = any([
+                health_status["postgresql"],
+                health_status["mongodb"], 
+                health_status["redis"]
+            ])
+            
+        except Exception as e:
+            logger.error(f"Health check failed: {e}")
+            health_status["overall"] = False
+        
+        return health_status
+
     async def close(self):
         """Close database connections."""
         if self._async_engine:

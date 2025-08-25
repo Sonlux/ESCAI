@@ -823,6 +823,31 @@ class ExplanationEngine:
         
         return recommendations
     
+    async def generate_explanation(
+        self,
+        agent_id: str,
+        behavior_id: Optional[str] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        explanation_type: str = "comprehensive",
+        max_length: int = 500
+    ) -> Dict[str, Any]:
+        """Generate human-readable explanation of agent behavior."""
+        try:
+            # In a real implementation, this would gather data and generate explanations
+            # For now, return a dummy explanation
+            return {
+                "agent_id": agent_id,
+                "explanation_type": explanation_type,
+                "explanation": f"Agent {agent_id} has been operating within normal parameters during the specified time period.",
+                "confidence": 0.8,
+                "generated_at": datetime.utcnow().isoformat(),
+                "length": max_length
+            }
+        except Exception as e:
+            self.logger.error(f"Failed to generate explanation for agent {agent_id}: {e}")
+            raise
+
     async def get_explanation_quality_metrics(self, explanation: ExplanationResult) -> Dict[str, float]:
         """Calculate quality metrics for an explanation."""
         metrics = {

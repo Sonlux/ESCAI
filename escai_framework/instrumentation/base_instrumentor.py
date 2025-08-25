@@ -8,6 +8,7 @@ instrumentors must implement to ensure consistent monitoring capabilities.
 import asyncio
 import logging
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Set
 from concurrent.futures import ThreadPoolExecutor
@@ -16,8 +17,7 @@ import time
 import traceback
 
 from .events import (
-    AgentEvent, EventType, EventSeverity, MonitoringSession, 
-    MonitoringSummary
+    AgentEvent, EventType, EventSeverity, MonitoringSession
 )
 
 
@@ -34,6 +34,52 @@ class MonitoringOverheadError(InstrumentationError):
 class EventProcessingError(InstrumentationError):
     """Raised when event processing fails."""
     pass
+
+
+@dataclass
+class MonitoringConfig:
+    """Configuration for monitoring sessions."""
+    agent_id: str
+    framework: str
+    capture_epistemic_states: bool = True
+    capture_behavioral_patterns: bool = True
+    capture_performance_metrics: bool = True
+    max_events_per_second: int = 100
+    buffer_size: int = 1000
+    
+    def dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "agent_id": self.agent_id,
+            "framework": self.framework,
+            "capture_epistemic_states": self.capture_epistemic_states,
+            "capture_behavioral_patterns": self.capture_behavioral_patterns,
+            "capture_performance_metrics": self.capture_performance_metrics,
+            "max_events_per_second": self.max_events_per_second,
+            "buffer_size": self.buffer_size
+        }
+
+
+@dataclass
+class MonitoringSummary:
+    """Summary of monitoring session."""
+    session_id: str
+    agent_id: str
+    total_events: int
+    duration_seconds: float
+    average_overhead: float
+    error_count: int
+    
+    def dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "session_id": self.session_id,
+            "agent_id": self.agent_id,
+            "total_events": self.total_events,
+            "duration_seconds": self.duration_seconds,
+            "average_overhead": self.average_overhead,
+            "error_count": self.error_count
+        }
 
 
 class BaseInstrumentor(ABC):
@@ -157,6 +203,24 @@ class BaseInstrumentor(ABC):
             Framework name (e.g., "langchain", "autogen")
         """
         pass
+    
+    async def get_monitoring_stats(self, session_id: str) -> Dict[str, Any]:
+        """
+        Get monitoring statistics for a session.
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            Dictionary containing monitoring statistics
+        """
+        # Default implementation returns basic stats
+        return {
+            "events_captured": 0,
+            "performance_overhead": 0.0,
+            "error_count": 0,
+            "last_activity": datetime.utcnow()
+        }
     
     # Event handling methods
     
