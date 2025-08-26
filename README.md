@@ -4,69 +4,129 @@
 
 A comprehensive observability system for monitoring autonomous agent cognition in real-time. The ESCAI framework provides deep insights into how AI agents think, decide, and behave during task execution by tracking epistemic states, analyzing behavioral patterns, discovering causal relationships, and predicting performance outcomes.
 
-## Features
+## 🚀 Key Features
 
-- **Real-time Epistemic State Monitoring**: Track agent beliefs, knowledge, and goals as they evolve
-- **Multi-Framework Support**: Compatible with LangChain, AutoGen, CrewAI, and OpenAI Assistants
-- **Behavioral Pattern Analysis**: Identify and analyze patterns in agent decision-making
-- **Advanced Causal Inference**: Discover cause-effect relationships using temporal analysis and Granger causality testing
-- **Intervention Analysis**: Estimate effects of hypothetical interventions with statistical confidence
-- **Performance Prediction**: Forecast task outcomes and identify potential failures early
-- **Human-Readable Explanations**: Generate natural language explanations of agent behavior
+- **🧠 Real-time Epistemic State Monitoring**: Track agent beliefs, knowledge, and goals as they evolve
+- **🔗 Multi-Framework Support**: Compatible with LangChain, AutoGen, CrewAI, and OpenAI Assistants
+- **📊 Behavioral Pattern Analysis**: Identify and analyze patterns in agent decision-making
+- **🔍 Advanced Causal Inference**: Discover cause-effect relationships using temporal analysis and Granger causality testing
+- **🎯 Performance Prediction**: Forecast task outcomes and identify potential failures early
+- **💬 Human-Readable Explanations**: Generate natural language explanations of agent behavior
+- **🛡️ Robust Integration**: Framework compatibility checking, adaptive sampling, and graceful degradation
+- **⚡ World-Class CLI**: Rich terminal interface with real-time monitoring and interactive analysis
+- **🌐 REST API & WebSocket**: Comprehensive API with real-time updates and authentication
+- **🗄️ Multi-Database Storage**: PostgreSQL, MongoDB, Redis, InfluxDB, and Neo4j support
 
-## Installation
+## 📦 Installation
 
-### From Source
+### Quick Install (Recommended)
+
+Install the ESCAI framework with essential dependencies:
+
+```bash
+pip install escai
+```
+
+### From PyPI with Full Features
+
+For complete functionality including all database connectors and ML capabilities:
+
+```bash
+pip install escai[full]
+```
+
+### From Source (Development)
+
+For development or latest features:
 
 ```bash
 git clone https://github.com/Sonlux/ESCAI.git
 cd ESCAI
-pip install -e .
+pip install -e ".[dev,full]"
 ```
 
-### Development Installation
+### Installation Options
+
+The framework offers flexible installation options:
+
+- **Basic**: `pip install escai` - Core functionality with CLI
+- **Full**: `pip install escai[full]` - All features and database connectors
+- **Development**: `pip install escai[dev]` - Development tools and testing
+- **Testing**: `pip install escai[test]` - Testing dependencies only
+
+### System Requirements
+
+- **Python**: 3.8 or higher
+- **Operating System**: Windows, macOS, Linux
+- **Memory**: 4GB RAM minimum (8GB recommended)
+- **Storage**: 1GB free space for installation and data
+
+### Verify Installation
+
+After installation, verify everything is working:
 
 ```bash
-git clone https://github.com/Sonlux/ESCAI.git
-cd ESCAI
-pip install -e ".[dev]"
+escai --version
+escai config check
 ```
 
-### Dependencies
+## 🚀 Quick Start
 
-The ESCAI framework requires the following key dependencies:
+### 1. Install and Configure
 
-- **Core**: pandas, numpy, python-dateutil, pyyaml
-- **Statistical Analysis**: scipy, scikit-learn, statsmodels
-- **Causal Inference**: dowhy (for structural causal models)
-- **Database**: sqlalchemy, asyncpg, psycopg2-binary, alembic
-- **MongoDB**: pymongo, motor, pydantic (for unstructured data storage)
-- **Redis**: redis (for caching and real-time data streaming)
-- **InfluxDB**: influxdb-client (for time-series metrics storage)
-- **Neo4j**: neo4j, networkx (for graph database and causal relationships)
-- **Development**: pytest, black, isort, flake8, mypy
+```bash
+# Install ESCAI framework
+pip install escai[full]
 
-All dependencies are automatically installed when you install the framework.
+# Run initial configuration
+escai config setup
 
-## Quick Start
+# Verify installation
+escai config check
+```
 
-> **Note**: The ESCAI framework is currently in active development. Most core components are implemented and functional. For the latest implementation status, see the [Implementation Status](#implementation-status) section.
+### 2. Start Monitoring an Agent
 
-### Basic Usage
+```bash
+# Start monitoring a LangChain agent
+escai monitor start --agent-id my-agent --framework langchain
+
+# View real-time status
+escai monitor status
+
+# Monitor epistemic states
+escai monitor epistemic --agent-id my-agent
+```
+
+### 3. Analyze Agent Behavior
+
+```bash
+# Analyze behavioral patterns
+escai analyze patterns --agent-id my-agent --timeframe 24h
+
+# Explore causal relationships
+escai analyze causal --min-strength 0.7 --interactive
+
+# Generate predictions
+escai analyze predictions --agent-id my-agent --horizon 1h
+```
+
+### 4. Use the Python API
+
+The framework provides both a CLI and Python API for programmatic access:
 
 ```python
-from escai_framework.models.epistemic_state import EpistemicState, BeliefState, BeliefType
+from escai_framework.models.epistemic_state import EpistemicState, BeliefState
+from escai_framework.instrumentation.langchain_instrumentor import LangChainInstrumentor
 from datetime import datetime
 
-# Create a belief state
+# Create an epistemic state
 belief = BeliefState(
     content="The user wants to classify images",
-    belief_type=BeliefType.FACTUAL,
     confidence=0.9,
     evidence=["user input", "task context"]
 )
 
-# Create an epistemic state
 epistemic_state = EpistemicState(
     agent_id="image_classifier_agent",
     timestamp=datetime.utcnow(),
@@ -75,877 +135,413 @@ epistemic_state = EpistemicState(
     uncertainty_score=0.15
 )
 
-# Validate and serialize
-if epistemic_state.validate():
-    json_data = epistemic_state.to_json()
-    print("Epistemic state captured successfully")
-```
-
-### Behavioral Pattern Analysis
-
-```python
-from escai_framework.models.behavioral_pattern import (
-    BehavioralPattern, ExecutionSequence, ExecutionStep,
-    PatternType, ExecutionStatus
-)
-
-# Create execution steps
-step1 = ExecutionStep(
-    step_id="step_001",
-    action="load_model",
-    timestamp=datetime.utcnow(),
-    duration_ms=1500,
-    status=ExecutionStatus.SUCCESS
-)
-
-step2 = ExecutionStep(
-    step_id="step_002",
-    action="process_image",
-    timestamp=datetime.utcnow(),
-    duration_ms=800,
-    status=ExecutionStatus.SUCCESS
-)
-
-# Create execution sequence
-sequence = ExecutionSequence(
-    sequence_id="seq_001",
-    agent_id="image_classifier",
-    task_description="Image classification task",
-    steps=[step1, step2]
-)
-
-# Create behavioral pattern
-pattern = BehavioralPattern(
-    pattern_id="classification_pattern",
-    pattern_name="Standard Classification",
-    pattern_type=PatternType.SEQUENTIAL,
-    description="Standard image classification workflow",
-    execution_sequences=[sequence]
-)
-
-pattern.calculate_statistics()
-print(f"Pattern success rate: {pattern.success_rate}")
-```
-
-### Causal Relationship Analysis
-
-```python
-from escai_framework.models.causal_relationship import (
-    CausalRelationship, CausalEvent, CausalEvidence,
-    CausalType, EvidenceType
-)
-
-# Create cause and effect events
-cause_event = CausalEvent(
-    event_id="cause_001",
-    event_type="parameter_change",
-    description="Learning rate was reduced",
-    timestamp=datetime.utcnow(),
-    agent_id="training_agent"
-)
-
-effect_event = CausalEvent(
-    event_id="effect_001",
-    event_type="performance_improvement",
-    description="Model accuracy increased",
-    timestamp=datetime.utcnow(),
-    agent_id="training_agent"
-)
-
-# Create evidence
-evidence = CausalEvidence(
-    evidence_type=EvidenceType.STATISTICAL,
-    description="Strong correlation observed",
-    strength=0.85,
-    confidence=0.92,
-    source="correlation_analysis"
-)
-
-# Create causal relationship
-relationship = CausalRelationship(
-    relationship_id="rel_001",
-    cause_event=cause_event,
-    effect_event=effect_event,
-    causal_type=CausalType.DIRECT,
-    strength=0.8,
-    confidence=0.9,
-    delay_ms=2000,
-    evidence=[evidence]
-)
-
-print(f"Causal strength: {relationship.strength}")
-```
-
-### Advanced Causal Inference
-
-```python
-from escai_framework.core.causal_engine import CausalEngine, TemporalEvent
-import pandas as pd
-import numpy as np
-
-# Initialize causal engine
-engine = CausalEngine(min_observations=50, significance_threshold=0.05)
-
-# Create temporal events for analysis
-events = []
-base_time = datetime.utcnow()
-
-for i in range(100):
-    # Decision event
-    decision = TemporalEvent(
-        event_id=f"decision_{i}",
-        event_type="decision",
-        timestamp=base_time + timedelta(seconds=i*10),
-        agent_id="agent_1"
-    )
-    events.append(decision)
-
-    # Action event (follows decision)
-    action = TemporalEvent(
-        event_id=f"action_{i}",
-        event_type="action",
-        timestamp=base_time + timedelta(seconds=i*10 + 2),
-        agent_id="agent_1"
-    )
-    events.append(action)
-
-# Discover causal relationships
-relationships = await engine.discover_relationships(events)
-print(f"Found {len(relationships)} causal relationships")
-
-# Test Granger causality with time series data
-data = pd.DataFrame({
-    'cause_var': np.random.randn(100),
-    'effect_var': np.random.randn(100)
+# Start monitoring with instrumentor
+instrumentor = LangChainInstrumentor()
+session_id = await instrumentor.start_monitoring("my-agent", {
+    "capture_epistemic_states": True,
+    "max_events_per_second": 100
 })
-
-granger_result = await engine.test_granger_causality(data, 'cause_var', 'effect_var')
-print(f"Granger causality detected: {granger_result.is_causal}")
-print(f"Confidence: {granger_result.confidence:.3f}")
-
-# Analyze intervention effects
-from escai_framework.core.causal_engine import CausalGraph
-
-graph = CausalGraph()
-graph.nodes.add("treatment")
-graph.nodes.add("outcome")
-
-intervention_data = pd.DataFrame({
-    'treatment': np.random.randn(100),
-    'outcome': 2.0 * np.random.randn(100) + np.random.randn(100) * 0.1
-})
-
-intervention_effect = await engine.analyze_interventions(
-    graph=graph,
-    intervention_variable="treatment",
-    intervention_value=1.0,
-    target_variable="outcome",
-    data=intervention_data
-)
-
-print(f"Expected intervention effect: {intervention_effect.expected_effect:.3f}")
-print(f"Confidence interval: {intervention_effect.confidence_interval}")
 ```
 
-### Performance Prediction
+## 🖥️ Command Line Interface (CLI)
 
-```python
-from escai_framework.models.prediction_result import (
-    PredictionResult, RiskFactor, Intervention,
-    PredictionType, RiskLevel, InterventionType
-)
+The ESCAI CLI provides a rich terminal interface for monitoring and analyzing agent behavior with real-time visualizations and interactive exploration.
 
-# Create risk factor
-risk_factor = RiskFactor(
-    factor_id="risk_001",
-    name="High Task Complexity",
-    description="Task complexity exceeds normal parameters",
-    impact_score=0.7,
-    probability=0.6,
-    category="task_complexity"
-)
+### Installation and Setup
 
-# Create intervention
-intervention = Intervention(
-    intervention_id="int_001",
-    intervention_type=InterventionType.PARAMETER_ADJUSTMENT,
-    name="Reduce Batch Size",
-    description="Reduce processing batch size to improve stability",
-    expected_impact=0.6,
-    implementation_cost=0.2,
-    urgency=RiskLevel.MEDIUM
-)
-
-# Create prediction result
-prediction = PredictionResult(
-    prediction_id="pred_001",
-    agent_id="processing_agent",
-    prediction_type=PredictionType.SUCCESS_PROBABILITY,
-    predicted_value=0.75,
-    confidence_score=0.88,
-    risk_factors=[risk_factor],
-    recommended_interventions=[intervention]
-)
-
-print(f"Predicted success probability: {prediction.predicted_value}")
-print(f"Overall risk score: {prediction.calculate_overall_risk_score()}")
-```
-
-### Human-Readable Explanations
-
-```python
-from escai_framework.core.explanation_engine import ExplanationEngine, ExplanationStyle
-
-# Initialize explanation engine
-engine = ExplanationEngine()
-
-# Generate behavior explanation
-behavior_explanation = await engine.explain_behavior(
-    behavioral_patterns=[pattern],
-    execution_sequences=[sequence],
-    style=ExplanationStyle.DETAILED
-)
-
-print("Behavior Analysis:")
-print(behavior_explanation.content)
-print(f"Confidence: {behavior_explanation.confidence_score:.2f}")
-
-# Generate decision pathway explanation
-decision_explanation = await engine.explain_decision_pathway(
-    epistemic_states=[epistemic_state],
-    execution_sequence=sequence,
-    style=ExplanationStyle.SIMPLE
-)
-
-print("\nDecision Pathway:")
-print(decision_explanation.content)
-
-# Generate causal explanation
-causal_explanation = await engine.explain_causal_relationship(
-    causal_relationship=relationship,
-    style=ExplanationStyle.DETAILED
-)
-
-print("\nCausal Analysis:")
-print(causal_explanation.content)
-
-# Generate prediction explanation
-prediction_explanation = await engine.explain_prediction(
-    prediction_result=prediction,
-    style=ExplanationStyle.DETAILED
-)
-
-print("\nPrediction Analysis:")
-print(prediction_explanation.content)
-
-# Compare successful vs failed attempts
-comparison = await engine.compare_success_failure(
-    successful_sequences=[successful_sequence],
-    failed_sequences=[failed_sequence],
-    style=ExplanationStyle.DETAILED
-)
-
-print("\nComparative Analysis:")
-print(comparison.content)
-
-# Get explanation quality metrics
-metrics = await engine.get_explanation_quality_metrics(behavior_explanation)
-print(f"\nExplanation Quality Metrics: {metrics}")
-```
-
-## Examples
-
-The framework includes comprehensive examples demonstrating all capabilities:
-
-### Basic Usage Example
+After installing ESCAI, the `escai` command becomes available globally:
 
 ```bash
-python examples/basic_usage.py
+# Check if CLI is installed correctly
+escai --version
+
+# Run interactive configuration setup
+escai config setup
+
+# Verify system requirements and configuration
+escai config check
 ```
 
-Demonstrates core data models and basic functionality.
+### Core CLI Commands
 
-### Testing Current Implementation
+#### 🔍 Monitoring Commands
 
 ```bash
-# Test core functionality
-python test_basic_functionality.py
-
-# Test API endpoints
-python test_api_basic.py
-
-# Test analytics implementation
-python test_analytics_implementation.py
-
-# Run comprehensive test suite
-pytest tests/ -v
-```
-
-### Storage Examples
-
-```bash
-# PostgreSQL structured data storage
-python examples/postgresql_storage_example.py
-
-# MongoDB unstructured data storage
-python examples/mongodb_storage_example.py
-
-# Redis caching and real-time streaming
-python examples/redis_storage_example.py
-
-# InfluxDB time-series metrics
-python examples/influxdb_storage_example.py
-
-# Neo4j graph database for causal relationships
-python examples/neo4j_storage_example.py
-```
-
-Shows comprehensive database integration including:
-
-- **PostgreSQL**: Structured data with repository pattern and migrations
-- **MongoDB**: Unstructured data with text search and aggregation
-- **Redis**: Caching, session management, and real-time streaming
-- **InfluxDB**: Time-series metrics with retention policies and dashboards
-- **Neo4j**: Graph database with causal relationship analysis and advanced analytics
-- Multi-database setup and configuration
-- Data validation and serialization
-- Advanced querying and aggregation
-- Performance optimization and monitoring
-
-### Causal Analysis Example
-
-```bash
-python examples/causal_analysis_example.py
-```
-
-Shows advanced causal inference capabilities including:
-
-- Temporal causality detection
-- Granger causality testing
-- Intervention analysis
-- Causal graph construction
-
-### Explanation Engine Example
-
-```bash
-python examples/explanation_engine_example.py
-```
-
-Demonstrates human-readable explanation generation including:
-
-- Behavior summaries with pattern analysis
-- Decision pathway explanations
-- Causal relationship explanations
-- Prediction explanations with risk factors
-- Comparative analysis between success and failure
-
-## REST API
-
-The ESCAI framework includes a comprehensive REST API with WebSocket support for real-time monitoring and analysis:
-
-### Quick Start API
-
-```bash
-# Start the API server
-uvicorn escai_framework.api.main:app --reload
-
-# Test basic functionality
-python test_api_basic.py
-
-# Access API documentation
-# Swagger UI: http://localhost:8000/docs
-# ReDoc: http://localhost:8000/redoc
-```
-
-### Authentication
-
-```python
-import httpx
-
-# Login to get access token
-response = httpx.post("http://localhost:8000/api/v1/auth/login", json={
-    "username": "admin",
-    "password": "admin123"
-})
-token_data = response.json()
-headers = {"Authorization": f"Bearer {token_data['access_token']}"}
-
-# Access protected endpoints
-user_info = httpx.get("http://localhost:8000/api/v1/auth/me", headers=headers)
-print(user_info.json())
-```
-
-### Monitoring Endpoints
-
-```python
 # Start monitoring an agent
-monitoring_request = {
-    "agent_id": "my-agent-001",
-    "framework": "langchain",
-    "monitoring_config": {
-        "capture_epistemic_states": True,
-        "max_events_per_second": 100
-    }
-}
+escai monitor start --agent-id my-agent --framework langchain
 
-response = httpx.post(
-    "http://localhost:8000/api/v1/monitor/start",
-    json=monitoring_request,
-    headers=headers
-)
-session_data = response.json()
-session_id = session_data["session_id"]
+# View real-time agent status with live updates
+escai monitor status --refresh 2
 
-# Get monitoring status
-status = httpx.get(
-    f"http://localhost:8000/api/v1/monitor/{session_id}/status",
-    headers=headers
-)
-print(status.json())
+# Monitor epistemic states in real-time
+escai monitor epistemic --agent-id my-agent --refresh 3
 
-# Stop monitoring
-stop_response = httpx.post(
-    f"http://localhost:8000/api/v1/monitor/{session_id}/stop",
-    headers=headers
-)
+# Launch comprehensive monitoring dashboard
+escai monitor dashboard
+
+# Stream live agent logs with filtering
+escai monitor logs --filter "error" --highlight "timeout"
+
+# Stop monitoring sessions
+escai monitor stop --session-id session_123
+escai monitor stop --all
 ```
 
-### Analysis Endpoints
+#### 📊 Analysis Commands
 
-```python
-# Search epistemic states with pagination
-search_query = {
-    "agent_id": "my-agent-001",
-    "confidence_min": 0.7,
-    "start_time": "2024-01-01T00:00:00Z"
-}
-
-response = httpx.post(
-    "http://localhost:8000/api/v1/epistemic/search",
-    json=search_query,
-    headers=headers,
-    params={"page": 1, "size": 20}
-)
-epistemic_data = response.json()
-
+```bash
 # Analyze behavioral patterns
-pattern_query = {
-    "agent_id": "my-agent-001",
-    "success_rate_min": 0.8
-}
+escai analyze patterns --agent-id my-agent --timeframe 24h --min-frequency 5
 
-patterns = httpx.post(
-    "http://localhost:8000/api/v1/patterns/analyze",
-    json=pattern_query,
-    headers=headers
-)
+# Interactive pattern exploration
+escai analyze patterns --interactive
 
-# Generate performance prediction
-prediction_request = {
-    "agent_id": "my-agent-001",
-    "prediction_horizon": 300,
-    "include_risk_factors": True
-}
+# Explore causal relationships
+escai analyze causal --min-strength 0.7 --interactive
 
-prediction = httpx.post(
-    "http://localhost:8000/api/v1/predictions/generate",
-    json=prediction_request,
-    headers=headers
-)
+# Generate performance predictions
+escai analyze predictions --agent-id my-agent --horizon 1h
 
-# Get agent summary
-summary = httpx.get(
-    "http://localhost:8000/api/v1/agents/my-agent-001/summary?days=7",
-    headers=headers
-)
+# View recent agent events
+escai analyze events --agent-id my-agent --limit 20
+
+# Create advanced ASCII visualizations
+escai analyze visualize --chart-type heatmap --metric confidence
+escai analyze visualize --chart-type scatter --metric performance
+
+# Interactive data exploration
+escai analyze interactive --agent-id my-agent
 ```
 
-### WebSocket Real-time Interface
+#### ⚙️ Configuration Management
 
-```python
-import asyncio
-import websockets
-import json
+```bash
+# Interactive configuration setup
+escai config setup
 
-async def monitor_agent():
-    uri = f"ws://localhost:8000/ws/monitor/session_123?token={access_token}"
+# Show current configuration
+escai config show
 
-    async with websockets.connect(uri) as websocket:
-        # Subscribe to epistemic updates
-        await websocket.send(json.dumps({
-            "type": "subscribe",
-            "data": {
-                "type": "epistemic_updates",
-                "agent_id": "my-agent-001"
-            }
-        }))
+# Set specific configuration values
+escai config set database host localhost
+escai config set api port 8080
 
-        # Listen for real-time updates
-        async for message in websocket:
-            data = json.loads(message)
-            if data["type"] == "epistemic_update":
-                print(f"New epistemic state: {data['data']}")
+# Get configuration values
+escai config get database host
 
-# Run WebSocket client
-asyncio.run(monitor_agent())
+# Test database connections
+escai config test
+
+# Configure CLI theme and colors
+escai config theme --scheme dark
+escai config theme --preview
+
+# System health check
+escai config check
+
+# Reset configuration to defaults
+escai config reset
 ```
 
-### API Features
+#### 📋 Session Management
 
-- **JWT Authentication**: Secure token-based authentication with refresh tokens
-- **Role-Based Access Control**: Admin, Researcher, Developer, and Viewer roles
-- **Rate Limiting**: Configurable rate limits to prevent abuse
-- **Request Validation**: Comprehensive input validation using Pydantic
-- **Error Handling**: Detailed error responses with request tracking
-- **Real-time Updates**: WebSocket subscriptions for live monitoring
-- **Pagination**: Efficient handling of large datasets
-- **Filtering**: Advanced filtering capabilities for all endpoints
-- **Documentation**: Auto-generated OpenAPI/Swagger documentation
+```bash
+# List all monitoring sessions
+escai session list
 
-## Architecture
+# Show detailed session information
+escai session show session_123
 
-The ESCAI framework follows a modular architecture with the following key components:
+# Stop active sessions
+escai session stop session_123
 
-- **Models**: Core data structures for epistemic states, behavioral patterns, causal relationships, and predictions
-- **Instrumentation**: Framework-specific adapters for monitoring different agent systems
-- **Core Processing**: Engines for extracting insights, causal inference, temporal analysis, and explanation generation
-- **Analytics**: Machine learning models, statistical analysis, and Granger causality testing
-- **API**: Comprehensive REST API with JWT authentication, rate limiting, and WebSocket real-time interface
-- **Storage**: Hybrid multi-database architecture with PostgreSQL for structured data and MongoDB for unstructured data
-- **Visualization**: Dashboard and reporting components
+# Clean up old sessions
+escai session cleanup --older-than 7d
+
+# Export session data
+escai session export session_123 --format json --output session_data.json
+```
+
+### CLI Features
+
+#### 🎨 Rich Terminal Interface
+
+- **Real-time Updates**: Live monitoring with automatic refresh
+- **Interactive Tables**: Navigate and explore data with vim-like controls
+- **ASCII Visualizations**: Charts, graphs, and progress bars in the terminal
+- **Color Themes**: Multiple color schemes including dark, light, and high contrast
+- **Progress Indicators**: Real-time progress bars with ETA and rate information
+
+#### 📈 Advanced Visualizations
+
+The CLI includes sophisticated ASCII-based visualizations:
+
+```bash
+# Create various chart types
+escai analyze visualize --chart-type bar --metric confidence
+escai analyze visualize --chart-type line --metric performance
+escai analyze visualize --chart-type histogram --metric response_time
+escai analyze visualize --chart-type scatter --metric accuracy
+escai analyze visualize --chart-type heatmap --metric pattern_frequency
+
+# Specialized visualizations
+escai analyze epistemic --agent-id my-agent  # Epistemic state visualization
+escai analyze heatmap --timeframe 24h        # Pattern frequency heatmap
+escai analyze tree --max-depth 5             # Causal relationship tree
+```
+
+#### 🔄 Interactive Features
+
+- **Interactive Pattern Explorer**: Navigate through behavioral patterns with detailed analysis
+- **Causal Relationship Explorer**: Explore cause-effect relationships interactively
+- **Live Dashboard**: Real-time monitoring dashboard with multiple metrics
+- **Data Tables**: Sortable, filterable tables with vim-like navigation
+- **Search and Filter**: Advanced search capabilities across all data types
+
+### CLI Configuration
+
+The CLI stores configuration in `~/.escai/config.json` and supports:
+
+- **Database Connections**: PostgreSQL, MongoDB, Redis, InfluxDB, Neo4j
+- **API Settings**: Host, port, authentication, rate limiting
+- **Monitoring Settings**: Overhead limits, buffer sizes, retention policies
+- **UI Preferences**: Color schemes, refresh rates, display options
+
+### Getting Help
+
+```bash
+# General help
+escai --help
+
+# Command-specific help
+escai monitor --help
+escai analyze --help
+escai config --help
+
+# Subcommand help
+escai monitor start --help
+escai analyze patterns --help
+```
+
+The CLI provides comprehensive help text for all commands and options, making it easy to discover and use all features.
+
+## 🏗️ Architecture & Components
+
+### Core Components
+
+- **📊 Data Models**: Comprehensive data structures for epistemic states, behavioral patterns, causal relationships, and predictions
+- **🔧 Instrumentation**: Framework-specific adapters for LangChain, AutoGen, CrewAI, and OpenAI Assistants
+- **⚙️ Processing Engines**: Advanced engines for causal inference, pattern analysis, and performance prediction
+- **🧠 Analytics**: Machine learning models, statistical analysis, and Granger causality testing
+- **🌐 REST API**: Comprehensive API with JWT authentication, rate limiting, and WebSocket support
+- **🗄️ Multi-Database Storage**: Hybrid architecture supporting PostgreSQL, MongoDB, Redis, InfluxDB, and Neo4j
+- **📈 Visualization**: Rich terminal interface and web-based dashboards
+
+### Framework Integration Robustness
+
+The ESCAI framework includes advanced robustness features:
+
+- **🔍 Version Compatibility**: Automatic detection and validation of framework versions
+- **⚡ Adaptive Sampling**: Intelligent sampling that adjusts based on system performance
+- **🛡️ Circuit Breakers**: Automatic protection against cascading failures
+- **🔄 Graceful Degradation**: Maintains functionality even when components fail
+- **📊 Performance Monitoring**: Real-time tracking of monitoring overhead
+- **🚨 Error Recovery**: Automatic recovery mechanisms with multiple strategies
 
 ### Storage Architecture
 
-The ESCAI framework uses a comprehensive multi-database storage approach:
+Multi-database approach optimized for different data types:
 
-- **PostgreSQL**: Structured data including agent metadata, epistemic states, behavioral patterns, causal relationships, and predictions
-- **MongoDB**: Unstructured data including raw logs, processed events, explanations, configurations, and analytics results
-- **Redis**: Caching, session management, and real-time data streaming with pub/sub capabilities
-- **InfluxDB**: Time-series metrics for performance monitoring and system analytics
-- **Neo4j**: Graph database for causal relationships, knowledge graphs, and complex relationship analysis
+- **PostgreSQL**: Structured data with ACID compliance and complex queries
+- **MongoDB**: Unstructured data with flexible schemas and text search
+- **Redis**: Caching, session management, and real-time streaming
+- **InfluxDB**: Time-series metrics with automatic retention and aggregation
+- **Neo4j**: Graph database for causal relationships and knowledge graphs
 
-This multi-database approach provides optimal performance for different data types while maintaining data consistency and enabling complex queries across structured, unstructured, time-series, and graph data.
+## 📚 Examples & Use Cases
 
-## Data Models
+The framework includes comprehensive examples demonstrating all capabilities:
 
-### EpistemicState
+### Basic Usage Examples
 
-Represents an agent's complete epistemic state including beliefs, knowledge, goals, and confidence levels.
+- **Core Functionality**: Demonstrates basic data models and framework integration
+- **Agent Monitoring**: Shows how to instrument and monitor different agent frameworks
+- **Real-time Analysis**: Examples of live behavioral pattern analysis and causal discovery
 
-### BehavioralPattern
+### Advanced Analytics Examples
 
-Captures recurring patterns in agent execution sequences with statistical analysis.
+- **Causal Inference**: Advanced causal relationship discovery using temporal analysis and Granger causality testing
+- **Performance Prediction**: Machine learning models for predicting agent performance and identifying failure modes
+- **Explanation Generation**: Human-readable explanations of agent behavior and decision-making processes
 
-### CausalRelationship
+### Integration Examples
 
-Models cause-effect relationships between events with evidence and confidence measures.
+- **LangChain Integration**: Complete examples for monitoring LangChain agents and chains
+- **AutoGen Integration**: Multi-agent conversation monitoring and analysis
+- **CrewAI Integration**: Workflow monitoring and role-based performance analysis
+- **OpenAI Assistants**: Function call monitoring and reasoning trace extraction
 
-### PredictionResult
+### Storage Examples
 
-Contains performance predictions with risk factors and recommended interventions.
+- **Multi-Database Setup**: Configuration and usage of all supported databases
+- **Data Migration**: Examples of migrating data between different storage systems
+- **Performance Optimization**: Best practices for optimizing database performance
 
-### ExplanationEngine
+### API Examples
 
-Generates human-readable explanations for agent behavior, decisions, causal relationships, and predictions with configurable styles and quality metrics.
+- **REST API Usage**: Complete examples of using the REST API for monitoring and analysis
+- **WebSocket Integration**: Real-time data streaming and live updates
+- **Authentication**: JWT-based authentication and role-based access control
 
-## Storage and Database
+### Running Examples
 
-The ESCAI framework provides comprehensive data storage capabilities with support for both structured and unstructured data:
+All examples are located in the `examples/` directory and can be run directly:
 
-### Database Setup
+```bash
+# View available examples
+ls examples/
 
-```python
-from escai_framework.storage.database import DatabaseManager
+# Run basic usage example
+python examples/basic_usage.py
 
-# Initialize database manager
-db_manager = DatabaseManager()
+# Test current implementation
+python test_basic_functionality.py
 
-# Configure with both PostgreSQL and MongoDB
-db_manager.initialize(
-    database_url='postgresql://user:password@localhost:5432/escai',
-    async_database_url='postgresql+asyncpg://user:password@localhost:5432/escai',
-    mongo_url='mongodb://localhost:27017',
-    mongo_db_name='escai_unstructured'
-)
+# Run storage examples
+python examples/postgresql_storage_example.py
+python examples/mongodb_storage_example.py
 
-# Create tables and collections
-await db_manager.create_tables()
+# Test API functionality
+python test_api_basic.py
 ```
 
-### PostgreSQL Storage (Structured Data)
+## 🌐 REST API & WebSocket Interface
 
-```python
-from escai_framework.storage.repositories import AgentRepository, EpistemicStateRepository
+The ESCAI framework provides a comprehensive REST API with WebSocket support for real-time monitoring and analysis.
 
-# Use PostgreSQL repositories for structured data
-async with db_manager.get_async_session() as session:
-    agent_repo = AgentRepository()
+### API Features
 
-    # Create agent record
-    agent = await agent_repo.create(
-        session,
-        agent_id="demo_agent",
-        name="Demo Agent",
-        framework="langchain",
-        version="1.0.0"
-    )
+- **🔐 JWT Authentication**: Secure token-based authentication with refresh tokens
+- **👥 Role-Based Access Control**: Admin, Researcher, Developer, and Viewer roles with granular permissions
+- **⚡ Rate Limiting**: Configurable rate limits to prevent abuse and ensure fair usage
+- **✅ Request Validation**: Comprehensive input validation using Pydantic models
+- **🚨 Error Handling**: Detailed error responses with request tracking and debugging information
+- **🔄 Real-time Updates**: WebSocket subscriptions for live monitoring and notifications
+- **📄 Pagination**: Efficient handling of large datasets with cursor-based pagination
+- **🔍 Advanced Filtering**: Complex filtering capabilities for all endpoints with query optimization
+- **📖 Auto-Generated Documentation**: OpenAPI/Swagger documentation with interactive testing
 
-    # Store epistemic state
-    epistemic_repo = EpistemicStateRepository()
-    state = await epistemic_repo.create(
-        session,
-        agent_id=agent.id,
-        beliefs={"task": "classification"},
-        goals=["complete_task"],
-        confidence_level=0.85
-    )
+### Quick API Setup
+
+```bash
+# Start the API server
+uvicorn escai_framework.api.main:app --reload --host 0.0.0.0 --port 8000
+
+# Access interactive documentation
+# Swagger UI: http://localhost:8000/docs
+# ReDoc: http://localhost:8000/redoc
+
+# Test API health
+curl http://localhost:8000/health
 ```
 
-### MongoDB Storage (Unstructured Data)
+### API Endpoints Overview
 
-```python
-from escai_framework.storage.mongo_models import RawLogDocument, ProcessedEventDocument
+#### Authentication Endpoints
 
-# Access MongoDB repositories
-mongo_manager = db_manager.mongo_manager
+- **POST /api/v1/auth/login**: User authentication with JWT token generation
+- **POST /api/v1/auth/refresh**: Refresh expired access tokens
+- **GET /api/v1/auth/me**: Get current user information and permissions
+- **POST /api/v1/auth/logout**: Secure logout with token invalidation
 
-# Store raw logs
-raw_log = RawLogDocument(
-    agent_id="demo_agent",
-    session_id="session_123",
-    framework="langchain",
-    log_level="INFO",
-    message="Processing user request",
-    metadata={"user_id": "user123"},
-    timestamp=datetime.utcnow()
-)
+#### Monitoring Endpoints
 
-log_id = await mongo_manager.raw_logs.insert_one(raw_log)
+- **POST /api/v1/monitor/start**: Start monitoring an agent with configuration
+- **GET /api/v1/monitor/{session_id}/status**: Get real-time monitoring status
+- **POST /api/v1/monitor/{session_id}/stop**: Stop monitoring session
+- **GET /api/v1/monitor/sessions**: List all active monitoring sessions
 
-# Store processed events
-event = ProcessedEventDocument(
-    agent_id="demo_agent",
-    session_id="session_123",
-    event_type="decision_made",
-    event_data={"decision": "use_tool", "confidence": 0.9},
-    timestamp=datetime.utcnow()
-)
+#### Analysis Endpoints
 
-event_id = await mongo_manager.processed_events.insert_one(event)
+- **POST /api/v1/epistemic/search**: Search epistemic states with advanced filters
+- **POST /api/v1/patterns/analyze**: Analyze behavioral patterns with statistical significance
+- **POST /api/v1/causal/discover**: Discover causal relationships using temporal analysis
+- **POST /api/v1/predictions/generate**: Generate performance predictions with risk assessment
+- **GET /api/v1/agents/{agent_id}/summary**: Get comprehensive agent summary and metrics
 
-# Query with advanced filters
-recent_logs = await mongo_manager.raw_logs.find_by_agent(
-    "demo_agent",
-    start_time=datetime.utcnow() - timedelta(hours=1),
-    log_level="ERROR"
-)
+#### Data Management Endpoints
 
-# Text search capabilities
-search_results = await mongo_manager.raw_logs.search_logs(
-    "database connection",
-    agent_id="demo_agent"
-)
+- **GET /api/v1/agents**: List all monitored agents with filtering and pagination
+- **POST /api/v1/events/query**: Query agent events with complex filters
+- **GET /api/v1/analytics/dashboard**: Get dashboard data for visualization
+- **POST /api/v1/export/data**: Export monitoring data in various formats
 
-# Analytics and statistics
-stats = await mongo_manager.raw_logs.get_log_statistics(
-    agent_id="demo_agent",
-    hours_back=24
-)
-```
+### WebSocket Real-time Interface
 
-### Storage Features
+The WebSocket interface provides real-time updates for:
 
-- **Automatic Indexing**: Optimized indexes for time-series queries, text search, and aggregations
-- **Data Validation**: Pydantic models ensure data integrity and type safety
-- **TTL Policies**: Automatic cleanup of old data with configurable retention periods
-- **Connection Pooling**: Efficient connection management for high-throughput scenarios
-- **Graceful Degradation**: System continues to function if MongoDB is unavailable
-- **Migration Support**: Alembic integration for PostgreSQL schema migrations
-- **Repository Pattern**: Clean separation of concerns with specialized repositories for different data types
+- **Live Monitoring**: Real-time agent status and performance metrics
+- **Event Streaming**: Live stream of agent events and state changes
+- **Alert Notifications**: Immediate notifications for errors and anomalies
+- **Dashboard Updates**: Real-time dashboard data for visualization
 
-### Neo4j Graph Database (Causal Relationships)
+### API Security
 
-```python
-from escai_framework.storage.neo4j_manager import Neo4jManager, create_causal_relationship_graph
-from escai_framework.storage.neo4j_analytics import Neo4jAnalytics, CentralityMeasure
-from escai_framework.storage.neo4j_models import CausalNode, CausalRelationship, AgentNode
+- **Authentication**: JWT tokens with configurable expiration
+- **Authorization**: Role-based permissions with resource-level access control
+- **Rate Limiting**: Per-user and per-endpoint rate limiting
+- **Input Validation**: Comprehensive validation to prevent injection attacks
+- **CORS Support**: Configurable CORS policies for web applications
+- **Request Logging**: Detailed audit logs for security monitoring
 
-# Initialize Neo4j manager
-neo4j_manager = Neo4jManager(
-    uri="bolt://localhost:7687",
-    username="neo4j",
-    password="password",
-    database="escai"
-)
+## 🧪 Testing & Validation
 
-await neo4j_manager.connect()
+The framework includes comprehensive testing capabilities:
 
-# Create agent node
-agent = AgentNode(
-    node_id="agent_001",
-    agent_name="Causal Analysis Agent",
-    framework="langchain",
-    capabilities=["reasoning", "causal_analysis"]
-)
-await neo4j_manager.create_node(agent)
-
-# Create causal events
-cause_event = {
-    'node_id': 'event_001',
-    'event_type': 'decision',
-    'description': 'Agent decides to use search tool',
-    'timestamp': datetime.utcnow(),
-    'agent_id': 'agent_001'
-}
-
-effect_event = {
-    'node_id': 'event_002',
-    'event_type': 'action',
-    'description': 'Agent executes search query',
-    'timestamp': datetime.utcnow() + timedelta(seconds=2),
-    'agent_id': 'agent_001'
-}
-
-# Create causal relationship
-relationship_data = {
-    'relationship_id': 'rel_001',
-    'strength': 0.9,
-    'delay_ms': 2000,
-    'evidence': ['execution_trace', 'timing_analysis'],
-    'confidence': 0.95
-}
-
-# Store causal relationship in graph
-success = await create_causal_relationship_graph(
-    neo4j_manager, cause_event, effect_event, relationship_data
-)
-
-# Perform graph analytics
-analytics = Neo4jAnalytics(neo4j_manager)
-
-# Find causal paths
-paths = await neo4j_manager.find_causal_paths("event_001", "event_005", max_depth=5)
-print(f"Found {len(paths)} causal paths")
-
-# Calculate centrality measures
-centrality = await analytics.calculate_centrality_measures(
-    CentralityMeasure.PAGERANK, max_nodes=50
-)
-print(f"Most central nodes: {list(centrality.items())[:5]}")
-
-# Discover causal patterns
-patterns = await analytics.discover_causal_patterns(
-    agent_id="agent_001", min_frequency=3, min_significance=0.7
-)
-print(f"Discovered {len(patterns)} causal patterns")
-
-# Analyze temporal patterns
-temporal_analysis = await analytics.analyze_temporal_patterns(
-    time_window_hours=24, agent_id="agent_001"
-)
-print(f"Temporal analysis completed in {temporal_analysis.execution_time_ms:.2f}ms")
-
-# Generate visualization data
-viz_data = await analytics.generate_graph_visualization_data(
-    agent_id="agent_001", max_nodes=100
-)
-print(f"Visualization: {len(viz_data['nodes'])} nodes, {len(viz_data['edges'])} edges")
-```
-
-### Available Repositories
-
-**PostgreSQL Repositories:**
-
-- `AgentRepository`: Agent metadata and configuration
-- `MonitoringSessionRepository`: Session tracking and management
-- `EpistemicStateRepository`: Structured epistemic state data
-- `BehavioralPatternRepository`: Pattern analysis results
-- `CausalRelationshipRepository`: Causal inference results
-- `PredictionRepository`: Performance predictions and outcomes
-
-**MongoDB Repositories:**
-
-- `RawLogRepository`: Raw agent execution logs with text search
-- `ProcessedEventRepository`: Structured events with timeline analysis
-- `ExplanationRepository`: Generated explanations with confidence scoring
-- `ConfigurationRepository`: System and user configurations with versioning
-- `AnalyticsResultRepository`: ML model results and performance metrics
-
-**Redis Operations:**
-
-- Session management and caching with TTL policies
-- Real-time data streaming using Redis Streams
-- Rate limiting and temporary storage with counters
-- Pub/sub messaging for real-time notifications
-
-**InfluxDB Operations:**
-
-- Time-series metrics storage with retention policies
-- Performance monitoring and system analytics
-- Batch data ingestion and querying
-- Automated data aggregation and downsampling
-
-**Neo4j Operations:**
-
-- Graph-based causal relationship storage and analysis
-- Advanced graph analytics (centrality, pattern discovery)
-- Causal path finding and relationship traversal
-- Knowledge graph construction and querying
-
-## Testing
-
-Run the test suite:
+### Running Tests
 
 ```bash
 # Run all tests
 pytest
 
-# Run with coverage
+# Run with coverage reporting
 pytest --cov=escai_framework --cov-report=html
 
-# Run specific test file
+# Run specific test categories
+pytest -m unit          # Unit tests only
+pytest -m integration   # Integration tests only
+pytest -m performance   # Performance tests only
+
+# Test specific components
 pytest tests/unit/test_epistemic_state.py
+pytest tests/integration/test_api_endpoints.py
 
-# Run with verbose output
-pytest -v
-
-# Test API endpoints specifically
-pytest tests/integration/test_api_endpoints.py -v
-
-# Quick API functionality test
+# Quick functionality tests
+python test_basic_functionality.py
 python test_api_basic.py
 ```
 
-### API Testing
+### Test Categories
 
-The framework includes comprehensive API testing:
+- **Unit Tests**: Individual component testing with mocking
+- **Integration Tests**: Multi-component interaction testing
+- **Performance Tests**: Monitoring overhead and response time validation
+- **Load Tests**: Concurrent monitoring and high-throughput scenarios
+- **Accuracy Tests**: ML model accuracy and prediction validation
+- **End-to-End Tests**: Complete workflow testing from instrumentation to analysis
 
-```bash
-# Basic API functionality test
-python test_api_basic.py
+### Validation Tools
 
-# Comprehensive integration tests
-pytest tests/integration/test_api_endpoints.py -v
+The framework includes built-in validation for:
 
-# Test specific API features
-pytest tests/integration/test_api_endpoints.py::TestAuthenticationEndpoints -v
-pytest tests/integration/test_api_endpoints.py::TestMonitoringEndpoints -v
-pytest tests/integration/test_api_endpoints.py::TestAnalysisEndpoints -v
-```
+- **Data Model Validation**: Automatic validation of all data structures
+- **API Response Validation**: Comprehensive API testing with schema validation
+- **Performance Monitoring**: Real-time monitoring of system performance and overhead
+- **Accuracy Metrics**: ML model accuracy tracking and validation
 
-The API tests cover:
+## 🛠️ Development & Contributing
 
-- Authentication and authorization
-- Rate limiting and security
-- All monitoring endpoints
-- Analysis and prediction endpoints
-- WebSocket real-time communication
-- Error handling and validation
-- Role-based access control
-
-## Development
-
-### Setting up Development Environment
+### Development Setup
 
 ```bash
 # Clone the repository
@@ -957,57 +553,116 @@ python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install development dependencies
-pip install -e ".[dev]"
+pip install -e ".[dev,full]"
 
-# Install pre-commit hooks
+# Install pre-commit hooks (optional)
 pre-commit install
 ```
 
-### Code Quality
+### Code Quality Tools
 
-The project uses several tools to maintain code quality:
+The project maintains high code quality using:
 
-- **Black**: Code formatting
-- **isort**: Import sorting
-- **flake8**: Linting
-- **mypy**: Type checking
-- **pytest**: Testing
+- **Black**: Automatic code formatting
+- **isort**: Import statement organization
+- **flake8**: Code linting and style checking
+- **mypy**: Static type checking
+- **pytest**: Comprehensive testing framework
 
-Run quality checks:
+### Running Quality Checks
 
 ```bash
-# Format code
+# Format code automatically
 black escai_framework tests
 
-# Sort imports
+# Organize imports
 isort escai_framework tests
 
-# Lint code
+# Check code style and quality
 flake8 escai_framework tests
 
-# Type checking
+# Perform type checking
 mypy escai_framework
 
-# Run all tests
-pytest
+# Run comprehensive test suite
+pytest --cov=escai_framework
 ```
 
-## Contributing
+### Contributing Guidelines
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+- **Code Standards**: Formatting, style, and documentation requirements
+- **Testing Requirements**: Unit tests, integration tests, and performance validation
+- **Pull Request Process**: Review process and merge requirements
+- **Issue Reporting**: Bug reports and feature requests
+- **Development Workflow**: Branch management and release process
 
-## License
+### Project Structure
+
+```
+escai_framework/
+├── cli/                 # Command-line interface
+├── api/                 # REST API and WebSocket endpoints
+├── core/                # Core processing engines
+├── models/              # Data models and schemas
+├── instrumentation/     # Framework-specific instrumentors
+├── storage/             # Database managers and repositories
+├── analytics/           # ML models and statistical analysis
+├── utils/               # Utility functions and helpers
+└── security/            # Authentication and security features
+```
+
+## 📖 Documentation
+
+Comprehensive documentation is available covering all aspects of the framework:
+
+### Core Documentation
+
+- **[Installation Guide](INSTALLATION.md)**: Detailed installation instructions for all platforms
+- **[API Reference](docs/api/README.md)**: Complete REST API documentation with examples
+- **[Integration Guides](docs/integration/README.md)**: Framework-specific integration instructions
+- **[Architecture Overview](docs/architecture/README.md)**: System architecture and design principles
+- **[Configuration Guide](docs/configuration/README.md)**: Configuration management and best practices
+
+### Specialized Guides
+
+- **[Framework Robustness](docs/integration/framework-robustness.md)**: Advanced robustness features and error handling
+- **[Troubleshooting Guide](docs/troubleshooting/framework-integration.md)**: Common issues and solutions
+- **[Security Best Practices](docs/security/best-practices.md)**: Security configuration and guidelines
+- **[Deployment Guide](docs/deployment/README.md)**: Production deployment with Docker and Kubernetes
+- **[Performance Optimization](docs/performance/README.md)**: Performance tuning and monitoring
+
+### Examples and Tutorials
+
+- **[Basic Usage Examples](examples/README.md)**: Getting started with core functionality
+- **[Business Use Cases](docs/examples/business/)**: Real-world application examples
+- **[Integration Examples](examples/)**: Complete integration examples for all supported frameworks
+
+## 🤝 Community & Support
+
+### Getting Help
+
+- **GitHub Issues**: Report bugs and request features
+- **Discussions**: Ask questions and share experiences
+- **Documentation**: Comprehensive guides and API reference
+- **Examples**: Working code examples for all features
+
+### Contributing
+
+We welcome contributions of all kinds:
+
+- **Bug Reports**: Help us identify and fix issues
+- **Feature Requests**: Suggest new capabilities
+- **Code Contributions**: Submit pull requests with improvements
+- **Documentation**: Help improve guides and examples
+- **Testing**: Add test cases and improve coverage
+
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Citation
+## 📚 Citation
 
 If you use the ESCAI framework in your research, please cite:
 
@@ -1016,15 +671,18 @@ If you use the ESCAI framework in your research, please cite:
   title={ESCAI Framework: Epistemic State and Causal Analysis Intelligence},
   author={ESCAI Framework Team},
   year={2024},
-  url={https://github.com/Sonlux/ESCAI}
+  url={https://github.com/Sonlux/ESCAI},
+  version={0.2.0}
 }
 ```
 
-## Documentation
+## 🏆 Acknowledgments
 
-The ESCAI Framework includes comprehensive documentation covering all aspects of the system:
+The ESCAI framework builds upon research and tools from the AI and machine learning community. We thank all contributors and the open-source projects that make this work possible.
 
-### Core Documentation
+---
+
+**Ready to monitor your AI agents?** Start with `pip install escai[full]` and `escai config setup`!
 
 - **[API Reference](docs/api/README.md)**: Complete REST API documentation with OpenAPI/Swagger specifications
 - **[Architecture Guide](docs/architecture/README.md)**: Detailed system architecture and design principles
