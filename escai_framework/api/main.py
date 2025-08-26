@@ -3,6 +3,7 @@ Main FastAPI application for ESCAI Framework API.
 """
 
 import asyncio
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
@@ -43,6 +44,10 @@ async def lifespan(app: FastAPI):
     # Store in app state
     app.state.db_manager = db_manager
     app.state.auth_manager = AuthManager()
+    app.state.start_time = datetime.utcnow()
+    app.state.request_count = 0
+    app.state.active_agents = 0
+    app.state.events_processed = 0
     
     yield
     
@@ -101,7 +106,7 @@ async def root(request: Request):
 @app.get("/health")
 @limiter.limit("30/minute")
 async def health_check(request: Request):
-    """Health check endpoint."""
+    """Comprehensive health check endpoint."""
     try:
         # Check database connectivity
         db_manager = app.state.db_manager
@@ -110,13 +115,82 @@ async def health_check(request: Request):
         return {
             "status": "healthy" if health_status["overall"] else "unhealthy",
             "timestamp": datetime.utcnow().isoformat(),
-            "services": health_status
+            "services": health_status,
+            "version": "1.0.0",
+            "uptime": str(datetime.utcnow() - app.state.start_time) if hasattr(app.state, 'start_time') else "unknown"
         }
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Service unhealthy"
+        )
+
+@app.get("/health/ready")
+@limiter.limit("60/minute")
+async def readiness_check(request: Request):
+    """Kubernetes readiness probe endpoint."""
+    try:
+        # Check if all critical services are ready
+        db_manager = app.state.db_manager
+        health_status = await db_manager.health_check()
+        
+        # Service is ready if PostgreSQL and Redis are healthy
+        critical_services = ["postgresql", "redis"]
+        ready = all(
+            health_status.get(service, {}).get("status") == "healthy"
+            for service in critical_services
+        )
+        
+        if ready:
+            return {"status": "ready", "timestamp": datetime.utcnow().isoformat()}
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Service not ready"
+            )
+    except Exception as e:
+        logger.error(f"Readiness check failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service not ready"
+        )
+
+@app.get("/health/live")
+@limiter.limit("60/minute")
+async def liveness_check(request: Request):
+    """Kubernetes liveness probe endpoint."""
+    try:
+        # Basic liveness check - just verify the app is responding
+        return {
+            "status": "alive",
+            "timestamp": datetime.utcnow().isoformat(),
+            "pid": os.getpid() if 'os' in globals() else "unknown"
+        }
+    except Exception as e:
+        logger.error(f"Liveness check failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Service not alive"
+        )
+
+@app.get("/metrics")
+@limiter.limit("30/minute")
+async def metrics(request: Request):
+    """Prometheus metrics endpoint."""
+    try:
+        # Basic metrics - in production this would use prometheus_client
+        return {
+            "escai_requests_total": getattr(app.state, 'request_count', 0),
+            "escai_active_agents": getattr(app.state, 'active_agents', 0),
+            "escai_events_processed_total": getattr(app.state, 'events_processed', 0),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Metrics endpoint failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Metrics unavailable"
         )
 
 if __name__ == "__main__":

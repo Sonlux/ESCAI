@@ -1,0 +1,710 @@
+openapi: 3.0.3
+info:
+  title: ESCAI Framework API
+  description: |
+    The ESCAI (Epistemic State and Causal Analysis Intelligence) Framework API provides comprehensive observability for autonomous agent cognition in real-time.
+
+    ## Features
+    - Real-time monitoring of agent epistemic states
+    - Behavioral pattern analysis and anomaly detection
+    - Causal inference for decision analysis
+    - Performance prediction and failure analysis
+    - Multi-framework support (LangChain, AutoGen, CrewAI, OpenAI Assistants)
+
+    ## Authentication
+    All endpoints require JWT authentication. Obtain a token using the `/auth/login` endpoint.
+
+  version: 1.0.0
+  contact:
+    name: ESCAI Framework Support
+    url: https://github.com/escai-framework/escai
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.escai.dev
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    EpistemicState:
+      type: object
+      properties:
+        agent_id:
+          type: string
+          description: Unique identifier for the agent
+        timestamp:
+          type: string
+          format: date-time
+          description: When this state was captured
+        belief_states:
+          type: array
+          items:
+            $ref: "#/components/schemas/BeliefState"
+        knowledge_state:
+          $ref: "#/components/schemas/KnowledgeState"
+        goal_state:
+          $ref: "#/components/schemas/GoalState"
+        confidence_level:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+          description: Overall confidence level (0-1)
+        uncertainty_score:
+          type: number
+          format: float
+          minimum: 0
+          description: Uncertainty quantification score
+        decision_context:
+          type: object
+          additionalProperties: true
+          description: Context information for decision making
+
+    BeliefState:
+      type: object
+      properties:
+        belief_id:
+          type: string
+        content:
+          type: string
+          description: Natural language description of the belief
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        evidence:
+          type: array
+          items:
+            type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    KnowledgeState:
+      type: object
+      properties:
+        facts:
+          type: array
+          items:
+            type: string
+        concepts:
+          type: array
+          items:
+            type: string
+        relationships:
+          type: array
+          items:
+            type: object
+            properties:
+              subject:
+                type: string
+              predicate:
+                type: string
+              object:
+                type: string
+
+    GoalState:
+      type: object
+      properties:
+        primary_goal:
+          type: string
+        sub_goals:
+          type: array
+          items:
+            type: string
+        progress:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        status:
+          type: string
+          enum: [active, completed, failed, paused]
+
+    BehavioralPattern:
+      type: object
+      properties:
+        pattern_id:
+          type: string
+        pattern_name:
+          type: string
+        execution_sequences:
+          type: array
+          items:
+            type: string
+        frequency:
+          type: integer
+          minimum: 0
+        success_rate:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        average_duration:
+          type: number
+          format: float
+          description: Average duration in milliseconds
+        common_triggers:
+          type: array
+          items:
+            type: string
+        failure_modes:
+          type: array
+          items:
+            type: string
+        statistical_significance:
+          type: number
+          format: float
+
+    CausalRelationship:
+      type: object
+      properties:
+        cause_event:
+          type: string
+        effect_event:
+          type: string
+        strength:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        delay_ms:
+          type: integer
+          minimum: 0
+        evidence:
+          type: array
+          items:
+            type: string
+        statistical_significance:
+          type: number
+          format: float
+        causal_mechanism:
+          type: string
+          nullable: true
+
+    PredictionResult:
+      type: object
+      properties:
+        prediction_id:
+          type: string
+        agent_id:
+          type: string
+        prediction_type:
+          type: string
+          enum: [success_probability, completion_time, failure_risk]
+        predicted_value:
+          type: number
+          format: float
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        risk_factors:
+          type: array
+          items:
+            type: string
+        recommended_interventions:
+          type: array
+          items:
+            type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    MonitoringSession:
+      type: object
+      properties:
+        session_id:
+          type: string
+        agent_id:
+          type: string
+        framework:
+          type: string
+          enum: [langchain, autogen, crewai, openai]
+        status:
+          type: string
+          enum: [active, stopped, error]
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+          nullable: true
+        configuration:
+          type: object
+          additionalProperties: true
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error type
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error details
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Authenticate user and get JWT token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+              required:
+                - username
+                - password
+      responses:
+        "200":
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  token_type:
+                    type: string
+                  expires_in:
+                    type: integer
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/monitor/start:
+    post:
+      tags:
+        - Monitoring
+      summary: Start monitoring an agent
+      description: |
+        Begins monitoring an agent's execution. Returns a session ID that can be used to track the monitoring session.
+
+        **Example Usage:**
+        ```python
+        import requests
+
+        response = requests.post(
+            "http://localhost:8000/api/v1/monitor/start",
+            json={
+                "agent_id": "my-agent-001",
+                "framework": "langchain",
+                "config": {
+                    "capture_reasoning": True,
+                    "monitor_memory": True
+                }
+            },
+            headers={"Authorization": "Bearer YOUR_JWT_TOKEN"}
+        )
+        session_id = response.json()["session_id"]
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                agent_id:
+                  type: string
+                  description: Unique identifier for the agent to monitor
+                framework:
+                  type: string
+                  enum: [langchain, autogen, crewai, openai]
+                  description: Agent framework being used
+                config:
+                  type: object
+                  additionalProperties: true
+                  description: Framework-specific configuration options
+              required:
+                - agent_id
+                - framework
+      responses:
+        "200":
+          description: Monitoring started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                    description: Unique session identifier
+                  status:
+                    type: string
+                    enum: [active]
+                  message:
+                    type: string
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/monitor/{session_id}/status:
+    get:
+      tags:
+        - Monitoring
+      summary: Get monitoring session status
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Session identifier from start monitoring
+      responses:
+        "200":
+          description: Session status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitoringSession"
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/monitor/{session_id}/stop:
+    post:
+      tags:
+        - Monitoring
+      summary: Stop monitoring session
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Monitoring stopped successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                  status:
+                    type: string
+                    enum: [stopped]
+                  summary:
+                    type: object
+                    properties:
+                      total_events:
+                        type: integer
+                      duration_ms:
+                        type: integer
+                      epistemic_states_captured:
+                        type: integer
+
+  /api/v1/epistemic/{agent_id}/current:
+    get:
+      tags:
+        - Analysis
+      summary: Get current epistemic state
+      description: |
+        Retrieves the most recent epistemic state for the specified agent.
+
+        **Example Usage:**
+        ```python
+        response = requests.get(
+            f"http://localhost:8000/api/v1/epistemic/{agent_id}/current",
+            headers={"Authorization": "Bearer YOUR_JWT_TOKEN"}
+        )
+        epistemic_state = response.json()
+        print(f"Agent confidence: {epistemic_state['confidence_level']}")
+        ```
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Current epistemic state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EpistemicState"
+        "404":
+          description: Agent not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/v1/patterns/{agent_id}/analyze:
+    get:
+      tags:
+        - Analysis
+      summary: Analyze behavioral patterns
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: time_window
+          in: query
+          schema:
+            type: string
+            enum: [1h, 6h, 24h, 7d, 30d]
+            default: 24h
+          description: Time window for pattern analysis
+        - name: min_frequency
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 3
+          description: Minimum pattern frequency threshold
+      responses:
+        "200":
+          description: Behavioral patterns analysis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  patterns:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BehavioralPattern"
+                  analysis_summary:
+                    type: object
+                    properties:
+                      total_patterns:
+                        type: integer
+                      most_common_pattern:
+                        type: string
+                      success_rate_trend:
+                        type: string
+                        enum: [improving, declining, stable]
+
+  /api/v1/causal/analyze:
+    post:
+      tags:
+        - Analysis
+      summary: Perform causal analysis
+      description: |
+        Analyzes causal relationships between events in agent execution.
+
+        **Example Usage:**
+        ```python
+        response = requests.post(
+            "http://localhost:8000/api/v1/causal/analyze",
+            json={
+                "agent_id": "my-agent-001",
+                "time_window": "24h",
+                "events": ["decision_made", "tool_used", "goal_achieved"]
+            },
+            headers={"Authorization": "Bearer YOUR_JWT_TOKEN"}
+        )
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                agent_id:
+                  type: string
+                time_window:
+                  type: string
+                  enum: [1h, 6h, 24h, 7d, 30d]
+                  default: 24h
+                events:
+                  type: array
+                  items:
+                    type: string
+                  description: Specific events to analyze for causal relationships
+                confidence_threshold:
+                  type: number
+                  format: float
+                  minimum: 0
+                  maximum: 1
+                  default: 0.7
+              required:
+                - agent_id
+      responses:
+        "200":
+          description: Causal analysis results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  relationships:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CausalRelationship"
+                  analysis_metadata:
+                    type: object
+                    properties:
+                      total_events_analyzed:
+                        type: integer
+                      significant_relationships:
+                        type: integer
+                      analysis_duration_ms:
+                        type: integer
+
+  /api/v1/predictions/{agent_id}/current:
+    get:
+      tags:
+        - Analysis
+      summary: Get current performance predictions
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: prediction_types
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [success_probability, completion_time, failure_risk]
+          style: form
+          explode: false
+          description: Types of predictions to generate
+      responses:
+        "200":
+          description: Performance predictions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  predictions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PredictionResult"
+                  model_metadata:
+                    type: object
+                    properties:
+                      model_version:
+                        type: string
+                      last_trained:
+                        type: string
+                        format: date-time
+                      accuracy_score:
+                        type: number
+                        format: float
+
+  /api/v1/explain/{agent_id}/behavior:
+    get:
+      tags:
+        - Analysis
+      summary: Get human-readable behavior explanation
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: time_window
+          in: query
+          schema:
+            type: string
+            enum: [1h, 6h, 24h]
+            default: 1h
+        - name: explanation_type
+          in: query
+          schema:
+            type: string
+            enum: [summary, detailed, causal]
+            default: summary
+      responses:
+        "200":
+          description: Behavior explanation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  explanation:
+                    type: string
+                    description: Human-readable explanation of agent behavior
+                  key_insights:
+                    type: array
+                    items:
+                      type: string
+                  confidence_score:
+                    type: number
+                    format: float
+                    minimum: 0
+                    maximum: 1
+                  supporting_evidence:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                        description:
+                          type: string
+                        timestamp:
+                          type: string
+                          format: date-time
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Monitoring
+    description: Agent monitoring session management
+  - name: Analysis
+    description: Epistemic state and behavioral analysis endpoints

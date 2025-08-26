@@ -1,0 +1,199 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: escai-api
+  namespace: escai
+  labels:
+    app: escai-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: escai-api
+  template:
+    metadata:
+      labels:
+        app: escai-api
+    spec:
+      containers:
+        - name: escai-api
+          image: escai/framework:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: ESCAI_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: ESCAI_ENV
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: LOG_LEVEL
+            - name: DATABASE_URL
+              value: "postgresql://escai:$(DATABASE_PASSWORD)@$(DATABASE_HOST):$(DATABASE_PORT)/$(DATABASE_NAME)"
+            - name: DATABASE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: DATABASE_HOST
+            - name: DATABASE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: DATABASE_PORT
+            - name: DATABASE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: DATABASE_NAME
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: escai-secrets
+                  key: DATABASE_PASSWORD
+            - name: MONGODB_URL
+              value: "mongodb://$(MONGODB_HOST):$(MONGODB_PORT)/$(MONGODB_DATABASE)"
+            - name: MONGODB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: MONGODB_HOST
+            - name: MONGODB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: MONGODB_PORT
+            - name: MONGODB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: MONGODB_DATABASE
+            - name: REDIS_URL
+              value: "redis://$(REDIS_HOST):$(REDIS_PORT)/0"
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: REDIS_PORT
+            - name: INFLUXDB_URL
+              value: "http://$(INFLUXDB_HOST):$(INFLUXDB_PORT)"
+            - name: INFLUXDB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: INFLUXDB_HOST
+            - name: INFLUXDB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: INFLUXDB_PORT
+            - name: INFLUXDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: escai-secrets
+                  key: INFLUXDB_TOKEN
+            - name: NEO4J_URL
+              value: "bolt://$(NEO4J_HOST):$(NEO4J_PORT)"
+            - name: NEO4J_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: NEO4J_HOST
+            - name: NEO4J_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: NEO4J_PORT
+            - name: NEO4J_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: escai-config
+                  key: NEO4J_USER
+            - name: NEO4J_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: escai-secrets
+                  key: NEO4J_PASSWORD
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: escai-secrets
+                  key: JWT_SECRET_KEY
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs
+      volumes:
+        - name: logs
+          emptyDir: {}
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: escai-api-service
+  namespace: escai
+spec:
+  selector:
+    app: escai-api
+  ports:
+    - port: 8000
+      targetPort: 8000
+      protocol: TCP
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: escai-api-ingress
+  namespace: escai
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+    - hosts:
+        - api.escai.example.com
+      secretName: escai-api-tls
+  rules:
+    - host: api.escai.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: escai-api-service
+                port:
+                  number: 8000

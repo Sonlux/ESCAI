@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "escai"
-version = "0.1.0"
+version = "0.2.0"
 description = "Epistemic State and Causal Analysis Intelligence Framework for monitoring autonomous agent cognition"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -31,6 +31,11 @@ dependencies = [
     "pandas>=1.5.0",
     "numpy>=1.21.0",
     
+    # CLI dependencies
+    "click>=8.0.0",
+    "rich>=13.0.0",
+    "httpx>=0.24.0",
+    
     # Utilities
     "python-dateutil>=2.8.0",
     "pyyaml>=6.0",
@@ -49,6 +54,13 @@ dev = [
 test = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "pytest-timeout>=2.1.0",
+    "pytest-mock>=3.10.0",
+    "pytest-benchmark>=4.0.0",
+    "coverage>=7.0.0",
+    "aiohttp>=3.8.0",
+    "psutil>=5.9.0",
 ]
 
 # Extended dependencies for full functionality
@@ -89,6 +101,9 @@ full = [
     "passlib[bcrypt]>=1.7.4",
 ]
 
+[project.scripts]
+escai = "escai_framework.cli.main:main"
+
 [project.urls]
 Homepage = "https://github.com/Sonlux/ESCAI"
 Documentation = "https://sonlux.github.io/ESCAI"
@@ -118,5 +133,20 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v"
+addopts = "-v --strict-markers --strict-config"
 asyncio_mode = "auto"
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests", 
+    "performance: Performance tests",
+    "load: Load tests",
+    "accuracy: Accuracy validation tests",
+    "e2e: End-to-end tests",
+    "slow: Slow running tests",
+    "requires_db: Tests that require database connection",
+    "requires_network: Tests that require network access"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning"
+]

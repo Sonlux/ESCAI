@@ -1020,6 +1020,42 @@ If you use the ESCAI framework in your research, please cite:
 }
 ```
 
+## Documentation
+
+The ESCAI Framework includes comprehensive documentation covering all aspects of the system:
+
+### Core Documentation
+
+- **[API Reference](docs/api/README.md)**: Complete REST API documentation with OpenAPI/Swagger specifications
+- **[Architecture Guide](docs/architecture/README.md)**: Detailed system architecture and design principles
+- **[Performance Tuning](docs/performance/README.md)**: Optimization guidelines and best practices
+
+### Integration Guides
+
+- **[Integration Overview](docs/integration/README.md)**: Common integration patterns and setup
+- **[LangChain Integration](docs/integration/langchain.md)**: Detailed LangChain monitoring guide
+- **[AutoGen Integration](docs/integration/autogen.md)**: Multi-agent conversation monitoring
+- **[CrewAI Integration](docs/integration/crewai.md)**: Crew workflow monitoring
+- **[OpenAI Assistants Integration](docs/integration/openai.md)**: OpenAI Assistant monitoring
+
+### Deployment and Operations
+
+- **[Deployment Guide](docs/deployment/README.md)**: Complete deployment instructions for all environments
+- **[Troubleshooting Guide](docs/troubleshooting/README.md)**: Common issues and solutions
+- **[Security Guide](docs/security/README.md)**: Security implementation and best practices
+
+### Examples and Tutorials
+
+- **[Examples Overview](docs/examples/README.md)**: Comprehensive examples directory
+- **[Business Applications](docs/examples/business/)**: Real-world business use cases
+- **[Technical Applications](docs/examples/technical/)**: Technical implementation examples
+
+### API Documentation
+
+- **[OpenAPI Specification](docs/api/openapi.yaml)**: Complete API specification
+- **Interactive Documentation**: Available at `/docs` when server is running
+- **WebSocket API**: Real-time monitoring and updates
+
 ## Support
 
 - **Documentation**: [https://sonlux.github.io/ESCAI](https://sonlux.github.io/ESCAI)

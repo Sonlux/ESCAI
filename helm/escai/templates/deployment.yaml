@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "escai.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "escai.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.escai.autoscaling.enabled }}
+  replicas: {{ .Values.escai.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "escai.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      labels:
+        {{- include "escai.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "escai.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.escai.securityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.escai.image.registry }}/{{ .Values.escai.image.repository }}:{{ .Values.escai.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.escai.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.escai.service.targetPort }}
+              protocol: TCP
+          env:
+            - name: ESCAI_ENV
+              value: {{ .Values.escai.env.ESCAI_ENV | quote }}
+            - name: LOG_LEVEL
+              value: {{ .Values.escai.env.LOG_LEVEL | quote }}
+            {{- if .Values.postgresql.enabled }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "escai.fullname" . }}-secret
+                  key: database-url
+            {{- end }}
+            {{- if .Values.mongodb.enabled }}
+            - name: MONGODB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "escai.fullname" . }}-secret
+                  key: mongodb-url
+            {{- end }}
+            {{- if .Values.redis.enabled }}
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "escai.fullname" . }}-secret
+                  key: redis-url
+            {{- end }}
+            {{- if .Values.influxdb.enabled }}
+            - name: INFLUXDB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "escai.fullname" . }}-secret
+                  key: influxdb-url
+            - name: INFLUXDB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "escai.fullname" . }}-secret
+                  key: influxdb-token
+            {{- end }}
+            {{- if .Values.neo4j.enabled }}
+            - name: NEO4J_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "escai.fullname" . }}-secret
+                  key: neo4j-url
+            - name: NEO4J_USER
+              value: "neo4j"
+            - name: NEO4J_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "escai.fullname" . }}-secret
+                  key: neo4j-password
+            {{- end }}
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "escai.fullname" . }}-secret
+                  key: jwt-secret-key
+          livenessProbe:
+            {{- toYaml .Values.escai.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.escai.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.escai.resources | nindent 12 }}
+          volumeMounts:
+            - name: logs
+              mountPath: /app/logs
+      volumes:
+        - name: logs
+          emptyDir: {}
+      {{- with .Values.escai.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.escai.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.escai.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

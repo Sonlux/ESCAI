@@ -1,0 +1,48 @@
+apiVersion: v2
+name: escai
+description: ESCAI Framework - Epistemic State and Causal Analysis Intelligence
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - ai
+  - monitoring
+  - observability
+  - agents
+  - epistemic
+  - causal-analysis
+home: https://github.com/escai-framework/escai
+sources:
+  - https://github.com/escai-framework/escai
+maintainers:
+  - name: ESCAI Team
+    email: team@escai.dev
+dependencies:
+  - name: postgresql
+    version: "12.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: mongodb
+    version: "13.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: mongodb.enabled
+  - name: redis
+    version: "18.x.x"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
+  - name: influxdb
+    version: "5.x.x"
+    repository: "https://helm.influxdata.com/"
+    condition: influxdb.enabled
+  - name: neo4j
+    version: "5.x.x"
+    repository: "https://helm.neo4j.com/neo4j"
+    condition: neo4j.enabled
+  - name: prometheus
+    version: "25.x.x"
+    repository: "https://prometheus-community.github.io/helm-charts"
+    condition: prometheus.enabled
+  - name: grafana
+    version: "7.x.x"
+    repository: "https://grafana.github.io/helm-charts"
+    condition: grafana.enabled

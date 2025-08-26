@@ -1,0 +1,113 @@
+# Staging environment values for ESCAI Framework
+
+escai:
+  replicaCount: 2
+
+  image:
+    tag: "develop"
+
+  ingress:
+    hosts:
+      - host: staging-api.escai.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: escai-staging-tls
+        hosts:
+          - staging-api.escai.example.com
+
+  resources:
+    limits:
+      cpu: 250m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+  autoscaling:
+    enabled: false
+
+  env:
+    ESCAI_ENV: "staging"
+    LOG_LEVEL: "DEBUG"
+
+# Reduced resource allocation for staging
+postgresql:
+  primary:
+    persistence:
+      size: 5Gi
+    resources:
+      limits:
+        cpu: 250m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+
+mongodb:
+  persistence:
+    size: 5Gi
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+redis:
+  master:
+    persistence:
+      size: 2Gi
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+
+influxdb:
+  persistence:
+    size: 10Gi
+  resources:
+    limits:
+      cpu: 250m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+neo4j:
+  volumes:
+    data:
+      defaultStorageClass:
+        requests:
+          storage: 5Gi
+  resources:
+    cpu: "250m"
+    memory: "1Gi"
+
+prometheus:
+  server:
+    persistentVolume:
+      size: 5Gi
+    resources:
+      limits:
+        cpu: 250m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+
+grafana:
+  persistence:
+    size: 2Gi
+  resources:
+    limits:
+      cpu: 100m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi

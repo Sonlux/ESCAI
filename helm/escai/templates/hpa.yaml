@@ -1,0 +1,33 @@
+{{- if .Values.escai.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "escai.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "escai.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "escai.fullname" . }}
+  minReplicas: {{ .Values.escai.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.escai.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.escai.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.escai.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.escai.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.escai.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}
