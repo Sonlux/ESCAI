@@ -20,6 +20,11 @@ from ..utils.ascii_viz import (
     create_epistemic_state_chart, create_pattern_frequency_heatmap,
     create_causal_strength_scatter
 )
+from ..utils.reporting import (
+    create_report_generator, create_report_scheduler, create_custom_report_builder,
+    ReportFormat, ReportType
+)
+from ..services.api_client import ESCAIAPIClient
 
 console = get_console()
 
@@ -1232,3 +1237,437 @@ def timeseries(time_field: str, value_field: str, data_file: str):
     chart = analyzer.create_time_series_chart(sample_data, time_field, value_field)
     console.print(f"\n[bold]Time Series Chart:[/bold]")
     console.print(chart)
+
+
+# Reporting Commands
+
+@analyze_group.command()
+@click.option('--template', type=click.Choice(['executive_summary', 'detailed_analysis', 'trend_analysis', 'comparative_analysis']),
+              default='executive_summary', help='Report template to use')
+@click.option('--format', 'output_format', type=click.Choice(['json', 'csv', 'markdown', 'html', 'txt']),
+              default='html', help='Output format')
+@click.option('--days-back', default=7, help='Number of days back to analyze')
+@click.option('--output', help='Output file path (optional)')
+@click.option('--compress', is_flag=True, help='Compress output file')
+@click.option('--include-raw-data', is_flag=True, help='Include raw data in report')
+@click.option('--agent-id', help='Filter by specific agent ID')
+def report(template: str, output_format: str, days_back: int, output: str, 
+           compress: bool, include_raw_data: bool, agent_id: str):
+    """Generate comprehensive analysis reports"""
+    
+    console.print(f"[info]Generating {template} report ({output_format} format)[/info]")
+    
+    try:
+        # Create API client (mock for now)
+        api_client = ESCAIAPIClient("http://localhost:8000")
+        
+        # Create report generator
+        generator = create_report_generator(api_client, console)
+        
+        # Get template
+        report_template = generator.get_template(template)
+        if not report_template:
+            console.print(f"[red]Template '{template}' not found[/red]")
+            return
+        
+        # Create configuration
+        from datetime import datetime, timedelta
+        from pathlib import Path
+        from ..utils.reporting import ReportConfig, ReportFormat
+        
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days_back)
+        
+        config = ReportConfig(
+            template=report_template,
+            output_format=ReportFormat(output_format),
+            output_path=Path(output) if output else None,
+            date_range=(start_date, end_date),
+            filters={"agent_id": agent_id} if agent_id else {},
+            include_charts=True,
+            include_raw_data=include_raw_data,
+            compress_output=compress
+        )
+        
+        # Generate report
+        import asyncio
+        output_path = asyncio.run(generator.generate_report(config))
+        
+        console.print(f"[green]✓[/green] Report generated successfully!")
+        console.print(f"[blue]Output:[/blue] {output_path}")
+        
+        # Show report summary
+        if output_path.suffix == '.json':
+            import json
+            with open(output_path, 'r') as f:
+                report_data = json.load(f)
+            
+            console.print(f"\n[bold]Report Summary:[/bold]")
+            console.print(f"Title: {report_data['metadata']['title']}")
+            console.print(f"Sections: {len(report_data['sections'])}")
+            console.print(f"Date Range: {report_data['metadata']['date_range']['start']} to {report_data['metadata']['date_range']['end']}")
+        
+    except Exception as e:
+        console.print(f"[red]Error generating report: {str(e)}[/red]")
+
+
+@analyze_group.command()
+def custom_report():
+    """Build a custom report interactively"""
+    
+    console.print("[info]Launching custom report builder...[/info]")
+    
+    try:
+        # Create API client (mock for now)
+        api_client = ESCAIAPIClient("http://localhost:8000")
+        
+        # Create report generator and custom builder
+        generator = create_report_generator(api_client, console)
+        builder = create_custom_report_builder(generator, console)
+        
+        # Build custom report configuration
+        config = builder.build_custom_report()
+        
+        # Generate the report
+        import asyncio
+        output_path = asyncio.run(generator.generate_report(config))
+        
+        console.print(f"\n[green]✓[/green] Custom report generated successfully!")
+        console.print(f"[blue]Output:[/blue] {output_path}")
+        
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Custom report builder cancelled[/yellow]")
+    except Exception as e:
+        console.print(f"[red]Error building custom report: {str(e)}[/red]")
+
+
+@analyze_group.command()
+@click.option('--list', 'list_templates', is_flag=True, help='List available report templates')
+@click.option('--template', help='Show details for specific template')
+def templates(list_templates: bool, template: str):
+    """Manage report templates"""
+    
+    try:
+        # Create API client (mock for now)
+        api_client = ESCAIAPIClient("http://localhost:8000")
+        generator = create_report_generator(api_client, console)
+        
+        if list_templates:
+            console.print("[info]Available report templates:[/info]\n")
+            
+            templates_list = generator.list_templates()
+            
+            table = Table(show_header=True, header_style="bold magenta")
+            table.add_column("Name", style="cyan")
+            table.add_column("Type", style="blue")
+            table.add_column("Description", style="white")
+            table.add_column("Sections", style="yellow")
+            table.add_column("Default Format", style="green")
+            
+            for tmpl in templates_list:
+                sections_str = ", ".join(tmpl.sections[:3])
+                if len(tmpl.sections) > 3:
+                    sections_str += f" (+{len(tmpl.sections) - 3} more)"
+                
+                table.add_row(
+                    tmpl.name,
+                    tmpl.type.value,
+                    tmpl.description[:50] + "..." if len(tmpl.description) > 50 else tmpl.description,
+                    sections_str,
+                    tmpl.default_format.value.upper()
+                )
+            
+            console.print(table)
+            
+        elif template:
+            tmpl = generator.get_template(template)
+            if tmpl:
+                console.print(f"[bold cyan]Template: {tmpl.name}[/bold cyan]\n")
+                
+                detail_panel = Panel(
+                    f"[bold]Type:[/bold] {tmpl.type.value}\n"
+                    f"[bold]Description:[/bold] {tmpl.description}\n"
+                    f"[bold]Default Format:[/bold] {tmpl.default_format.value.upper()}\n\n"
+                    f"[bold]Sections:[/bold]\n" +
+                    "\n".join([f"  • {section.replace('_', ' ').title()}" for section in tmpl.sections]) +
+                    f"\n\n[bold]Parameters:[/bold]\n" +
+                    "\n".join([f"  • {key}: {value}" for key, value in tmpl.parameters.items()]),
+                    title=f"Template Details: {tmpl.name}",
+                    border_style="blue"
+                )
+                console.print(detail_panel)
+            else:
+                console.print(f"[red]Template '{template}' not found[/red]")
+        else:
+            console.print("[yellow]Use --list to see available templates or --template <name> for details[/yellow]")
+            
+    except Exception as e:
+        console.print(f"[red]Error accessing templates: {str(e)}[/red]")
+
+
+@analyze_group.command()
+@click.option('--schedule', type=click.Choice(['daily', 'weekly', 'monthly']), 
+              default='daily', help='Report schedule')
+@click.option('--template', type=click.Choice(['executive_summary', 'detailed_analysis', 'trend_analysis', 'comparative_analysis']),
+              default='executive_summary', help='Report template')
+@click.option('--format', 'output_format', type=click.Choice(['json', 'csv', 'markdown', 'html', 'txt']),
+              default='html', help='Output format')
+@click.option('--email', multiple=True, help='Email recipients (can be used multiple times)')
+@click.option('--days-back', default=7, help='Number of days back to analyze')
+def schedule_report(schedule: str, template: str, output_format: str, email: tuple, days_back: int):
+    """Schedule automated report generation"""
+    
+    console.print(f"[info]Scheduling {schedule} {template} reports[/info]")
+    
+    try:
+        # Create API client (mock for now)
+        api_client = ESCAIAPIClient("http://localhost:8000")
+        
+        # Create report generator and scheduler
+        generator = create_report_generator(api_client, console)
+        scheduler = create_report_scheduler(generator, console)
+        
+        # Get template
+        report_template = generator.get_template(template)
+        if not report_template:
+            console.print(f"[red]Template '{template}' not found[/red]")
+            return
+        
+        # Create configuration
+        from datetime import datetime, timedelta
+        from ..utils.reporting import ReportConfig, ReportFormat
+        
+        end_date = datetime.now()
+        start_date = end_date - timedelta(days=days_back)
+        
+        config = ReportConfig(
+            template=report_template,
+            output_format=ReportFormat(output_format),
+            output_path=None,
+            date_range=(start_date, end_date),
+            filters={},
+            include_charts=True,
+            include_raw_data=False,
+            compress_output=True
+        )
+        
+        # Schedule the report
+        report_id = scheduler.schedule_report(config, schedule, list(email))
+        
+        console.print(f"[green]✓[/green] Report scheduled successfully (ID: {report_id})")
+        console.print(f"[blue]Schedule:[/blue] {schedule}")
+        console.print(f"[blue]Template:[/blue] {template}")
+        console.print(f"[blue]Format:[/blue] {output_format}")
+        if email:
+            console.print(f"[blue]Email Recipients:[/blue] {', '.join(email)}")
+        
+    except Exception as e:
+        console.print(f"[red]Error scheduling report: {str(e)}[/red]")
+
+
+@analyze_group.command()
+@click.option('--list', 'list_scheduled', is_flag=True, help='List scheduled reports')
+@click.option('--disable', type=int, help='Disable scheduled report by ID')
+@click.option('--enable', type=int, help='Enable scheduled report by ID')
+@click.option('--run-now', is_flag=True, help='Run all due scheduled reports now')
+def scheduled(list_scheduled: bool, disable: int, enable: int, run_now: bool):
+    """Manage scheduled reports"""
+    
+    try:
+        # Create API client (mock for now)
+        api_client = ESCAIAPIClient("http://localhost:8000")
+        
+        # Create report generator and scheduler
+        generator = create_report_generator(api_client, console)
+        scheduler = create_report_scheduler(generator, console)
+        
+        if list_scheduled:
+            console.print("[info]Scheduled reports:[/info]\n")
+            
+            scheduled_reports = scheduler.list_scheduled_reports()
+            
+            if not scheduled_reports:
+                console.print("[yellow]No scheduled reports found[/yellow]")
+                return
+            
+            table = Table(show_header=True, header_style="bold magenta")
+            table.add_column("ID", style="cyan", width=4)
+            table.add_column("Template", style="blue")
+            table.add_column("Schedule", style="green")
+            table.add_column("Format", style="yellow")
+            table.add_column("Status", style="white")
+            table.add_column("Next Run", style="magenta")
+            table.add_column("Last Run", style="dim")
+            
+            for report in scheduled_reports:
+                status = "[green]Enabled[/green]" if report["enabled"] else "[red]Disabled[/red]"
+                next_run = report["next_run"].strftime("%Y-%m-%d %H:%M") if report["next_run"] else "N/A"
+                last_run = report["last_run"].strftime("%Y-%m-%d %H:%M") if report["last_run"] else "Never"
+                
+                table.add_row(
+                    str(report["id"]),
+                    report["config"].template.name,
+                    report["schedule"],
+                    report["config"].output_format.value.upper(),
+                    status,
+                    next_run,
+                    last_run
+                )
+            
+            console.print(table)
+            
+        elif disable is not None:
+            scheduler.disable_scheduled_report(disable)
+            
+        elif enable is not None:
+            scheduler.enable_scheduled_report(enable)
+            
+        elif run_now:
+            console.print("[info]Running scheduled reports...[/info]")
+            import asyncio
+            asyncio.run(scheduler.run_scheduled_reports())
+            
+        else:
+            console.print("[yellow]Use --list to see scheduled reports or other options to manage them[/yellow]")
+            
+    except Exception as e:
+        console.print(f"[red]Error managing scheduled reports: {str(e)}[/red]")
+
+
+@analyze_group.command()
+@click.option('--format', 'export_format', type=click.Choice(['json', 'csv', 'markdown']),
+              default='json', help='Export format')
+@click.option('--output', help='Output file path')
+@click.option('--agent-id', help='Filter by specific agent ID')
+@click.option('--days-back', default=7, help='Number of days back to export')
+@click.option('--data-type', type=click.Choice(['all', 'agents', 'sessions', 'patterns', 'causal', 'predictions']),
+              default='all', help='Type of data to export')
+def export(export_format: str, output: str, agent_id: str, days_back: int, data_type: str):
+    """Export analysis data in various formats"""
+    
+    console.print(f"[info]Exporting {data_type} data ({export_format} format)[/info]")
+    
+    try:
+        # Create API client (mock for now)
+        api_client = ESCAIAPIClient("http://localhost:8000")
+        
+        # Mock data collection (in real implementation, this would use the API client)
+        from datetime import datetime, timedelta
+        import json
+        from pathlib import Path
+        
+        # Mock data
+        export_data = {
+            "metadata": {
+                "exported_at": datetime.now().isoformat(),
+                "date_range": {
+                    "start": (datetime.now() - timedelta(days=days_back)).isoformat(),
+                    "end": datetime.now().isoformat()
+                },
+                "filters": {"agent_id": agent_id} if agent_id else {},
+                "data_type": data_type
+            },
+            "data": {
+                "agents": [
+                    {"id": "agent1", "name": "Test Agent 1", "status": "active"},
+                    {"id": "agent2", "name": "Test Agent 2", "status": "inactive"}
+                ],
+                "sessions": [
+                    {"id": "session1", "agent_id": "agent1", "status": "completed", "duration": 120},
+                    {"id": "session2", "agent_id": "agent1", "status": "failed", "duration": 60}
+                ],
+                "patterns": [
+                    {"id": "pattern1", "type": "sequential", "frequency": 5, "name": "Task Completion"},
+                    {"id": "pattern2", "type": "parallel", "frequency": 2, "name": "Multi-task"}
+                ],
+                "causal_relationships": [
+                    {"cause": "high_confidence", "effect": "task_success", "strength": 0.85},
+                    {"cause": "low_resources", "effect": "task_failure", "strength": 0.72}
+                ],
+                "predictions": [
+                    {"agent_id": "agent1", "prediction": "success", "confidence": 0.9},
+                    {"agent_id": "agent2", "prediction": "failure", "confidence": 0.7}
+                ]
+            }
+        }
+        
+        # Filter data by type
+        if data_type != 'all':
+            filtered_data = {
+                "metadata": export_data["metadata"],
+                "data": {data_type: export_data["data"].get(data_type, [])}
+            }
+        else:
+            filtered_data = export_data
+        
+        # Determine output path
+        if not output:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output = f"escai_export_{data_type}_{timestamp}.{export_format}"
+        
+        output_path = Path(output)
+        
+        # Export data
+        if export_format == 'json':
+            with open(output_path, 'w') as f:
+                json.dump(filtered_data, f, indent=2, default=str)
+                
+        elif export_format == 'csv':
+            import csv
+            with open(output_path, 'w', newline='') as f:
+                writer = csv.writer(f)
+                
+                # Write metadata
+                writer.writerow(['Export Metadata'])
+                writer.writerow(['Exported At', filtered_data['metadata']['exported_at']])
+                writer.writerow(['Data Type', filtered_data['metadata']['data_type']])
+                writer.writerow([])
+                
+                # Write data
+                for data_key, data_list in filtered_data['data'].items():
+                    writer.writerow([f'{data_key.title()} Data'])
+                    if data_list:
+                        # Write headers
+                        headers = list(data_list[0].keys())
+                        writer.writerow(headers)
+                        
+                        # Write rows
+                        for item in data_list:
+                            writer.writerow([item.get(h, '') for h in headers])
+                    writer.writerow([])
+                    
+        elif export_format == 'markdown':
+            with open(output_path, 'w') as f:
+                f.write(f"# ESCAI Data Export\n\n")
+                f.write(f"**Exported:** {filtered_data['metadata']['exported_at']}  \n")
+                f.write(f"**Data Type:** {filtered_data['metadata']['data_type']}  \n")
+                f.write(f"**Date Range:** {filtered_data['metadata']['date_range']['start']} to {filtered_data['metadata']['date_range']['end']}  \n\n")
+                
+                for data_key, data_list in filtered_data['data'].items():
+                    f.write(f"## {data_key.replace('_', ' ').title()}\n\n")
+                    
+                    if data_list:
+                        # Create markdown table
+                        headers = list(data_list[0].keys())
+                        f.write("| " + " | ".join(headers) + " |\n")
+                        f.write("| " + " | ".join(["---"] * len(headers)) + " |\n")
+                        
+                        for item in data_list:
+                            row = [str(item.get(h, '')) for h in headers]
+                            f.write("| " + " | ".join(row) + " |\n")
+                    else:
+                        f.write("No data available.\n")
+                    
+                    f.write("\n")
+        
+        console.print(f"[green]✓[/green] Data exported successfully!")
+        console.print(f"[blue]Output:[/blue] {output_path}")
+        console.print(f"[blue]Format:[/blue] {export_format.upper()}")
+        console.print(f"[blue]Data Type:[/blue] {data_type}")
+        
+        # Show export summary
+        total_items = sum(len(data_list) for data_list in filtered_data['data'].values())
+        console.print(f"[blue]Total Items:[/blue] {total_items}")
+        
+    except Exception as e:
+        console.print(f"[red]Error exporting data: {str(e)}[/red]")

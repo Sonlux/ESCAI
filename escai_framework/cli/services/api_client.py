@@ -171,4 +171,41 @@ class ESCAIAPIClient:
         headers = {"Content-Type": "application/json"}
         if self.api_key:
             headers["Authorization"] = f"Bearer {self.api_key}"
+        return headers   
+ 
+    async def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Generic GET request to API endpoint"""
+        async with httpx.AsyncClient() as client:
+            try:
+                url = f"{self.base_url}{endpoint}"
+                response = await client.get(url, params=params, headers=self._get_headers())
+                response.raise_for_status()
+                return response.json()
+            except httpx.RequestError as e:
+                self.console.print(f"[error]API request failed: {e}[/error]")
+                return {}
+            except httpx.HTTPStatusError as e:
+                self.console.print(f"[error]API error {e.response.status_code}: {e.response.text}[/error]")
+                return {}
+    
+    async def post(self, endpoint: str, data: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Generic POST request to API endpoint"""
+        async with httpx.AsyncClient() as client:
+            try:
+                url = f"{self.base_url}{endpoint}"
+                response = await client.post(url, json=data, headers=self._get_headers())
+                response.raise_for_status()
+                return response.json()
+            except httpx.RequestError as e:
+                self.console.print(f"[error]API request failed: {e}[/error]")
+                return {}
+            except httpx.HTTPStatusError as e:
+                self.console.print(f"[error]API error {e.response.status_code}: {e.response.text}[/error]")
+                return {}
+    
+    def _get_headers(self) -> Dict[str, str]:
+        """Get request headers"""
+        headers = {"Content-Type": "application/json"}
+        if self.api_key:
+            headers["Authorization"] = f"Bearer {self.api_key}"
         return headers
