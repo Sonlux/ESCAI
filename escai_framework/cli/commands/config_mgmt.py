@@ -25,9 +25,9 @@ from ...config import (
 console = Console()
 
 
-@click.group(name='config')
-def config_group():
-    """Configuration management commands."""
+@click.group(name='config-mgmt')
+def config_mgmt_group():
+    """Advanced configuration management commands."""
     pass
 
 
