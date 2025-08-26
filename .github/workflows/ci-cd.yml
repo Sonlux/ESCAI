@@ -6,6 +6,17 @@ on:
     tags: ["v*"]
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      python-version:
+        description: "Python version to test with"
+        required: false
+        default: "3.11"
+        type: choice
+        options:
+          - "3.9"
+          - "3.10"
+          - "3.11"
 
 env:
   REGISTRY: ghcr.io
@@ -62,21 +73,30 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+          check-latest: true
+
+      - name: Verify Python version
+        run: |
+          python --version
+          python -c "import sys; print(f'Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}')"
 
       - name: Cache pip dependencies
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml', '**/requirements*.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-          pip install -e .
+          # Install development dependencies
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          fi
+          # Install package with all dependencies
+          pip install -e ".[dev,full]"
 
       - name: Lint with flake8
         run: |
@@ -206,6 +226,7 @@ jobs:
             --values ./helm/escai/values-production.yaml
 
   security-scan:
+    needs: build
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
 
@@ -213,10 +234,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Extract metadata for scan
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
           format: "sarif"
           output: "trivy-results.sarif"
 
