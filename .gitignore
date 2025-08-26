@@ -232,9 +232,8 @@ runs/
 tensorboard_logs/
 
 # ESCAI specific
-# Exclude Kiro IDE configuration from public repo (but keep specs)
-.kiro/steering/
-.kiro/settings/
+# Exclude Kiro IDE configuration from public repo
+.kiro/
 
 # Exclude test artifacts
 test_results/

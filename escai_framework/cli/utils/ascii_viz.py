@@ -33,6 +33,9 @@ class ChartConfig:
     show_grid: bool = True
     color_gradient: bool = True
     unicode_chars: bool = True
+    color_scheme: str = "default"  # default, dark, light, high_contrast
+    show_legend: bool = True
+    border_style: str = "rounded"  # rounded, square, double, thick
 
 
 class ASCIIChart:
@@ -42,26 +45,70 @@ class ASCIIChart:
         self.config = config or ChartConfig()
         
         # Unicode characters for better visualization
-        self.chars = {
-            'full': '█' if self.config.unicode_chars else '#',
-            'three_quarters': '▉' if self.config.unicode_chars else '#',
-            'half': '▌' if self.config.unicode_chars else '#',
-            'quarter': '▎' if self.config.unicode_chars else '.',
-            'light': '░' if self.config.unicode_chars else '.',
-            'medium': '▒' if self.config.unicode_chars else ':',
-            'dark': '▓' if self.config.unicode_chars else '#',
-            'horizontal': '─' if self.config.unicode_chars else '-',
-            'vertical': '│' if self.config.unicode_chars else '|',
-            'corner_tl': '┌' if self.config.unicode_chars else '+',
-            'corner_tr': '┐' if self.config.unicode_chars else '+',
-            'corner_bl': '└' if self.config.unicode_chars else '+',
-            'corner_br': '┘' if self.config.unicode_chars else '+',
-            'cross': '┼' if self.config.unicode_chars else '+',
-            'tee_down': '┬' if self.config.unicode_chars else '+',
-            'tee_up': '┴' if self.config.unicode_chars else '+',
-            'tee_right': '├' if self.config.unicode_chars else '+',
-            'tee_left': '┤' if self.config.unicode_chars else '+',
+        self.chars = self._get_border_chars()
+        self.colors = self._get_color_scheme()
+        
+    def _get_border_chars(self) -> Dict[str, str]:
+        """Get border characters based on style"""
+        if not self.config.unicode_chars:
+            return {
+                'full': '#', 'three_quarters': '#', 'half': '#', 'quarter': '.',
+                'light': '.', 'medium': ':', 'dark': '#',
+                'horizontal': '-', 'vertical': '|',
+                'corner_tl': '+', 'corner_tr': '+', 'corner_bl': '+', 'corner_br': '+',
+                'cross': '+', 'tee_down': '+', 'tee_up': '+', 'tee_right': '+', 'tee_left': '+',
+            }
+        
+        if self.config.border_style == "double":
+            return {
+                'full': '█', 'three_quarters': '▉', 'half': '▌', 'quarter': '▎',
+                'light': '░', 'medium': '▒', 'dark': '▓',
+                'horizontal': '═', 'vertical': '║',
+                'corner_tl': '╔', 'corner_tr': '╗', 'corner_bl': '╚', 'corner_br': '╝',
+                'cross': '╬', 'tee_down': '╦', 'tee_up': '╩', 'tee_right': '╠', 'tee_left': '╣',
+            }
+        elif self.config.border_style == "thick":
+            return {
+                'full': '█', 'three_quarters': '▉', 'half': '▌', 'quarter': '▎',
+                'light': '░', 'medium': '▒', 'dark': '▓',
+                'horizontal': '━', 'vertical': '┃',
+                'corner_tl': '┏', 'corner_tr': '┓', 'corner_bl': '┗', 'corner_br': '┛',
+                'cross': '╋', 'tee_down': '┳', 'tee_up': '┻', 'tee_right': '┣', 'tee_left': '┫',
+            }
+        else:  # rounded (default)
+            return {
+                'full': '█', 'three_quarters': '▉', 'half': '▌', 'quarter': '▎',
+                'light': '░', 'medium': '▒', 'dark': '▓',
+                'horizontal': '─', 'vertical': '│',
+                'corner_tl': '╭', 'corner_tr': '╮', 'corner_bl': '╰', 'corner_br': '╯',
+                'cross': '┼', 'tee_down': '┬', 'tee_up': '┴', 'tee_right': '├', 'tee_left': '┤',
+            }
+    
+    def _get_color_scheme(self) -> Dict[str, str]:
+        """Get color scheme based on configuration"""
+        schemes = {
+            "default": {
+                "primary": "cyan", "secondary": "blue", "accent": "magenta",
+                "success": "green", "warning": "yellow", "error": "red",
+                "text": "white", "muted": "dim white"
+            },
+            "dark": {
+                "primary": "bright_cyan", "secondary": "bright_blue", "accent": "bright_magenta",
+                "success": "bright_green", "warning": "bright_yellow", "error": "bright_red",
+                "text": "bright_white", "muted": "white"
+            },
+            "light": {
+                "primary": "blue", "secondary": "cyan", "accent": "purple",
+                "success": "green", "warning": "orange3", "error": "red3",
+                "text": "black", "muted": "grey50"
+            },
+            "high_contrast": {
+                "primary": "bright_white", "secondary": "bright_yellow", "accent": "bright_cyan",
+                "success": "bright_green", "warning": "bright_yellow", "error": "bright_red",
+                "text": "bright_white", "muted": "bright_black"
+            }
         }
+        return schemes.get(self.config.color_scheme, schemes["default"])
     
     def _normalize_data(self, data: List[float]) -> List[float]:
         """Normalize data to 0-1 range"""

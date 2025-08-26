@@ -247,6 +247,183 @@ def test():
     console.print(table)
 
 @config_group.command()
+@click.option('--scheme', type=click.Choice(['default', 'dark', 'light', 'high_contrast', 'monochrome']),
+              help='Color scheme to set')
+@click.option('--list', 'list_schemes', is_flag=True, help='List available color schemes')
+@click.option('--preview', is_flag=True, help='Preview color schemes')
+def theme(scheme: str, list_schemes: bool, preview: bool):
+    """Configure CLI color scheme and theme"""
+    
+    from ..utils.console import get_available_schemes, set_color_scheme, create_themed_console
+    
+    available_schemes = get_available_schemes()
+    
+    if list_schemes:
+        console.print("\n[bold cyan]Available Color Schemes:[/bold cyan]")
+        for i, scheme_name in enumerate(available_schemes, 1):
+            console.print(f"  {i}. {scheme_name}")
+        return
+    
+    if preview:
+        console.print("\n[bold cyan]Color Scheme Preview:[/bold cyan]")
+        
+        for scheme_name in available_schemes:
+            themed_console = create_themed_console(scheme_name)
+            
+            themed_console.print(f"\n[bold]{scheme_name.title()} Theme:[/bold]")
+            themed_console.print("  [info]Info message[/info]")
+            themed_console.print("  [warning]Warning message[/warning]")
+            themed_console.print("  [error]Error message[/error]")
+            themed_console.print("  [success]Success message[/success]")
+            themed_console.print("  [highlight]Highlighted text[/highlight]")
+            themed_console.print("  [accent]Accent text[/accent]")
+            themed_console.print("  [muted]Muted text[/muted]")
+            
+            # Show sample chart colors
+            themed_console.print("  Chart colors: [chart_bar]████[/chart_bar] [chart_line]████[/chart_line] [progress]████[/progress]")
+        
+        return
+    
+    if scheme:
+        if scheme in available_schemes:
+            # Save theme preference to config
+            config = {}
+            if CONFIG_FILE.exists():
+                with open(CONFIG_FILE, 'r') as f:
+                    config = json.load(f)
+            
+            if 'ui' not in config:
+                config['ui'] = {}
+            
+            config['ui']['color_scheme'] = scheme
+            
+            CONFIG_DIR.mkdir(exist_ok=True)
+            with open(CONFIG_FILE, 'w') as f:
+                json.dump(config, f, indent=2)
+            
+            # Apply theme
+            set_color_scheme(scheme)
+            console.print(f"[success]✅ Color scheme set to '{scheme}'[/success]")
+            
+            # Show preview of new theme
+            console.print(f"\n[bold]Preview of {scheme} theme:[/bold]")
+            console.print("  [info]This is an info message[/info]")
+            console.print("  [success]This is a success message[/success]")
+            console.print("  [warning]This is a warning message[/warning]")
+            console.print("  [error]This is an error message[/error]")
+            
+        else:
+            console.print(f"[error]Unknown color scheme: {scheme}[/error]")
+            console.print(f"Available schemes: {', '.join(available_schemes)}")
+    
+    else:
+        # Show current theme
+        current_scheme = "default"
+        if CONFIG_FILE.exists():
+            with open(CONFIG_FILE, 'r') as f:
+                config = json.load(f)
+                current_scheme = config.get('ui', {}).get('color_scheme', 'default')
+        
+        console.print(f"[info]Current color scheme: {current_scheme}[/info]")
+        console.print("\nUse --list to see available schemes")
+        console.print("Use --preview to preview all schemes")
+        console.print("Use --scheme <name> to set a scheme")
+
+
+@config_group.command()
+def check():
+    """Validate current configuration and system requirements"""
+    
+    console.print("[info]Checking system configuration and requirements...[/info]\n")
+    
+    checks = []
+    
+    # Check Python version
+    import sys
+    python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    if sys.version_info >= (3, 8):
+        checks.append(("Python Version", f"✅ {python_version}", "green"))
+    else:
+        checks.append(("Python Version", f"❌ {python_version} (requires 3.8+)", "red"))
+    
+    # Check configuration file
+    if CONFIG_FILE.exists():
+        checks.append(("Configuration File", "✅ Found", "green"))
+        
+        # Validate configuration
+        try:
+            with open(CONFIG_FILE, 'r') as f:
+                config = json.load(f)
+            
+            required_sections = ['api', 'monitoring']
+            for section in required_sections:
+                if section in config:
+                    checks.append((f"Config Section: {section}", "✅ Present", "green"))
+                else:
+                    checks.append((f"Config Section: {section}", "⚠️ Missing", "yellow"))
+        
+        except json.JSONDecodeError:
+            checks.append(("Configuration File", "❌ Invalid JSON", "red"))
+    
+    else:
+        checks.append(("Configuration File", "❌ Not found", "red"))
+    
+    # Check dependencies
+    required_packages = [
+        'rich', 'click', 'asyncio', 'pandas', 'numpy',
+        'fastapi', 'sqlalchemy', 'redis', 'pymongo'
+    ]
+    
+    for package in required_packages:
+        try:
+            __import__(package)
+            checks.append((f"Package: {package}", "✅ Installed", "green"))
+        except ImportError:
+            checks.append((f"Package: {package}", "❌ Missing", "red"))
+    
+    # Check directories
+    directories = [
+        CONFIG_DIR,
+        Path.cwd() / 'logs',
+        Path.cwd() / 'data'
+    ]
+    
+    for directory in directories:
+        if directory.exists():
+            checks.append((f"Directory: {directory.name}", "✅ Exists", "green"))
+        else:
+            checks.append((f"Directory: {directory.name}", "⚠️ Missing", "yellow"))
+    
+    # Display results
+    table = Table(title="System Check Results", show_header=True, header_style="bold cyan")
+    table.add_column("Component", style="yellow", width=25)
+    table.add_column("Status", style="white", width=30)
+    
+    for component, status, color in checks:
+        table.add_row(component, f"[{color}]{status}[/{color}]")
+    
+    console.print(table)
+    
+    # Summary
+    passed = sum(1 for _, status, _ in checks if "✅" in status)
+    warnings = sum(1 for _, status, _ in checks if "⚠️" in status)
+    failed = sum(1 for _, status, _ in checks if "❌" in status)
+    
+    console.print(f"\n[bold]Summary:[/bold] {passed} passed, {warnings} warnings, {failed} failed")
+    
+    if failed > 0:
+        console.print("\n[bold red]Action Required:[/bold red]")
+        console.print("  • Install missing dependencies: [cyan]pip install -r requirements.txt[/cyan]")
+        console.print("  • Run configuration setup: [cyan]escai config setup[/cyan]")
+    elif warnings > 0:
+        console.print("\n[bold yellow]Recommendations:[/bold yellow]")
+        console.print("  • Create missing directories")
+        console.print("  • Complete configuration setup: [cyan]escai config setup[/cyan]")
+    else:
+        console.print("\n[bold green]✅ All checks passed! System is ready.[/bold green]")
+
+
+@config_group.command()
 def reset():
     """Reset configuration to defaults"""
     

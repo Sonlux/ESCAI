@@ -15,6 +15,7 @@ from .commands.monitor import monitor_group
 from .commands.analyze import analyze_group
 from .commands.config import config_group
 from .commands.session import session_group
+from .commands.config_mgmt import config_group as config_mgmt_group
 from .utils.logo import display_logo
 from .utils.console import get_console
 
@@ -57,6 +58,7 @@ cli.add_command(monitor_group)
 cli.add_command(analyze_group)
 cli.add_command(config_group)
 cli.add_command(session_group)
+cli.add_command(config_mgmt_group)
 
 def main():
     """Entry point for the CLI application"""

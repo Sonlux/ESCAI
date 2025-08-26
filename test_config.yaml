@@ -1,0 +1,101 @@
+api:
+  cors_headers:
+  - '*'
+  cors_methods:
+  - GET
+  - POST
+  - PUT
+  - DELETE
+  cors_origins:
+  - http://localhost:3000
+  - http://localhost:8080
+  host: 0.0.0.0
+  max_request_size: 10485760
+  port: 8000
+  rate_limit_requests: 100
+  rate_limit_window: 60
+  reload: true
+  request_timeout: 30
+  websocket_heartbeat_interval: 30
+  websocket_max_connections: 100
+  workers: 1
+custom_settings: {}
+database:
+  influxdb_database: escai_metrics
+  influxdb_host: localhost
+  influxdb_password: null
+  influxdb_port: 8086
+  influxdb_retention_policy: 30d
+  influxdb_username: null
+  mongodb_database: escai_logs
+  mongodb_host: localhost
+  mongodb_password: null
+  mongodb_port: 27017
+  mongodb_replica_set: null
+  mongodb_username: null
+  neo4j_database: neo4j
+  neo4j_password: change_me_in_production
+  neo4j_pool_size: 10
+  neo4j_uri: bolt://localhost:7687
+  neo4j_username: neo4j
+  postgres_database: escai
+  postgres_host: localhost
+  postgres_max_overflow: 20
+  postgres_password: change_me_in_production
+  postgres_pool_size: 10
+  postgres_port: 5432
+  postgres_username: escai_user
+  redis_database: 0
+  redis_host: localhost
+  redis_password: null
+  redis_pool_size: 10
+  redis_port: 6379
+debug: true
+environment: development
+log_level: DEBUG
+ml:
+  ensemble_size: 5
+  model_cache_enabled: true
+  model_cache_size: 100
+  model_update_interval_hours: 24
+  prediction_confidence_threshold: 0.7
+  training_batch_size: 32
+  training_enabled: true
+  training_epochs: 10
+  validation_split: 0.2
+monitoring:
+  alert_thresholds:
+    cpu_usage: 80.0
+    disk_usage: 90.0
+    error_rate: 5.0
+    memory_usage: 85.0
+  alerting_enabled: false
+  health_check_enabled: true
+  health_check_interval_seconds: 30
+  metrics_enabled: true
+  metrics_interval_seconds: 30
+  monitoring_enabled: true
+  monitoring_overhead_threshold: 0.1
+  sampling_rate: 1.0
+security:
+  audit_enabled: false
+  audit_retention_days: 90
+  jwt_access_token_expire_minutes: 60
+  jwt_algorithm: HS256
+  jwt_refresh_token_expire_days: 7
+  jwt_secret_key: change_me_to_a_secure_random_key_in_production
+  lockout_duration_minutes: 15
+  max_login_attempts: 5
+  password_min_length: 8
+  password_require_lowercase: true
+  password_require_numbers: true
+  password_require_symbols: true
+  password_require_uppercase: true
+  pii_detection_enabled: true
+  pii_masking_enabled: true
+  pii_sensitivity_level: medium
+  session_timeout_minutes: 60
+  tls_ca_file: null
+  tls_cert_file: null
+  tls_enabled: false
+  tls_key_file: null

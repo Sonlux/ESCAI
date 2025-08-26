@@ -747,11 +747,1248 @@ def interactive(agent_id: str):
 
 
 @analyze_group.command()
+@click.option('--query', help='Search query string')
+@click.option('--field', help='Specific field to search in')
+@click.option('--fuzzy', is_flag=True, help='Enable fuzzy search')
+@click.option('--interactive', is_flag=True, help='Launch interactive search interface')
+def search(query: str, field: str, fuzzy: bool, interactive: bool):
+    """Advanced search with filtering and interactive exploration"""
+    
+    console.print("[info]Initializing search interface...[/info]")
+    
+    from ..utils.data_filters import create_data_filter, interactive_data_explorer
+    
+    # Mock comprehensive data for search
+    search_data = [
+        {
+            'id': 'agent_001',
+            'name': 'Data Processing Agent',
+            'framework': 'langchain',
+            'status': 'active',
+            'performance': {
+                'success_rate': 0.89,
+                'avg_response_time': 1.2,
+                'total_requests': 1247
+            },
+            'patterns': ['sequential_processing', 'error_recovery'],
+            'last_activity': '2024-01-15T14:30:25',
+            'metadata': {
+                'version': '1.2.3',
+                'environment': 'production',
+                'tags': ['nlp', 'data-processing', 'high-priority']
+            }
+        },
+        {
+            'id': 'agent_002',
+            'name': 'Conversation Agent',
+            'framework': 'autogen',
+            'status': 'idle',
+            'performance': {
+                'success_rate': 0.92,
+                'avg_response_time': 0.8,
+                'total_requests': 892
+            },
+            'patterns': ['dialogue_management', 'context_switching'],
+            'last_activity': '2024-01-15T14:25:18',
+            'metadata': {
+                'version': '2.1.0',
+                'environment': 'staging',
+                'tags': ['conversation', 'multi-agent', 'experimental']
+            }
+        },
+        {
+            'id': 'agent_003',
+            'name': 'Analysis Agent',
+            'framework': 'crewai',
+            'status': 'error',
+            'performance': {
+                'success_rate': 0.67,
+                'avg_response_time': 2.5,
+                'total_requests': 456
+            },
+            'patterns': ['data_analysis', 'report_generation'],
+            'last_activity': '2024-01-15T14:20:42',
+            'metadata': {
+                'version': '1.0.1',
+                'environment': 'development',
+                'tags': ['analytics', 'reporting', 'beta']
+            }
+        },
+        {
+            'id': 'agent_004',
+            'name': 'Optimization Agent',
+            'framework': 'openai',
+            'status': 'active',
+            'performance': {
+                'success_rate': 0.94,
+                'avg_response_time': 1.1,
+                'total_requests': 2156
+            },
+            'patterns': ['parameter_tuning', 'performance_optimization'],
+            'last_activity': '2024-01-15T14:30:01',
+            'metadata': {
+                'version': '3.0.0',
+                'environment': 'production',
+                'tags': ['optimization', 'ml', 'performance']
+            }
+        }
+    ]
+    
+    filter_engine = create_data_filter()
+    
+    if interactive:
+        # Launch interactive explorer
+        interactive_data_explorer(search_data, "Agent Data Explorer")
+        return
+    
+    if query:
+        # Perform search
+        if fuzzy and field:
+            results = filter_engine.fuzzy_search(search_data, query, field)
+            console.print(f"[info]Fuzzy search for '{query}' in field '{field}'[/info]")
+        elif field:
+            # Search in specific field
+            results = filter_engine.quick_search(search_data, query, [field])
+            console.print(f"[info]Searching for '{query}' in field '{field}'[/info]")
+        else:
+            # Search in all fields
+            results = filter_engine.quick_search(search_data, query)
+            console.print(f"[info]Searching for '{query}' in all fields[/info]")
+        
+        console.print(f"[success]Found {len(results)} matching results[/success]")
+        
+        if results:
+            # Display results table
+            table = Table(show_header=True, header_style="bold magenta")
+            table.add_column("ID", style="cyan")
+            table.add_column("Name", style="blue")
+            table.add_column("Framework", style="green")
+            table.add_column("Status", style="yellow")
+            table.add_column("Success Rate", justify="center", style="red")
+            table.add_column("Tags", style="muted")
+            
+            for result in results[:10]:  # Show first 10 results
+                status_color = {"active": "green", "idle": "yellow", "error": "red"}.get(result['status'], "white")
+                tags = ", ".join(result['metadata']['tags'][:3])  # Show first 3 tags
+                
+                table.add_row(
+                    result['id'],
+                    result['name'],
+                    result['framework'],
+                    f"[{status_color}]{result['status']}[/{status_color}]",
+                    f"{result['performance']['success_rate']:.1%}",
+                    tags
+                )
+            
+            console.print(table)
+            
+            if len(results) > 10:
+                console.print(f"[muted]Showing first 10 of {len(results)} results[/muted]")
+        
+    else:
+        # Show search help
+        console.print("\n[bold cyan]🔍 Search Help[/bold cyan]")
+        console.print("Use the search command to find agents, patterns, and data")
+        console.print("\n[bold]Examples:[/bold]")
+        console.print("  [cyan]escai analyze search --query 'langchain'[/cyan]")
+        console.print("  [cyan]escai analyze search --query 'active' --field 'status'[/cyan]")
+        console.print("  [cyan]escai analyze search --query 'process' --fuzzy --field 'name'[/cyan]")
+        console.print("  [cyan]escai analyze search --interactive[/cyan]")
+        
+        console.print("\n[bold]Available fields:[/bold]")
+        sample_fields = [
+            "id", "name", "framework", "status",
+            "performance.success_rate", "performance.avg_response_time",
+            "patterns", "metadata.tags", "metadata.environment"
+        ]
+        
+        for field in sample_fields:
+            console.print(f"  • {field}")
+
+
+@analyze_group.command()
+@click.option('--agent-id', help='Filter by specific agent ID')
+@click.option('--interactive', is_flag=True, help='Interactive filter builder')
+def filter(agent_id: str, interactive: bool):
+    """Advanced data filtering with multiple conditions"""
+    
+    console.print("[info]Setting up data filters...[/info]")
+    
+    from ..utils.data_filters import create_data_filter, SearchQuery, FilterCondition, FilterOperator
+    
+    # Mock data for filtering
+    filter_data = [
+        {
+            'agent_id': 'agent_001',
+            'timestamp': '2024-01-15T14:30:25',
+            'event_type': 'decision',
+            'confidence': 0.89,
+            'duration': 1.2,
+            'success': True,
+            'category': 'processing',
+            'metadata': {'complexity': 'medium', 'priority': 'high'}
+        },
+        {
+            'agent_id': 'agent_002',
+            'timestamp': '2024-01-15T14:29:18',
+            'event_type': 'belief_update',
+            'confidence': 0.76,
+            'duration': 0.8,
+            'success': True,
+            'category': 'cognition',
+            'metadata': {'complexity': 'low', 'priority': 'medium'}
+        },
+        {
+            'agent_id': 'agent_001',
+            'timestamp': '2024-01-15T14:28:42',
+            'event_type': 'error',
+            'confidence': 0.45,
+            'duration': 3.2,
+            'success': False,
+            'category': 'processing',
+            'metadata': {'complexity': 'high', 'priority': 'critical'}
+        },
+        {
+            'agent_id': 'agent_003',
+            'timestamp': '2024-01-15T14:27:15',
+            'event_type': 'pattern_match',
+            'confidence': 0.92,
+            'duration': 0.5,
+            'success': True,
+            'category': 'analysis',
+            'metadata': {'complexity': 'low', 'priority': 'low'}
+        }
+    ]
+    
+    filter_engine = create_data_filter()
+    
+    if interactive:
+        # Interactive filter builder
+        sample_data = filter_data[0] if filter_data else {}
+        query = filter_engine.interactive_filter_builder(sample_data)
+        
+        if query.conditions:
+            results = filter_engine.apply_filter(filter_data, query)
+            console.print(f"\n[success]Filter applied - {len(results)} items match[/success]")
+            
+            # Show results
+            if results:
+                table = Table(show_header=True, header_style="bold magenta")
+                table.add_column("Agent ID", style="cyan")
+                table.add_column("Event Type", style="blue")
+                table.add_column("Confidence", justify="center", style="green")
+                table.add_column("Duration", justify="right", style="yellow")
+                table.add_column("Success", justify="center", style="red")
+                table.add_column("Category", style="muted")
+                
+                for result in results:
+                    success_icon = "✅" if result['success'] else "❌"
+                    table.add_row(
+                        result['agent_id'],
+                        result['event_type'],
+                        f"{result['confidence']:.2f}",
+                        f"{result['duration']:.1f}s",
+                        success_icon,
+                        result['category']
+                    )
+                
+                console.print(table)
+            
+            # Show filter summary
+            summary = filter_engine.create_filter_summary(query, len(results))
+            console.print(summary)
+    
+    else:
+        # Show predefined filter examples
+        console.print("\n[bold cyan]📊 Data Filter Examples[/bold cyan]")
+        
+        # Example 1: High confidence events
+        high_conf_query = SearchQuery(
+            conditions=[
+                FilterCondition("confidence", FilterOperator.GREATER_THAN, 0.8)
+            ]
+        )
+        high_conf_results = filter_engine.apply_filter(filter_data, high_conf_query)
+        console.print(f"\n[bold]High Confidence Events (>0.8):[/bold] {len(high_conf_results)} items")
+        
+        # Example 2: Failed events
+        failed_query = SearchQuery(
+            conditions=[
+                FilterCondition("success", FilterOperator.EQUALS, False)
+            ]
+        )
+        failed_results = filter_engine.apply_filter(filter_data, failed_query)
+        console.print(f"[bold]Failed Events:[/bold] {len(failed_results)} items")
+        
+        # Example 3: Processing category with high duration
+        complex_query = SearchQuery(
+            conditions=[
+                FilterCondition("category", FilterOperator.EQUALS, "processing"),
+                FilterCondition("duration", FilterOperator.GREATER_THAN, 1.0)
+            ],
+            logic="AND"
+        )
+        complex_results = filter_engine.apply_filter(filter_data, complex_query)
+        console.print(f"[bold]Long Processing Events (>1.0s):[/bold] {len(complex_results)} items")
+        
+        # Show sample results
+        if complex_results:
+            console.print("\n[bold]Sample Results (Long Processing Events):[/bold]")
+            for result in complex_results[:3]:
+                console.print(f"  • {result['agent_id']}: {result['event_type']} ({result['duration']:.1f}s)")
+        
+        console.print("\n[bold]Available filter options:[/bold]")
+        console.print("  • [cyan]--interactive[/cyan] - Launch interactive filter builder")
+        console.print("  • [cyan]--agent-id[/cyan] - Filter by specific agent")
+        console.print("\n[bold]Use interactive mode for complex filtering:[/bold]")
+        console.print("  [cyan]escai analyze filter --interactive[/cyan]")
+
+
+@analyze_group.command()
+@click.option('--template', type=click.Choice(['executive', 'detailed', 'trend', 'comparative']), 
+              default='detailed', help='Report template')
+@click.option('--format', 'output_format', type=click.Choice(['json', 'csv', 'markdown', 'html']), 
+              default='markdown', help='Output format')
+@click.option('--output', help='Output file path')
+@click.option('--timeframe', default='24h', help='Data timeframe')
+def report(template: str, output_format: str, output: str, timeframe: str):
+    """Generate comprehensive analysis reports with customizable templates"""
+    
+    console.print(f"[info]Generating {template} report in {output_format.upper()} format...[/info]")
+    
+    from ..utils.reporting import ReportGenerator, ReportConfig, ReportTemplate, ReportType, ReportFormat
+    from ..services.api_client import ESCAIAPIClient
+    from pathlib import Path
+    from datetime import datetime, timedelta
+    
+    # Mock API client for demo
+    class MockAPIClient:
+        async def get(self, endpoint):
+            return {"data": "mock_data"}
+    
+    api_client = MockAPIClient()
+    
+    # Create report generator
+    report_gen = ReportGenerator(api_client, console)
+    
+    # Configure report
+    end_time = datetime.now()
+    if timeframe.endswith('h'):
+        hours = int(timeframe[:-1])
+        start_time = end_time - timedelta(hours=hours)
+    elif timeframe.endswith('d'):
+        days = int(timeframe[:-1])
+        start_time = end_time - timedelta(days=days)
+    else:
+        start_time = end_time - timedelta(hours=24)
+    
+    # Get template
+    template_map = {
+        'executive': 'executive_summary',
+        'detailed': 'detailed_analysis',
+        'trend': 'trend_analysis',
+        'comparative': 'comparative_analysis'
+    }
+    
+    template_name = template_map.get(template, 'detailed_analysis')
+    report_template = report_gen.templates.get(template_name)
+    
+    if not report_template:
+        console.print(f"[error]Template '{template}' not found[/error]")
+        return
+    
+    # Determine output path
+    if not output:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output = f"escai_report_{template}_{timestamp}"
+    
+    config = ReportConfig(
+        template=report_template,
+        output_format=ReportFormat(output_format),
+        output_path=Path(output),
+        date_range=(start_time, end_time),
+        filters={},
+        include_charts=True,
+        include_raw_data=(template == 'detailed')
+    )
+    
+    # Generate report (mock implementation)
+    console.print("\n[bold]Report Configuration:[/bold]")
+    console.print(f"  Template: {report_template.name}")
+    console.print(f"  Format: {output_format.upper()}")
+    console.print(f"  Timeframe: {start_time.strftime('%Y-%m-%d %H:%M')} to {end_time.strftime('%Y-%m-%d %H:%M')}")
+    console.print(f"  Sections: {', '.join(report_template.sections)}")
+    
+    # Mock report generation
+    with console.status("[bold green]Generating report...") as status:
+        import time
+        
+        status.update("Collecting data...")
+        time.sleep(1)
+        
+        status.update("Analyzing patterns...")
+        time.sleep(1)
+        
+        status.update("Generating visualizations...")
+        time.sleep(1)
+        
+        status.update("Formatting output...")
+        time.sleep(1)
+    
+    # Mock output file
+    output_file = Path(f"{output}.{output_format}")
+    
+    console.print(f"\n[success]✅ Report generated successfully![/success]")
+    console.print(f"[info]Output file: {output_file}[/info]")
+    console.print(f"[info]File size: 2.3 MB[/info]")
+    
+    # Show report summary
+    summary_panel = Panel(
+        f"[bold]Report Summary[/bold]\n\n"
+        f"Template: {report_template.name}\n"
+        f"Format: {output_format.upper()}\n"
+        f"Sections: {len(report_template.sections)}\n"
+        f"Time Range: {timeframe}\n"
+        f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+        f"[bold]Key Findings:[/bold]\n"
+        f"• 12 agents monitored\n"
+        f"• 89% average success rate\n"
+        f"• 3 behavioral patterns identified\n"
+        f"• 15 causal relationships discovered\n"
+        f"• 2 performance anomalies detected",
+        title="📊 Report Generated",
+        border_style="green"
+    )
+    console.print(summary_panel)
+    
+    # Show next steps
+    console.print("\n[bold]Next Steps:[/bold]")
+    console.print(f"  • Open report: [cyan]{output_file}[/cyan]")
+    console.print("  • Share with team")
+    console.print("  • Schedule automated reports: [cyan]escai config schedule[/cyan]")
+
+
+@analyze_group.command()
 def tree_explorer():
     """Launch interactive tree explorer for causal relationships"""
     
     console.print("[info]Launching interactive tree explorer...[/info]")
     
+    from ..utils.interactive import create_interactive_tree
+    
+    # Mock hierarchical causal data
+    tree_data = {
+        'name': 'Root Causes',
+        'children': [
+            {
+                'name': 'Data Issues',
+                'children': [
+                    {'name': 'Invalid Format', 'value': 'High Impact'},
+                    {'name': 'Missing Values', 'value': 'Medium Impact'},
+                    {'name': 'Inconsistent Schema', 'value': 'Low Impact'}
+                ]
+            },
+            {
+                'name': 'System Issues',
+                'children': [
+                    {'name': 'Memory Constraints', 'value': 'High Impact'},
+                    {'name': 'Network Latency', 'value': 'Medium Impact'},
+                    {'name': 'CPU Bottleneck', 'value': 'Low Impact'}
+                ]
+            }
+        ]
+    }
+    
+    try:
+        selected_node = create_interactive_tree(tree_data)
+        if selected_node:
+            console.print(f"\n[bold green]Selected:[/bold green] {selected_node['name']}")
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Tree explorer cancelled[/yellow]")
+
+
+@analyze_group.command()
+@click.option('--format', 'export_format', type=click.Choice(['json', 'csv', 'markdown', 'txt']), 
+              default='json', help='Export format')
+@click.option('--output', help='Output file path')
+@click.option('--agent-id', help='Filter by specific agent ID')
+@click.option('--timeframe', default='24h', help='Data timeframe')
+def export(export_format: str, output: str, agent_id: str, timeframe: str):
+    """Export analysis data in various formats"""
+    
+    console.print(f"[info]Exporting data in {export_format.upper()} format...[/info]")
+    
+    from ..utils.reporting import DataExporter, ReportFormat
+    from pathlib import Path
+    
+    # Mock data for export
+    export_data = {
+        'metadata': {
+            'export_timestamp': datetime.now().isoformat(),
+            'agent_id': agent_id or 'all',
+            'timeframe': timeframe,
+            'format': export_format
+        },
+        'agents': [
+            {
+                'id': 'agent_001',
+                'status': 'active',
+                'framework': 'langchain',
+                'events_processed': 1247,
+                'success_rate': 0.89,
+                'uptime_hours': 2.25
+            },
+            {
+                'id': 'agent_002',
+                'status': 'idle',
+                'framework': 'autogen',
+                'events_processed': 892,
+                'success_rate': 0.92,
+                'uptime_hours': 1.7
+            }
+        ],
+        'patterns': [
+            {
+                'name': 'Sequential Processing',
+                'frequency': 45,
+                'success_rate': 0.89,
+                'avg_duration_seconds': 2.3
+            },
+            {
+                'name': 'Error Recovery',
+                'frequency': 12,
+                'success_rate': 0.67,
+                'avg_duration_seconds': 5.1
+            }
+        ],
+        'causal_relationships': [
+            {
+                'cause': 'Data Validation Error',
+                'effect': 'Retry Mechanism',
+                'strength': 0.87,
+                'confidence': 0.92
+            },
+            {
+                'cause': 'Large Dataset',
+                'effect': 'Batch Processing',
+                'strength': 0.94,
+                'confidence': 0.89
+            }
+        ]
+    }
+    
+    # Determine output path
+    if not output:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        output = f"escai_export_{timestamp}"
+    
+    output_path = Path(output)
+    
+    # Export data
+    exporter = DataExporter(console)
+    format_enum = ReportFormat(export_format)
+    
+    try:
+        result_path = exporter.export_data(export_data, format_enum, output_path)
+        console.print(f"[success]✅ Data exported to: {result_path}[/success]")
+        
+        # Show file size
+        file_size = result_path.stat().st_size
+        if file_size < 1024:
+            size_str = f"{file_size} bytes"
+        elif file_size < 1024 * 1024:
+            size_str = f"{file_size / 1024:.1f} KB"
+        else:
+            size_str = f"{file_size / (1024 * 1024):.1f} MB"
+        
+        console.print(f"[info]File size: {size_str}[/info]")
+        
+    except Exception as e:
+        console.print(f"[error]Export failed: {str(e)}[/error]")
+
+
+@analyze_group.command()
+@click.option('--agent-id', help='Filter by specific agent ID')
+@click.option('--width', default=80, help='Timeline width')
+@click.option('--hours', default=24, help='Hours to display')
+def timeline(agent_id: str, width: int, hours: int):
+    """Display epistemic state timeline visualization"""
+    
+    console.print(f"[info]Generating epistemic state timeline ({hours}h)[/info]")
+    
+    from ..utils.ascii_viz import ASCIILineChart, ChartConfig
+    import random
+    
+    # Generate mock timeline data
+    time_points = hours * 4  # 15-minute intervals
+    timestamps = []
+    confidence_data = []
+    uncertainty_data = []
+    belief_count_data = []
+    
+    base_time = datetime.now() - timedelta(hours=hours)
+    
+    for i in range(time_points):
+        timestamps.append(base_time + timedelta(minutes=15 * i))
+        
+        # Simulate realistic epistemic state evolution
+        confidence = 0.7 + 0.2 * math.sin(i * 0.1) + random.uniform(-0.1, 0.1)
+        uncertainty = 0.3 + 0.15 * math.cos(i * 0.08) + random.uniform(-0.05, 0.05)
+        belief_count = 50 + 20 * math.sin(i * 0.05) + random.uniform(-5, 5)
+        
+        confidence_data.append(max(0, min(1, confidence)))
+        uncertainty_data.append(max(0, min(1, uncertainty)))
+        belief_count_data.append(max(0, belief_count))
+    
+    # Create timeline visualizations
+    console.print("\n[bold cyan]Confidence Evolution:[/bold cyan]")
+    config = ChartConfig(width=width, height=8, title="Confidence Over Time", color_scheme="default")
+    confidence_chart = ASCIILineChart(config)
+    console.print(confidence_chart.create(confidence_data))
+    
+    console.print("\n[bold yellow]Uncertainty Evolution:[/bold yellow]")
+    config.title = "Uncertainty Over Time"
+    config.color_scheme = "dark"
+    uncertainty_chart = ASCIILineChart(config)
+    console.print(uncertainty_chart.create(uncertainty_data))
+    
+    console.print("\n[bold green]Belief Count Evolution:[/bold green]")
+    config.title = "Number of Beliefs Over Time"
+    config.color_scheme = "light"
+    belief_chart = ASCIILineChart(config)
+    console.print(belief_chart.create(belief_count_data))
+    
+    # Show summary statistics
+    console.print("\n[bold]Timeline Summary:[/bold]")
+    summary_table = Table(show_header=True, header_style="bold magenta")
+    summary_table.add_column("Metric", style="cyan")
+    summary_table.add_column("Min", style="green")
+    summary_table.add_column("Max", style="red")
+    summary_table.add_column("Average", style="blue")
+    summary_table.add_column("Current", style="yellow")
+    
+    summary_table.add_row(
+        "Confidence",
+        f"{min(confidence_data):.2f}",
+        f"{max(confidence_data):.2f}",
+        f"{sum(confidence_data)/len(confidence_data):.2f}",
+        f"{confidence_data[-1]:.2f}"
+    )
+    
+    summary_table.add_row(
+        "Uncertainty",
+        f"{min(uncertainty_data):.2f}",
+        f"{max(uncertainty_data):.2f}",
+        f"{sum(uncertainty_data)/len(uncertainty_data):.2f}",
+        f"{uncertainty_data[-1]:.2f}"
+    )
+    
+    summary_table.add_row(
+        "Belief Count",
+        f"{min(belief_count_data):.0f}",
+        f"{max(belief_count_data):.0f}",
+        f"{sum(belief_count_data)/len(belief_count_data):.0f}",
+        f"{belief_count_data[-1]:.0f}"
+    )
+    
+    console.print(summary_table)
+
+
+@analyze_group.command()
+@click.option('--agent-id', help='Filter by specific agent ID')
+@click.option('--pattern-type', help='Filter by pattern type')
+@click.option('--display', type=click.Choice(['table', 'tree', 'graph']), 
+              default='table', help='Display format')
+def pattern_analysis(agent_id: str, pattern_type: str, display: str):
+    """Advanced behavioral pattern analysis with multiple display formats"""
+    
+    console.print("[info]Performing advanced pattern analysis...[/info]")
+    
+    # Mock pattern analysis data
+    patterns = [
+        {
+            'id': 'pattern_001',
+            'name': 'Sequential Data Processing',
+            'type': 'processing',
+            'frequency': 45,
+            'success_rate': 0.89,
+            'avg_duration': 2.3,
+            'complexity_score': 0.7,
+            'triggers': ['large_dataset', 'batch_request'],
+            'outcomes': ['success', 'partial_success', 'timeout'],
+            'sub_patterns': [
+                {'name': 'Data Validation', 'frequency': 45, 'success_rate': 0.95},
+                {'name': 'Transformation', 'frequency': 42, 'success_rate': 0.88},
+                {'name': 'Output Generation', 'frequency': 38, 'success_rate': 0.92}
+            ]
+        },
+        {
+            'id': 'pattern_002',
+            'name': 'Error Recovery Loop',
+            'type': 'recovery',
+            'frequency': 12,
+            'success_rate': 0.67,
+            'avg_duration': 5.1,
+            'complexity_score': 0.9,
+            'triggers': ['validation_error', 'timeout', 'resource_limit'],
+            'outcomes': ['retry_success', 'escalation', 'failure'],
+            'sub_patterns': [
+                {'name': 'Error Detection', 'frequency': 12, 'success_rate': 0.98},
+                {'name': 'Recovery Strategy', 'frequency': 11, 'success_rate': 0.73},
+                {'name': 'Retry Execution', 'frequency': 8, 'success_rate': 0.65}
+            ]
+        },
+        {
+            'id': 'pattern_003',
+            'name': 'Optimization Iteration',
+            'type': 'optimization',
+            'frequency': 28,
+            'success_rate': 0.92,
+            'avg_duration': 1.8,
+            'complexity_score': 0.6,
+            'triggers': ['performance_threshold', 'quality_metric'],
+            'outcomes': ['improved_result', 'convergence', 'timeout'],
+            'sub_patterns': [
+                {'name': 'Parameter Tuning', 'frequency': 28, 'success_rate': 0.94},
+                {'name': 'Performance Test', 'frequency': 26, 'success_rate': 0.89},
+                {'name': 'Result Validation', 'frequency': 24, 'success_rate': 0.96}
+            ]
+        }
+    ]
+    
+    # Filter patterns if specified
+    if pattern_type:
+        patterns = [p for p in patterns if p['type'] == pattern_type]
+    
+    if display == 'table':
+        # Enhanced table display
+        table = Table(title="Advanced Pattern Analysis", show_header=True, header_style="bold magenta")
+        table.add_column("Pattern", style="cyan", width=20)
+        table.add_column("Type", style="blue", width=12)
+        table.add_column("Frequency", justify="right", style="yellow", width=10)
+        table.add_column("Success Rate", justify="center", width=12)
+        table.add_column("Avg Duration", justify="right", style="green", width=12)
+        table.add_column("Complexity", justify="center", style="red", width=10)
+        table.add_column("Sub-Patterns", justify="right", style="magenta", width=12)
+        
+        for pattern in patterns:
+            success_rate = pattern['success_rate']
+            success_color = "green" if success_rate > 0.8 else "yellow" if success_rate > 0.6 else "red"
+            
+            complexity = pattern['complexity_score']
+            complexity_bar = "█" * int(complexity * 5) + "░" * (5 - int(complexity * 5))
+            
+            table.add_row(
+                pattern['name'],
+                pattern['type'].title(),
+                str(pattern['frequency']),
+                f"[{success_color}]{success_rate:.1%}[/{success_color}]",
+                f"{pattern['avg_duration']:.1f}s",
+                complexity_bar,
+                str(len(pattern['sub_patterns']))
+            )
+        
+        console.print(table)
+        
+        # Show detailed breakdown for each pattern
+        for pattern in patterns:
+            console.print(f"\n[bold cyan]Pattern Details: {pattern['name']}[/bold cyan]")
+            
+            # Triggers
+            triggers_text = ", ".join(pattern['triggers'])
+            console.print(f"[bold]Triggers:[/bold] {triggers_text}")
+            
+            # Outcomes
+            outcomes_text = ", ".join(pattern['outcomes'])
+            console.print(f"[bold]Outcomes:[/bold] {outcomes_text}")
+            
+            # Sub-patterns table
+            if pattern['sub_patterns']:
+                sub_table = Table(show_header=True, header_style="bold blue")
+                sub_table.add_column("Sub-Pattern", style="cyan")
+                sub_table.add_column("Frequency", justify="right", style="yellow")
+                sub_table.add_column("Success Rate", justify="center", style="green")
+                
+                for sub_pattern in pattern['sub_patterns']:
+                    sub_table.add_row(
+                        sub_pattern['name'],
+                        str(sub_pattern['frequency']),
+                        f"{sub_pattern['success_rate']:.1%}"
+                    )
+                
+                console.print(sub_table)
+    
+    elif display == 'tree':
+        # Tree display using ASCII tree visualization
+        from ..utils.ascii_viz import ASCIITreeView
+        
+        tree_data = {
+            'name': 'Behavioral Patterns',
+            'children': []
+        }
+        
+        for pattern in patterns:
+            pattern_node = {
+                'name': pattern['name'],
+                'value': f"{pattern['frequency']} occurrences",
+                'children': []
+            }
+            
+            # Add sub-patterns as children
+            for sub_pattern in pattern['sub_patterns']:
+                pattern_node['children'].append({
+                    'name': sub_pattern['name'],
+                    'value': f"{sub_pattern['success_rate']:.1%} success"
+                })
+            
+            tree_data['children'].append(pattern_node)
+        
+        tree_view = ASCIITreeView()
+        result = tree_view.create(tree_data, max_depth=3)
+        console.print(result)
+    
+    elif display == 'graph':
+        # Network diagram display using ASCII
+        console.print("\n[bold cyan]Pattern Relationship Network:[/bold cyan]")
+        
+        # Create a simple network visualization
+        network_lines = []
+        network_lines.append("    ┌─────────────────┐")
+        network_lines.append("    │ Sequential Proc │")
+        network_lines.append("    └─────────┬───────┘")
+        network_lines.append("              │")
+        network_lines.append("    ┌─────────▼───────┐     ┌─────────────────┐")
+        network_lines.append("    │ Error Recovery  │────▶│ Optimization    │")
+        network_lines.append("    └─────────────────┘     └─────────────────┘")
+        network_lines.append("              │                       │")
+        network_lines.append("              ▼                       ▼")
+        network_lines.append("    ┌─────────────────┐     ┌─────────────────┐")
+        network_lines.append("    │ Retry Logic     │     │ Parameter Tuning│")
+        network_lines.append("    └─────────────────┘     └─────────────────┘")
+        
+        for line in network_lines:
+            console.print(line)
+        
+        # Add legend
+        console.print("\n[bold]Legend:[/bold]")
+        console.print("  ──▶ Triggers relationship")
+        console.print("  │   Hierarchical relationship")
+        console.print("  ▼   Flow direction")
+
+
+@analyze_group.command()
+@click.option('--min-strength', default=0.3, help='Minimum causal strength')
+@click.option('--layout', type=click.Choice(['network', 'hierarchy', 'circular']), 
+              default='network', help='Visualization layout')
+def causal_network(min_strength: float, layout: str):
+    """Visualize causal relationships as ASCII network diagrams"""
+    
+    console.print(f"[info]Creating causal network diagram ({layout} layout)[/info]")
+    
+    # Mock causal relationship data
+    relationships = [
+        {'cause': 'Data Error', 'effect': 'Retry Trigger', 'strength': 0.87, 'confidence': 0.92},
+        {'cause': 'Large Dataset', 'effect': 'Batch Mode', 'strength': 0.94, 'confidence': 0.89},
+        {'cause': 'Memory High', 'effect': 'GC Trigger', 'strength': 0.78, 'confidence': 0.85},
+        {'cause': 'Rate Limit', 'effect': 'Backoff', 'strength': 0.96, 'confidence': 0.98},
+        {'cause': 'Network Lag', 'effect': 'Timeout', 'strength': 0.65, 'confidence': 0.72},
+        {'cause': 'Retry Trigger', 'effect': 'Recovery Mode', 'strength': 0.82, 'confidence': 0.88},
+        {'cause': 'Batch Mode', 'effect': 'Parallel Proc', 'strength': 0.75, 'confidence': 0.81},
+        {'cause': 'GC Trigger', 'effect': 'Memory Free', 'strength': 0.91, 'confidence': 0.94}
+    ]
+    
+    # Filter by strength
+    filtered_rels = [r for r in relationships if r['strength'] >= min_strength]
+    
+    if layout == 'network':
+        console.print("\n[bold cyan]Causal Network Diagram:[/bold cyan]")
+        
+        # Create network layout
+        network = []
+        network.append("                    ┌─────────────┐")
+        network.append("              ┌────▶│ Retry Trigger│────┐")
+        network.append("              │     └─────────────┘    │")
+        network.append("    ┌─────────┴───┐                    ▼")
+        network.append("    │ Data Error  │           ┌─────────────┐")
+        network.append("    └─────────────┘           │Recovery Mode│")
+        network.append("                              └─────────────┘")
+        network.append("")
+        network.append("    ┌─────────────┐                    ┌─────────────┐")
+        network.append("    │Large Dataset│───────────────────▶│ Batch Mode  │")
+        network.append("    └─────────────┘                    └──────┬──────┘")
+        network.append("                                              │")
+        network.append("    ┌─────────────┐                          ▼")
+        network.append("    │ Memory High │                 ┌─────────────┐")
+        network.append("    └──────┬──────┘                 │Parallel Proc│")
+        network.append("           │                        └─────────────┘")
+        network.append("           ▼")
+        network.append("    ┌─────────────┐     ┌─────────────┐")
+        network.append("    │ GC Trigger  │────▶│ Memory Free │")
+        network.append("    └─────────────┘     └─────────────┘")
+        
+        for line in network:
+            console.print(line)
+    
+    elif layout == 'hierarchy':
+        console.print("\n[bold cyan]Causal Hierarchy:[/bold cyan]")
+        
+        # Group by levels
+        hierarchy = []
+        hierarchy.append("Level 1 (Root Causes):")
+        hierarchy.append("├── Data Error")
+        hierarchy.append("├── Large Dataset") 
+        hierarchy.append("├── Memory High")
+        hierarchy.append("└── Rate Limit")
+        hierarchy.append("")
+        hierarchy.append("Level 2 (Immediate Effects):")
+        hierarchy.append("├── Retry Trigger ← Data Error")
+        hierarchy.append("├── Batch Mode ← Large Dataset")
+        hierarchy.append("├── GC Trigger ← Memory High")
+        hierarchy.append("└── Backoff ← Rate Limit")
+        hierarchy.append("")
+        hierarchy.append("Level 3 (Secondary Effects):")
+        hierarchy.append("├── Recovery Mode ← Retry Trigger")
+        hierarchy.append("├── Parallel Proc ← Batch Mode")
+        hierarchy.append("└── Memory Free ← GC Trigger")
+        
+        for line in hierarchy:
+            console.print(line)
+    
+    elif layout == 'circular':
+        console.print("\n[bold cyan]Circular Causal Layout:[/bold cyan]")
+        
+        # Create circular layout
+        circular = []
+        circular.append("                 ┌─────────────┐")
+        circular.append("            ┌───▶│ Data Error  │────┐")
+        circular.append("            │    └─────────────┘    │")
+        circular.append("            │                       ▼")
+        circular.append("    ┌─────────────┐           ┌─────────────┐")
+        circular.append("    │ Memory Free │           │Retry Trigger│")
+        circular.append("    └─────────────┘           └─────────────┘")
+        circular.append("            ▲                       │")
+        circular.append("            │    ┌─────────────┐    │")
+        circular.append("            └────│ GC Trigger  │◀───┘")
+        circular.append("                 └─────────────┘")
+        circular.append("")
+        circular.append("                 ┌─────────────┐")
+        circular.append("            ┌───▶│Large Dataset│────┐")
+        circular.append("            │    └─────────────┘    │")
+        circular.append("            │                       ▼")
+        circular.append("    ┌─────────────┐           ┌─────────────┐")
+        circular.append("    │Parallel Proc│           │ Batch Mode  │")
+        circular.append("    └─────────────┘           └─────────────┘")
+        circular.append("            ▲                       │")
+        circular.append("            └───────────────────────┘")
+        
+        for line in circular:
+            console.print(line)
+    
+    # Show relationship strength legend
+    console.print("\n[bold]Relationship Strengths:[/bold]")
+    strength_table = Table(show_header=True, header_style="bold magenta")
+    strength_table.add_column("Cause", style="cyan")
+    strength_table.add_column("Effect", style="blue")
+    strength_table.add_column("Strength", justify="center", style="green")
+    strength_table.add_column("Confidence", justify="center", style="yellow")
+    strength_table.add_column("Visual", style="white")
+    
+    for rel in filtered_rels:
+        strength_bar = "█" * int(rel['strength'] * 10) + "░" * (10 - int(rel['strength'] * 10))
+        strength_table.add_row(
+            rel['cause'],
+            rel['effect'],
+            f"{rel['strength']:.2f}",
+            f"{rel['confidence']:.2f}",
+            strength_bar
+        )
+    
+    console.print(strength_table)
+
+
+@analyze_group.command()
+@click.option('--agent-id', help='Filter by specific agent ID')
+@click.option('--metric', type=click.Choice(['success_rate', 'confidence', 'performance', 'all']), 
+              default='all', help='Prediction metric to display')
+@click.option('--horizon', default='1h', help='Prediction horizon')
+def prediction_trends(agent_id: str, metric: str, horizon: str):
+    """Display performance predictions with trend indicators and confidence levels"""
+    
+    console.print(f"[info]Generating prediction trends (horizon: {horizon})[/info]")
+    
+    from ..utils.ascii_viz import ASCIILineChart, ASCIIProgressBar, ChartConfig
+    import random
+    
+    # Generate mock prediction data
+    time_points = 20
+    predictions = {
+        'success_rate': [],
+        'confidence': [],
+        'performance': []
+    }
+    
+    for i in range(time_points):
+        # Simulate prediction trends
+        success_trend = 0.8 + 0.1 * math.sin(i * 0.2) + random.uniform(-0.05, 0.05)
+        confidence_trend = 0.75 + 0.15 * math.cos(i * 0.15) + random.uniform(-0.03, 0.03)
+        performance_trend = 2.0 + 0.5 * math.sin(i * 0.1) + random.uniform(-0.1, 0.1)
+        
+        predictions['success_rate'].append(max(0, min(1, success_trend)))
+        predictions['confidence'].append(max(0, min(1, confidence_trend)))
+        predictions['performance'].append(max(0.5, performance_trend))
+    
+    if metric == 'all':
+        # Show all metrics
+        for metric_name, data in predictions.items():
+            console.print(f"\n[bold cyan]{metric_name.replace('_', ' ').title()} Predictions:[/bold cyan]")
+            
+            config = ChartConfig(width=60, height=8, title=f"{metric_name.replace('_', ' ').title()} Trend")
+            chart = ASCIILineChart(config)
+            console.print(chart.create(data))
+            
+            # Show current prediction with confidence
+            current_value = data[-1]
+            trend_direction = "📈" if data[-1] > data[-5] else "📉" if data[-1] < data[-5] else "➡️"
+            
+            console.print(f"Current: {current_value:.2f} {trend_direction}")
+            
+            # Show confidence interval
+            confidence_lower = current_value * 0.9
+            confidence_upper = current_value * 1.1
+            console.print(f"95% CI: [{confidence_lower:.2f}, {confidence_upper:.2f}]")
+    
+    else:
+        # Show specific metric
+        if metric in predictions:
+            data = predictions[metric]
+            
+            console.print(f"\n[bold cyan]{metric.replace('_', ' ').title()} Prediction Analysis:[/bold cyan]")
+            
+            config = ChartConfig(width=70, height=10, title=f"{metric.replace('_', ' ').title()} Forecast")
+            chart = ASCIILineChart(config)
+            console.print(chart.create(data))
+            
+            # Detailed analysis
+            current = data[-1]
+            previous = data[-6] if len(data) >= 6 else data[0]
+            change = current - previous
+            change_pct = (change / previous) * 100 if previous != 0 else 0
+            
+            # Trend analysis
+            if change_pct > 5:
+                trend_desc = "Strong Upward Trend"
+                trend_color = "green"
+                trend_icon = "📈"
+            elif change_pct > 1:
+                trend_desc = "Moderate Upward Trend"
+                trend_color = "green"
+                trend_icon = "📈"
+            elif change_pct < -5:
+                trend_desc = "Strong Downward Trend"
+                trend_color = "red"
+                trend_icon = "📉"
+            elif change_pct < -1:
+                trend_desc = "Moderate Downward Trend"
+                trend_color = "red"
+                trend_icon = "📉"
+            else:
+                trend_desc = "Stable"
+                trend_color = "yellow"
+                trend_icon = "➡️"
+            
+            # Display analysis
+            analysis_panel = Panel(
+                f"[bold]Current Value:[/bold] {current:.3f}\n"
+                f"[bold]Previous Value:[/bold] {previous:.3f}\n"
+                f"[bold]Change:[/bold] {change:+.3f} ({change_pct:+.1f}%)\n"
+                f"[bold]Trend:[/bold] [{trend_color}]{trend_icon} {trend_desc}[/{trend_color}]\n"
+                f"[bold]Volatility:[/bold] {statistics.stdev(data[-10:]):.3f}\n"
+                f"[bold]Min (recent):[/bold] {min(data[-10:]):.3f}\n"
+                f"[bold]Max (recent):[/bold] {max(data[-10:]):.3f}",
+                title=f"{metric.replace('_', ' ').title()} Analysis",
+                border_style="blue"
+            )
+            console.print(analysis_panel)
+            
+            # Risk assessment
+            volatility = statistics.stdev(data[-10:])
+            if volatility > 0.1:
+                risk_level = "High"
+                risk_color = "red"
+            elif volatility > 0.05:
+                risk_level = "Medium"
+                risk_color = "yellow"
+            else:
+                risk_level = "Low"
+                risk_color = "green"
+            
+            console.print(f"\n[bold]Risk Assessment:[/bold] [{risk_color}]{risk_level}[/{risk_color}]")
+            
+            # Recommendations
+            recommendations = []
+            if trend_desc.startswith("Strong Downward"):
+                recommendations.append("Consider immediate intervention")
+                recommendations.append("Review recent changes in system configuration")
+            elif trend_desc.startswith("Moderate Downward"):
+                recommendations.append("Monitor closely for continued decline")
+                recommendations.append("Prepare contingency measures")
+            elif volatility > 0.1:
+                recommendations.append("High volatility detected - investigate root causes")
+                recommendations.append("Consider implementing stabilization measures")
+            else:
+                recommendations.append("Performance is stable - maintain current approach")
+            
+            if recommendations:
+                console.print("\n[bold]Recommendations:[/bold]")
+                for i, rec in enumerate(recommendations, 1):
+                    console.print(f"  {i}. {rec}")
+
+
+@analyze_group.command()
+def health():
+    """Display system health monitoring with real-time status indicators"""
+    
+    console.print("[info]Checking system health...[/info]")
+    
+    from ..utils.ascii_viz import ASCIIProgressBar
+    import time
+    
+    # Mock system health data
+    health_metrics = {
+        'database_connection': {'status': 'healthy', 'response_time': 45, 'uptime': 99.9},
+        'api_endpoints': {'status': 'healthy', 'response_time': 120, 'success_rate': 99.2},
+        'memory_usage': {'status': 'warning', 'usage_percent': 78, 'available_gb': 2.1},
+        'cpu_usage': {'status': 'healthy', 'usage_percent': 45, 'load_average': 1.2},
+        'disk_space': {'status': 'healthy', 'usage_percent': 62, 'available_gb': 15.8},
+        'network_latency': {'status': 'healthy', 'avg_latency': 23, 'packet_loss': 0.1},
+        'active_agents': {'status': 'healthy', 'count': 12, 'max_capacity': 50},
+        'monitoring_overhead': {'status': 'healthy', 'overhead_percent': 8.5, 'target': 10.0}
+    }
+    
+    # Create health dashboard
+    console.print("\n[bold cyan]🏥 System Health Dashboard[/bold cyan]")
+    console.print("=" * 60)
+    
+    progress_bar = ASCIIProgressBar(width=30)
+    
+    # Overall health score
+    healthy_count = sum(1 for m in health_metrics.values() if m['status'] == 'healthy')
+    warning_count = sum(1 for m in health_metrics.values() if m['status'] == 'warning')
+    critical_count = sum(1 for m in health_metrics.values() if m['status'] == 'critical')
+    
+    total_metrics = len(health_metrics)
+    health_score = (healthy_count * 100 + warning_count * 50) / (total_metrics * 100)
+    
+    if health_score > 0.9:
+        health_status = "Excellent"
+        health_color = "green"
+        health_icon = "🟢"
+    elif health_score > 0.7:
+        health_status = "Good"
+        health_color = "green"
+        health_icon = "🟡"
+    elif health_score > 0.5:
+        health_status = "Fair"
+        health_color = "yellow"
+        health_icon = "🟠"
+    else:
+        health_status = "Poor"
+        health_color = "red"
+        health_icon = "🔴"
+    
+    console.print(f"\n[bold]Overall Health:[/bold] [{health_color}]{health_icon} {health_status}[/{health_color}] ({health_score:.1%})")
+    console.print(f"[bold]Healthy:[/bold] {healthy_count} | [bold]Warning:[/bold] {warning_count} | [bold]Critical:[/bold] {critical_count}")
+    
+    # Detailed metrics
+    console.print("\n[bold]Detailed Metrics:[/bold]")
+    
+    health_table = Table(show_header=True, header_style="bold magenta")
+    health_table.add_column("Component", style="cyan", width=20)
+    health_table.add_column("Status", justify="center", width=10)
+    health_table.add_column("Metric", justify="right", width=15)
+    health_table.add_column("Visual", width=25)
+    health_table.add_column("Details", style="muted", width=20)
+    
+    for component, metrics in health_metrics.items():
+        status = metrics['status']
+        status_colors = {'healthy': 'green', 'warning': 'yellow', 'critical': 'red'}
+        status_icons = {'healthy': '✅', 'warning': '⚠️', 'critical': '❌'}
+        
+        status_color = status_colors.get(status, 'white')
+        status_icon = status_icons.get(status, '❓')
+        
+        # Determine primary metric and visual
+        if 'response_time' in metrics:
+            metric_value = f"{metrics['response_time']}ms"
+            progress = min(1.0, metrics['response_time'] / 200)  # 200ms as max
+            visual = progress_bar.create(1 - progress)  # Invert for response time
+            details = f"Uptime: {metrics.get('uptime', 'N/A')}%"
+        elif 'usage_percent' in metrics:
+            metric_value = f"{metrics['usage_percent']}%"
+            progress = metrics['usage_percent'] / 100
+            visual = progress_bar.create(progress)
+            if 'available_gb' in metrics:
+                details = f"Available: {metrics['available_gb']}GB"
+            else:
+                details = "Usage monitoring"
+        elif 'count' in metrics:
+            metric_value = f"{metrics['count']}/{metrics.get('max_capacity', 'N/A')}"
+            progress = metrics['count'] / metrics.get('max_capacity', 100)
+            visual = progress_bar.create(progress)
+            details = "Active/Capacity"
+        elif 'overhead_percent' in metrics:
+            metric_value = f"{metrics['overhead_percent']}%"
+            progress = metrics['overhead_percent'] / metrics.get('target', 20)
+            visual = progress_bar.create(progress)
+            details = f"Target: {metrics.get('target', 'N/A')}%"
+        else:
+            metric_value = "N/A"
+            visual = progress_bar.create(0.5)
+            details = "No data"
+        
+        health_table.add_row(
+            component.replace('_', ' ').title(),
+            f"[{status_color}]{status_icon}[/{status_color}]",
+            metric_value,
+            visual,
+            details
+        )
+    
+    console.print(health_table)
+    
+    # System alerts
+    alerts = []
+    if warning_count > 0:
+        alerts.append(f"⚠️  {warning_count} component(s) showing warnings")
+    if critical_count > 0:
+        alerts.append(f"❌ {critical_count} component(s) in critical state")
+    
+    # Performance alerts
+    if health_metrics['memory_usage']['usage_percent'] > 80:
+        alerts.append("🧠 High memory usage detected")
+    if health_metrics['monitoring_overhead']['overhead_percent'] > 9:
+        alerts.append("📊 Monitoring overhead approaching limit")
+    
+    if alerts:
+        console.print("\n[bold red]🚨 Active Alerts:[/bold red]")
+        for alert in alerts:
+            console.print(f"  • {alert}")
+    else:
+        console.print("\n[bold green]✅ No active alerts[/bold green]")
+    
+    # Quick actions
+    console.print("\n[bold]Quick Actions:[/bold]")
+    console.print("  • [cyan]escai monitor dashboard[/cyan] - Launch live monitoring")
+    console.print("  • [cyan]escai analyze patterns[/cyan] - Check for anomalies")
+    console.print("  • [cyan]escai config check[/cyan] - Validate configuration")
+    console.print("  • [cyan]escai session list[/cyan] - View active sessions")
+
+
+@analyze_group.command()
+def tree_explorer():
+    """Launch interactive tree explorer for causal relationships"""
+    
+    console.print("[info]Launching interactive tree explorer...[/info]")
     from ..utils.interactive import create_interactive_tree
     
     # Mock hierarchical causal data

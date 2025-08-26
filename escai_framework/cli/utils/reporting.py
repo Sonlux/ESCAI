@@ -91,6 +91,152 @@ class ReportConfig:
     compress_output: bool = False
 
 
+class DataExporter:
+    """Advanced data export functionality for CLI."""
+    
+    def __init__(self, console: Console):
+        self.console = console
+        self.supported_formats = [ReportFormat.JSON, ReportFormat.CSV, ReportFormat.MARKDOWN, ReportFormat.TXT]
+    
+    def export_data(self, data: Dict[str, Any], format: ReportFormat, output_path: Path) -> Path:
+        """Export data in specified format."""
+        if format == ReportFormat.JSON:
+            return self._export_json(data, output_path)
+        elif format == ReportFormat.CSV:
+            return self._export_csv(data, output_path)
+        elif format == ReportFormat.MARKDOWN:
+            return self._export_markdown(data, output_path)
+        elif format == ReportFormat.TXT:
+            return self._export_txt(data, output_path)
+        else:
+            raise ValueError(f"Unsupported export format: {format}")
+    
+    def _export_json(self, data: Dict[str, Any], output_path: Path) -> Path:
+        """Export data as JSON."""
+        output_file = output_path.with_suffix('.json')
+        with open(output_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, default=str)
+        return output_file
+    
+    def _export_csv(self, data: Dict[str, Any], output_path: Path) -> Path:
+        """Export data as CSV."""
+        output_file = output_path.with_suffix('.csv')
+        
+        # Flatten data for CSV export
+        flattened_data = self._flatten_data_for_csv(data)
+        
+        with open(output_file, 'w', newline='', encoding='utf-8') as f:
+            if flattened_data:
+                writer = csv.DictWriter(f, fieldnames=flattened_data[0].keys())
+                writer.writeheader()
+                writer.writerows(flattened_data)
+        
+        return output_file
+    
+    def _export_markdown(self, data: Dict[str, Any], output_path: Path) -> Path:
+        """Export data as Markdown."""
+        output_file = output_path.with_suffix('.md')
+        
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write(f"# ESCAI Data Export\n\n")
+            f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+            
+            self._write_markdown_section(f, data, level=2)
+        
+        return output_file
+    
+    def _export_txt(self, data: Dict[str, Any], output_path: Path) -> Path:
+        """Export data as plain text."""
+        output_file = output_path.with_suffix('.txt')
+        
+        with open(output_file, 'w', encoding='utf-8') as f:
+            f.write("ESCAI Data Export\n")
+            f.write("=" * 50 + "\n\n")
+            f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
+            
+            self._write_text_section(f, data, indent=0)
+        
+        return output_file
+    
+    def _flatten_data_for_csv(self, data: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Flatten nested data structure for CSV export."""
+        flattened = []
+        
+        def flatten_dict(d: Dict[str, Any], prefix: str = "") -> Dict[str, Any]:
+            result = {}
+            for key, value in d.items():
+                new_key = f"{prefix}_{key}" if prefix else key
+                if isinstance(value, dict):
+                    result.update(flatten_dict(value, new_key))
+                elif isinstance(value, list):
+                    if value and isinstance(value[0], dict):
+                        # Handle list of dictionaries
+                        for i, item in enumerate(value):
+                            if isinstance(item, dict):
+                                result.update(flatten_dict(item, f"{new_key}_{i}"))
+                            else:
+                                result[f"{new_key}_{i}"] = str(item)
+                    else:
+                        result[new_key] = ", ".join(str(v) for v in value)
+                else:
+                    result[new_key] = str(value)
+            return result
+        
+        if isinstance(data, dict):
+            flattened.append(flatten_dict(data))
+        elif isinstance(data, list):
+            for item in data:
+                if isinstance(item, dict):
+                    flattened.append(flatten_dict(item))
+                else:
+                    flattened.append({"value": str(item)})
+        
+        return flattened
+    
+    def _write_markdown_section(self, f, data: Any, level: int = 1):
+        """Write data as Markdown section."""
+        if isinstance(data, dict):
+            for key, value in data.items():
+                f.write(f"{'#' * level} {key.replace('_', ' ').title()}\n\n")
+                if isinstance(value, (dict, list)):
+                    self._write_markdown_section(f, value, level + 1)
+                else:
+                    f.write(f"{value}\n\n")
+        elif isinstance(data, list):
+            for i, item in enumerate(data):
+                if isinstance(item, dict):
+                    f.write(f"{'#' * level} Item {i + 1}\n\n")
+                    self._write_markdown_section(f, item, level + 1)
+                else:
+                    f.write(f"- {item}\n")
+            f.write("\n")
+        else:
+            f.write(f"{data}\n\n")
+    
+    def _write_text_section(self, f, data: Any, indent: int = 0):
+        """Write data as plain text section."""
+        prefix = "  " * indent
+        
+        if isinstance(data, dict):
+            for key, value in data.items():
+                f.write(f"{prefix}{key.replace('_', ' ').title()}:\n")
+                if isinstance(value, (dict, list)):
+                    self._write_text_section(f, value, indent + 1)
+                else:
+                    f.write(f"{prefix}  {value}\n")
+                f.write("\n")
+        elif isinstance(data, list):
+            for i, item in enumerate(data):
+                if isinstance(item, dict):
+                    f.write(f"{prefix}Item {i + 1}:\n")
+                    self._write_text_section(f, item, indent + 1)
+                else:
+                    f.write(f"{prefix}- {item}\n")
+            f.write("\n")
+        else:
+            f.write(f"{prefix}{data}\n")
+
+
 class ReportGenerator:
     """Advanced report generation system."""
     
@@ -98,6 +244,7 @@ class ReportGenerator:
         self.api_client = api_client
         self.console = console
         self.templates = self._load_templates()
+        self.exporter = DataExporter(console)
     
     def _load_templates(self) -> Dict[str, ReportTemplate]:
         """Load predefined report templates."""
