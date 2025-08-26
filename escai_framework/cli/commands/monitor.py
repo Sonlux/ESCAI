@@ -150,3 +150,161 @@ def epistemic(agent_id: str, refresh: int):
                 live.update(generate_epistemic_display())
     except KeyboardInterrupt:
         console.print("\n[yellow]Epistemic monitoring stopped[/yellow]")
+
+
+@monitor_group.command()
+@click.option('--refresh-rate', default=1.0, help='Dashboard refresh rate in seconds')
+def dashboard(refresh_rate: float):
+    """Launch real-time monitoring dashboard"""
+    
+    console.print("[info]Starting live monitoring dashboard...[/info]")
+    console.print("Press Ctrl+C to exit")
+    
+    from ..utils.live_monitor import create_live_dashboard
+    
+    try:
+        dashboard = create_live_dashboard()
+        dashboard.refresh_rate = refresh_rate
+        dashboard.run()
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Dashboard stopped by user[/yellow]")
+    except Exception as e:
+        console.print(f"\n[red]Dashboard error: {str(e)}[/red]")
+
+
+@monitor_group.command()
+@click.option('--filter', 'log_filter', help='Filter logs by pattern')
+@click.option('--highlight', multiple=True, help='Highlight patterns in logs')
+def logs(log_filter: str, highlight: tuple):
+    """Stream live agent logs with filtering and highlighting"""
+    
+    console.print("[info]Starting live log streaming...[/info]")
+    console.print("Press Ctrl+C to exit")
+    
+    from ..utils.live_monitor import create_streaming_logs
+    
+    try:
+        viewer = create_streaming_logs()
+        
+        # Add filter if specified
+        if log_filter:
+            viewer.add_filter(log_filter)
+            console.print(f"[info]Filtering logs by: {log_filter}[/info]")
+        
+        # Add highlights if specified
+        for pattern in highlight:
+            viewer.add_highlight(pattern, "bold yellow")
+            console.print(f"[info]Highlighting: {pattern}[/info]")
+        
+        viewer.start_streaming()
+        
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Log streaming stopped by user[/yellow]")
+    except Exception as e:
+        console.print(f"\n[red]Log streaming error: {str(e)}[/red]")
+
+
+@monitor_group.command()
+@click.option('--agent-id', help='Monitor specific agent')
+@click.option('--metric', help='Monitor specific metric')
+def live(agent_id: str, metric: str):
+    """Live monitoring with real-time updates"""
+    
+    console.print("[info]Starting live monitoring...[/info]")
+    
+    from ..utils.live_monitor import LiveDataSource, MonitoringMetric
+    from ..utils.ascii_viz import ASCIISparkline, ASCIIProgressBar
+    from rich.live import Live
+    from rich.panel import Panel
+    from rich.table import Table
+    import time
+    
+    # Create data source
+    data_source = LiveDataSource()
+    data_source.start()
+    
+    sparkline = ASCIISparkline()
+    progress_bar = ASCIIProgressBar(width=40)
+    
+    def create_live_display():
+        """Create live display panel"""
+        data = data_source.get_latest_data()
+        
+        if agent_id:
+            # Show specific agent
+            if agent_id in data["agents"]:
+                agent = data["agents"][agent_id]
+                content = (
+                    f"[bold]Agent ID:[/bold] {agent.agent_id}\n"
+                    f"[bold]Status:[/bold] {agent.status}\n"
+                    f"[bold]Framework:[/bold] {agent.framework}\n"
+                    f"[bold]Events Processed:[/bold] {agent.events_processed}\n"
+                    f"[bold]Success Rate:[/bold] {agent.success_rate:.1%}\n"
+                    f"[bold]Current Task:[/bold] {agent.current_task}\n"
+                    f"[bold]Last Activity:[/bold] {agent.last_activity.strftime('%H:%M:%S')}"
+                )
+                return Panel(content, title=f"Agent {agent_id} - Live Status", border_style="green")
+            else:
+                return Panel(f"Agent {agent_id} not found", title="Error", border_style="red")
+        
+        elif metric:
+            # Show specific metric
+            if metric in data["metrics"]:
+                metric_obj = data["metrics"][metric]
+                
+                # Create sparkline for history
+                spark = sparkline.create(metric_obj.history[-30:], 40) if metric_obj.history else "─" * 40
+                
+                # Create progress bar for current value (if percentage)
+                if metric_obj.unit == "%":
+                    progress = progress_bar.create(metric_obj.current_value / 100)
+                else:
+                    progress = f"Current: {metric_obj.current_value:.2f}{metric_obj.unit}"
+                
+                content = (
+                    f"[bold]Metric:[/bold] {metric_obj.name}\n"
+                    f"[bold]Current Value:[/bold] {metric_obj.current_value:.2f}{metric_obj.unit}\n"
+                    f"[bold]Trend:[/bold] {metric_obj.get_trend()}\n"
+                    f"[bold]Status:[/bold] {metric_obj.get_status()}\n\n"
+                    f"[bold]History (30 points):[/bold]\n{spark}\n\n"
+                    f"[bold]Progress:[/bold]\n{progress}"
+                )
+                
+                return Panel(content, title=f"Metric: {metric_obj.name}", border_style="blue")
+            else:
+                return Panel(f"Metric {metric} not found", title="Error", border_style="red")
+        
+        else:
+            # Show overview
+            table = Table(show_header=True, header_style="bold magenta")
+            table.add_column("Metric", style="cyan")
+            table.add_column("Value", style="white")
+            table.add_column("Trend", style="blue")
+            table.add_column("Status", style="green")
+            
+            for name, metric_obj in data["metrics"].items():
+                spark = sparkline.create(metric_obj.history[-10:], 15) if metric_obj.history else "─" * 15
+                status = metric_obj.get_status()
+                status_color = {"normal": "green", "warning": "yellow", "critical": "red"}.get(status, "white")
+                
+                table.add_row(
+                    metric_obj.name,
+                    f"{metric_obj.current_value:.1f}{metric_obj.unit}",
+                    spark,
+                    f"[{status_color}]{status.upper()}[/{status_color}]"
+                )
+            
+            return Panel(table, title="Live Metrics Overview", border_style="cyan")
+    
+    try:
+        with Live(create_live_display(), refresh_per_second=2, screen=True) as live:
+            while True:
+                live.update(create_live_display())
+                time.sleep(0.5)
+                
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Live monitoring stopped by user[/yellow]")
+    except Exception as e:
+        console.print(f"\n[red]Live monitoring error: {str(e)}[/red]")
+    finally:
+        data_source.stop()
