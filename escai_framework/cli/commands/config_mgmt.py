@@ -20,6 +20,7 @@ from ...config import (
     ConfigManager, ConfigValidator, ConfigEncryption, 
     ConfigVersioning, ConfigTemplates, Environment
 )
+from .config import config_group
 
 
 console = Console()

@@ -14,7 +14,7 @@ from typing import Dict, Any
 from escai_framework.storage.influx_manager import InfluxDBManager, MetricPoint, RetentionPolicy
 from escai_framework.storage.influx_models import (
     AgentPerformanceMetric, APIMetric, SystemMetric, PredictionMetric,
-    PatternMetric, CausalMetric, EpistemicMetric, MetricBatch,
+    PatternMetric, CausalMetric, EpistemicMetric, MetricBatch, MetricType,
     create_agent_performance_metric, create_api_metric, create_system_metric
 )
 from escai_framework.storage.influx_dashboard import InfluxDashboardManager

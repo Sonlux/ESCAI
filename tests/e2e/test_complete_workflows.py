@@ -19,6 +19,7 @@ from escai_framework.core.pattern_analyzer import BehavioralAnalyzer
 from escai_framework.core.causal_engine import CausalEngine
 from escai_framework.core.performance_predictor import PerformancePredictor
 from escai_framework.core.explanation_engine import ExplanationEngine
+from escai_framework.models.behavioral_pattern import ExecutionSequence
 from escai_framework.api.main import create_app
 from escai_framework.storage.database import DatabaseManager
 

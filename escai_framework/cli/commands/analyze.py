@@ -3,7 +3,11 @@ Analysis commands for ESCAI CLI
 """
 
 import click
-from rich.prompt import Prompt, Confirm
+import math
+import random
+import statistics
+from datetime import datetime, timedelta
+from rich.prompt import Prompt, Confirm, IntPrompt
 from rich.panel import Panel
 from rich.table import Table
 
