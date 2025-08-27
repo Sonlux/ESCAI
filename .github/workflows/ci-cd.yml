@@ -17,6 +17,7 @@ on:
           - "3.9"
           - "3.10"
           - "3.11"
+          - "3.12"
 
 env:
   REGISTRY: ghcr.io
@@ -35,7 +36,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: [3.9, 3.10, 3.11]
+        python-version: [3.9, "3.10", "3.11", "3.12"]
 
     services:
       postgres:
@@ -77,6 +78,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate Python version
+        run: |
+          if [[ "${{ matrix.python-version }}" == "3.1" ]]; then
+            echo "❌ ERROR: Python 3.1 is not available in GitHub Actions runners!"
+            echo "Available versions: 3.9, 3.10, 3.11, 3.12+"
+            echo "Please check compatible.json for supported versions."
+            exit 1
+          fi
+          echo "✅ Using supported Python version: ${{ matrix.python-version }}"
+
       - name: Prevent .NET installation
         run: |
           # Block any attempts to install .NET Core 3.1
@@ -89,6 +100,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           check-latest: true
+        # Safeguard: Fail if someone tries to use unsupported Python 3.1
+        if: matrix.python-version != '3.1'
 
       - name: Verify Python version
         run: |
