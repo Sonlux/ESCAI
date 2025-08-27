@@ -103,7 +103,7 @@ async def get_current_epistemic_state(
     request: Request,
     agent_id: str,
     current_user: User = Depends(require_viewer())
-):
+) -> EpistemicState:
     """Get current epistemic state for an agent."""
     try:
         # Get current epistemic state
@@ -133,7 +133,7 @@ async def search_epistemic_states(
     query: EpistemicStateQuery,
     pagination: PaginationParams = Depends(),
     current_user: User = Depends(require_viewer())
-):
+) -> PaginatedResponse:
     """Search epistemic states with filtering and pagination."""
     try:
         # Build search filters
@@ -182,7 +182,7 @@ async def analyze_behavioral_patterns(
     query: PatternAnalysisQuery,
     pagination: PaginationParams = Depends(),
     current_user: User = Depends(require_researcher())
-):
+) -> PaginatedResponse:
     """Analyze behavioral patterns with filtering."""
     try:
         # Build analysis filters
@@ -230,7 +230,7 @@ async def analyze_causal_relationships(
     request: Request,
     analysis_request: CausalAnalysisRequest,
     current_user: User = Depends(require_researcher())
-):
+) -> List[CausalRelationship]:
     """Analyze causal relationships in agent behavior."""
     try:
         # Perform causal analysis
@@ -258,7 +258,7 @@ async def get_current_predictions(
     request: Request,
     agent_id: str,
     current_user: User = Depends(require_viewer())
-):
+) -> PredictionResult:
     """Get current performance predictions for an agent."""
     try:
         # Get current predictions
@@ -287,7 +287,7 @@ async def generate_prediction(
     request: Request,
     prediction_request: PredictionRequest,
     current_user: User = Depends(require_researcher())
-):
+) -> PredictionResult:
     """Generate performance prediction for an agent."""
     try:
         # Generate prediction
@@ -314,7 +314,7 @@ async def explain_behavior(
     request: Request,
     explanation_request: ExplanationRequest,
     current_user: User = Depends(require_viewer())
-):
+) -> Dict[str, Any]:
     """Generate human-readable explanation of agent behavior."""
     try:
         # Generate explanation
@@ -343,7 +343,7 @@ async def get_agent_summary(
     agent_id: str,
     days: int = Query(7, ge=1, le=90, description="Number of days to include in summary"),
     current_user: User = Depends(require_viewer())
-):
+) -> Dict[str, Any]:
     """Get comprehensive summary for an agent."""
     try:
         # Calculate time range

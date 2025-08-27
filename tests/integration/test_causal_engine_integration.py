@@ -64,7 +64,7 @@ class TestCausalEngineIntegration:
             events.append(outcome_event)
         
         # Discover relationships
-        relationships = await engine.discover_relationships(events)
+        relationships = await engine.discover_relationships_from_events(events)
         
         # Should find temporal relationships
         assert len(relationships) > 0

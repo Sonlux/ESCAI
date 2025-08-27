@@ -822,7 +822,7 @@ class TestSystemIntegration:
                 for event in simulator.events_generated
             ]
             
-            causal_relationships = await causal_engine.discover_relationships(temporal_events)
+            causal_relationships = await causal_engine.discover_relationships_from_events(temporal_events)
             
             # 4. Generate predictions
             if epistemic_states:

@@ -49,6 +49,13 @@ dev = [
     "isort>=5.10.0",
     "flake8>=5.0.0",
     "mypy>=0.991",
+    "bandit>=1.7.0",
+    # Type stubs
+    "types-PyYAML",
+    "types-bleach", 
+    "types-aiofiles",
+    "types-passlib",
+    "pandas-stubs",
 ]
 
 test = [
@@ -78,6 +85,7 @@ full = [
     
     # API & Communication
     "fastapi>=0.95.0",
+    "slowapi>=0.1.7",
     "websockets>=11.0",
     "pydantic>=1.10.0",
     "uvicorn>=0.20.0",

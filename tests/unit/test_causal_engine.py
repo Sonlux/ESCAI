@@ -328,7 +328,7 @@ class TestCausalEngine:
             )
             events.append(event)
         
-        relationships = await engine.discover_relationships(events)
+        relationships = await engine.discover_relationships_from_events(events)
         assert len(relationships) == 0
     
     @pytest.mark.asyncio
@@ -359,7 +359,7 @@ class TestCausalEngine:
             )
             events.append(action_event)
         
-        relationships = await engine.discover_relationships(events)
+        relationships = await engine.discover_relationships_from_events(events)
         
         # Should find temporal relationship between decision and action
         assert len(relationships) > 0

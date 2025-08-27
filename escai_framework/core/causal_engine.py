@@ -191,7 +191,7 @@ class CausalEngine:
         if not DOWHY_AVAILABLE:
             self.logger.warning("DoWhy not available. Structural causal models will be limited.")
     
-    async def discover_relationships(self, events: List[TemporalEvent]) -> List[CausalRelationship]:
+    async def discover_relationships_from_events(self, events: List[TemporalEvent]) -> List[CausalRelationship]:
         """
         Discover causal relationships from a sequence of temporal events.
         
