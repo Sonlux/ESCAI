@@ -70,7 +70,7 @@ active_sessions: Dict[str, Dict] = {}
 # Framework instrumentors (lazy initialization)
 instrumentors = {}
 
-def get_instrumentor(framework: str):
+def get_instrumentor(framework: str) -> Optional[object]:
     """Get instrumentor for framework with lazy initialization."""
     if framework not in instrumentors:
         try:
@@ -99,7 +99,7 @@ async def start_monitoring(
     request: Request,
     monitoring_request: StartMonitoringRequest,
     current_user: User = Depends(require_developer())
-):
+) -> StartMonitoringResponse:
     """Start monitoring an agent."""
     try:
         # Validate and get instrumentor
@@ -183,7 +183,7 @@ async def get_monitoring_status(
     request: Request,
     session_id: str,
     current_user: User = Depends(get_current_user)
-):
+) -> MonitoringStatusResponse:
     """Get monitoring session status."""
     try:
         # Check if session exists
@@ -239,7 +239,7 @@ async def stop_monitoring(
     request: Request,
     session_id: str,
     current_user: User = Depends(require_developer())
-):
+) -> StopMonitoringResponse:
     """Stop monitoring session."""
     try:
         # Check if session exists
@@ -292,7 +292,7 @@ async def list_monitoring_sessions(
     request: Request,
     status_filter: Optional[str] = None,
     current_user: User = Depends(get_current_user)
-):
+) -> List[MonitoringStatusResponse]:
     """List monitoring sessions."""
     try:
         sessions = []
@@ -352,7 +352,7 @@ async def delete_monitoring_session(
     request: Request,
     session_id: str,
     current_user: User = Depends(require_developer())
-):
+) -> None:
     """Delete monitoring session."""
     try:
         # Check if session exists

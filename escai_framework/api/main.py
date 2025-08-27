@@ -33,7 +33,7 @@ logger = get_logger(__name__)
 limiter = Limiter(key_func=get_remote_address)
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> None:
     """Application lifespan manager."""
     logger.info("Starting ESCAI Framework API")
     
@@ -93,7 +93,7 @@ app.include_router(websocket_router, prefix="/ws", tags=["websocket"])
 
 @app.get("/")
 @limiter.limit("10/minute")
-async def root(request: Request):
+async def root(request: Request) -> Dict[str, str]:
     """Root endpoint with API information."""
     return {
         "name": "ESCAI Framework API",
@@ -105,7 +105,7 @@ async def root(request: Request):
 
 @app.get("/health")
 @limiter.limit("30/minute")
-async def health_check(request: Request):
+async def health_check(request: Request) -> Dict[str, Any]:
     """Comprehensive health check endpoint."""
     try:
         # Check database connectivity
@@ -128,7 +128,7 @@ async def health_check(request: Request):
 
 @app.get("/health/ready")
 @limiter.limit("60/minute")
-async def readiness_check(request: Request):
+async def readiness_check(request: Request) -> Dict[str, str]:
     """Kubernetes readiness probe endpoint."""
     try:
         # Check if all critical services are ready
@@ -158,7 +158,7 @@ async def readiness_check(request: Request):
 
 @app.get("/health/live")
 @limiter.limit("60/minute")
-async def liveness_check(request: Request):
+async def liveness_check(request: Request) -> Dict[str, Any]:
     """Kubernetes liveness probe endpoint."""
     try:
         # Basic liveness check - just verify the app is responding
@@ -176,7 +176,7 @@ async def liveness_check(request: Request):
 
 @app.get("/metrics")
 @limiter.limit("30/minute")
-async def metrics(request: Request):
+async def metrics(request: Request) -> Dict[str, Any]:
     """Prometheus metrics endpoint."""
     try:
         # Basic metrics - in production this would use prometheus_client

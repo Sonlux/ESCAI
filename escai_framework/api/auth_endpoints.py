@@ -44,7 +44,7 @@ class ChangePasswordRequest(BaseModel):
 
 @auth_router.post("/login", response_model=LoginResponse)
 @limiter.limit("5/minute")
-async def login(request: Request, user_credentials: UserLogin):
+async def login(request: Request, user_credentials: UserLogin) -> LoginResponse:
     """Authenticate user and return tokens."""
     try:
         # Authenticate user
@@ -89,7 +89,7 @@ async def login(request: Request, user_credentials: UserLogin):
                 "username": user["username"],
                 "email": user["email"],
                 "roles": [role.value for role in user["roles"]],
-                "last_login": user.get("last_login").isoformat() if user.get("last_login") else None
+                "last_login": user.get("last_login").isoformat() if user.get("last_login") and hasattr(user.get("last_login"), "isoformat") else None
             }
         )
         
@@ -104,7 +104,7 @@ async def login(request: Request, user_credentials: UserLogin):
 
 @auth_router.post("/refresh", response_model=Token)
 @limiter.limit("10/minute")
-async def refresh_token(request: Request, refresh_request: RefreshTokenRequest):
+async def refresh_token(request: Request, refresh_request: RefreshTokenRequest) -> Token:
     """Refresh access token using refresh token."""
     try:
         new_token = auth_manager.refresh_access_token(refresh_request.refresh_token)
@@ -133,7 +133,7 @@ async def logout(
     request: Request,
     refresh_request: RefreshTokenRequest,
     current_user: User = Depends(get_current_user)
-):
+) -> None:
     """Logout user and revoke refresh token."""
     try:
         # Revoke refresh token
@@ -153,7 +153,7 @@ async def logout(
 async def get_current_user_info(
     request: Request,
     current_user: User = Depends(get_current_user)
-):
+) -> Dict[str, Any]:
     """Get current user information."""
     return {
         "user_id": current_user.user_id,
@@ -161,8 +161,8 @@ async def get_current_user_info(
         "email": current_user.email,
         "roles": [role.value for role in current_user.roles],
         "is_active": current_user.is_active,
-        "created_at": current_user.created_at.isoformat(),
-        "last_login": current_user.last_login.isoformat() if current_user.last_login else None
+        "created_at": current_user.created_at.isoformat() if hasattr(current_user.created_at, "isoformat") else str(current_user.created_at),
+        "last_login": current_user.last_login.isoformat() if current_user.last_login and hasattr(current_user.last_login, "isoformat") else None
     }
 
 @auth_router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
@@ -171,7 +171,7 @@ async def change_password(
     request: Request,
     password_request: ChangePasswordRequest,
     current_user: User = Depends(get_current_user)
-):
+) -> None:
     """Change user password."""
     try:
         # Get user from database
@@ -214,7 +214,7 @@ async def create_user(
     request: Request,
     user_data: UserCreate,
     current_user: User = Depends(require_admin())
-):
+) -> Dict[str, Any]:
     """Create new user (admin only)."""
     try:
         # Check if user already exists
@@ -246,7 +246,7 @@ async def create_user(
             "email": user_data.email,
             "roles": [role.value for role in user_data.roles],
             "is_active": True,
-            "created_at": new_user["created_at"].isoformat()
+            "created_at": new_user["created_at"].isoformat() if new_user["created_at"] and hasattr(new_user["created_at"], "isoformat") else str(new_user["created_at"])
         }
         
     except HTTPException:
@@ -263,7 +263,7 @@ async def create_user(
 async def list_users(
     request: Request,
     current_user: User = Depends(require_admin())
-):
+) -> List[Dict[str, Any]]:
     """List all users (admin only)."""
     try:
         users = []
@@ -274,8 +274,8 @@ async def list_users(
                 "email": user_dict["email"],
                 "roles": [role.value for role in user_dict["roles"]],
                 "is_active": user_dict["is_active"],
-                "created_at": user_dict["created_at"].isoformat(),
-                "last_login": user_dict.get("last_login").isoformat() if user_dict.get("last_login") else None
+                "created_at": user_dict["created_at"].isoformat() if user_dict["created_at"] and hasattr(user_dict["created_at"], "isoformat") else str(user_dict["created_at"]),
+                "last_login": user_dict.get("last_login").isoformat() if user_dict.get("last_login") and hasattr(user_dict.get("last_login"), "isoformat") else None
             })
         
         return users
@@ -294,7 +294,7 @@ async def update_user_status(
     username: str,
     is_active: bool,
     current_user: User = Depends(require_admin())
-):
+) -> None:
     """Update user active status (admin only)."""
     try:
         if username not in auth_manager.users_db:
