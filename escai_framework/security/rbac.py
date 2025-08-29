@@ -217,7 +217,7 @@ class RBACManager:
                 mapping={k: json.dumps(list(v)) if isinstance(v, set) else 
                            json.dumps(v) if isinstance(v, (list, bool)) else 
                            v.isoformat() if isinstance(v, datetime) else 
-                           v 
+                           str(v) 
                          for k, v in role_data.items()}
             )
             

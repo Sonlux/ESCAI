@@ -41,8 +41,8 @@ except ImportError as e:
     classification_report = None
     xgb = None
     torch = None
-    nn = None
-    optim = None
+    nn_module = None
+    optim_module = None
     DataLoader = None
     TensorDataset = None
 
@@ -165,11 +165,11 @@ class PerformancePredictor:
         self.model_cache_size = model_cache_size
         
         # Model storage
-        self.lstm_models = {}
-        self.rf_models = {}
-        self.xgb_models = {}
-        self.scalers = {}
-        self.label_encoders = {}
+        self.lstm_models: Dict[str, Any] = {}
+        self.rf_models: Dict[str, Any] = {}
+        self.xgb_models: Dict[str, Any] = {}
+        self.scalers: Dict[str, Any] = {}
+        self.label_encoders: Dict[str, Any] = {}
         
         # Feature extractors - removed unused references
         self.feature_extractors = {

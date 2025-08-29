@@ -10,7 +10,7 @@ import secrets
 import hashlib
 import asyncio
 from datetime import datetime, timedelta
-from typing import Dict, Optional, List, Any, cast
+from typing import Dict, Optional, List, Any, cast, Union
 from dataclasses import dataclass, asdict
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -123,7 +123,7 @@ class TokenManager:
         
         # Store session info
         session_key = f"session:{session_id}"
-        session_data = {
+        session_data: Dict[str, Union[str, int, float, bytes]] = {
             "user_id": user_claims.user_id,
             "username": user_claims.username,
             "created_at": now.isoformat(),
