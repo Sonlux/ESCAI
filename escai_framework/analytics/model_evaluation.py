@@ -530,7 +530,7 @@ class ModelEvaluator:
         scores = {}
         
         for perf in performances:
-            score = 0
+            score: float = 0.0
             
             # Classification performance
             if perf.accuracy is not None:
@@ -550,7 +550,7 @@ class ModelEvaluator:
     
     def _generate_comparison_metrics(self, performances: List[ModelPerformance]) -> Dict[str, Any]:
         """Generate comparison metrics across models."""
-        comparison = {
+        comparison: Dict[str, Any] = {
             'classification_metrics': {},
             'regression_metrics': {},
             'efficiency_metrics': {}

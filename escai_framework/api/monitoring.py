@@ -159,12 +159,13 @@ async def start_monitoring(
         
         logger.info(f"Started monitoring session {session_id} for agent {monitoring_request.agent_id}")
         
+        started_at_value: datetime = session_info["started_at"]
         return StartMonitoringResponse(
             session_id=session_id,
             agent_id=monitoring_request.agent_id,
             framework=monitoring_request.framework,
             status="active",
-            started_at=session_info["started_at"],
+            started_at=started_at_value,
             message="Monitoring started successfully"
         )
         

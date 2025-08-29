@@ -867,32 +867,7 @@ class EpistemicExtractor:
         
         
         return context
-    
-    def _calculate_shannon_entropy(self, values: List[float]) -> float:
-        """Calculate Shannon entropy for a list of values."""
-        if not values:
-            return 0.0
-        
-        # Create probability distribution
-        # Bin the continuous confidence values
-        bins = 10
-        counts = [0] * bins
-        
-        for value in values:
-            bin_index = min(int(value * bins), bins - 1)
-            counts[bin_index] += 1
-        
-        # Calculate probabilities
-        total = sum(counts)
-        if total == 0:
-            return 0.0
-        
-        probabilities = [count / total for count in counts if count > 0]
-        
-        # Calculate entropy
-        entropy = -sum(p * math.log2(p) for p in probabilities if p > 0)
-        
-        return entropy
+
     
     async def get_current_state(self, agent_id: str) -> Optional[EpistemicState]:
         """Get current epistemic state for an agent."""

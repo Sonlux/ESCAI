@@ -34,12 +34,15 @@ class EventType(Enum):
     KNOWLEDGE_UPDATE = "knowledge_update"
     
     # Tool and action events
+    TOOL_START = "tool_start"
     TOOL_CALL = "tool_call"
     TOOL_RESPONSE = "tool_response"
     ACTION_START = "action_start"
     ACTION_COMPLETE = "action_complete"
     
     # Communication events (for multi-agent systems)
+    USER_MESSAGE = "user_message"
+    AGENT_MESSAGE = "agent_message"
     MESSAGE_SEND = "message_send"
     MESSAGE_RECEIVE = "message_receive"
     
@@ -51,6 +54,7 @@ class EventType(Enum):
     # Performance and monitoring events
     PERFORMANCE_METRIC = "performance_metric"
     RESOURCE_USAGE = "resource_usage"
+    ERROR = "error"
     
     # Custom framework-specific events
     CUSTOM = "custom"
