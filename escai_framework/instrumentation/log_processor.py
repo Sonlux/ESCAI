@@ -84,7 +84,7 @@ class ProcessingRule:
     
     def extract_fields(self, log_entry: LogEntry) -> Dict[str, Any]:
         """Extract fields from log entry using configured extractors."""
-        fields = {}
+        fields: Dict[str, Any] = {}
         
         match = re.search(self.pattern, log_entry.message, re.IGNORECASE)
         if not match:

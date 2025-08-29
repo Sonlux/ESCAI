@@ -732,7 +732,7 @@ class OpenAIInstrumentor(BaseInstrumentor):
             await self._restore_original_methods(session_id)
             
             # Get assistant summary
-            assistant_summary = {}
+            assistant_summary: Dict[str, Any] = {}
             with self._monitor_lock:
                 monitor = self._assistant_monitors.pop(session_id, None)
                 if monitor:

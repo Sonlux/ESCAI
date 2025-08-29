@@ -537,7 +537,7 @@ class AutoGenInstrumentor(BaseInstrumentor):
             await self._restore_agent_methods(session_id)
             
             # Get conversation summary
-            conversation_summary = {}
+            conversation_summary: Dict[str, Any] = {}
             with self._interceptor_lock:
                 interceptor = self._message_interceptors.pop(session_id, None)
                 if interceptor:
@@ -781,7 +781,7 @@ class AutoGenInstrumentor(BaseInstrumentor):
                 message_intervals.append(interval)
             
             # Identify dominant speakers
-            speaker_counts = {}
+            speaker_counts: Dict[str, int] = {}
             for msg in conversation_history:
                 speaker = msg.get("sender", msg.get("agent", "unknown"))
                 speaker_counts[speaker] = speaker_counts.get(speaker, 0) + 1
@@ -830,8 +830,8 @@ class AutoGenInstrumentor(BaseInstrumentor):
                 return {"total_decisions": 0}
             
             # Analyze decision patterns
-            decision_types = {}
-            selected_speakers = {}
+            decision_types: Dict[str, int] = {}
+            selected_speakers: Dict[str, int] = {}
             
             for decision in group_decisions:
                 decision_type = decision.get("type", "unknown")

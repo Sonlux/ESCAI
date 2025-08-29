@@ -398,7 +398,7 @@ class CrewAIWorkflowMonitor:
         try:
             with self._lock:
                 # Analyze task distribution
-                task_distribution = {}
+                task_distribution: Dict[str, int] = {}
                 for task_id, assignment in self._task_assignments.items():
                     agent_name = assignment["agent_name"]
                     if agent_name not in task_distribution:
@@ -406,7 +406,7 @@ class CrewAIWorkflowMonitor:
                     task_distribution[agent_name] += 1
                 
                 # Analyze agent utilization
-                agent_utilization = {}
+                agent_utilization: Dict[str, float] = {}
                 for agent_name, perf in self._agent_performance.items():
                     total_tasks = perf["tasks_completed"] + perf["tasks_failed"]
                     success_rate = perf["tasks_completed"] / total_tasks if total_tasks > 0 else 0
@@ -610,7 +610,7 @@ class CrewAIInstrumentor(BaseInstrumentor):
             await self._restore_original_methods(session_id)
             
             # Get workflow summary
-            workflow_summary = {}
+            workflow_summary: Dict[str, Any] = {}
             with self._monitor_lock:
                 monitor = self._workflow_monitors.pop(session_id, None)
                 if monitor:
@@ -964,7 +964,7 @@ class CrewAIInstrumentor(BaseInstrumentor):
             success_rate = completed_tasks / total_tasks if total_tasks > 0 else 0
             
             # Analyze agent workload distribution
-            agent_workloads = {}
+            agent_workloads: Dict[str, Dict[str, Any]] = {}
             for agent_name, perf in agent_performance.items():
                 total_agent_tasks = perf.get("tasks_completed", 0) + perf.get("tasks_failed", 0)
                 agent_workloads[agent_name] = total_agent_tasks
@@ -1065,7 +1065,7 @@ class CrewAIInstrumentor(BaseInstrumentor):
             agent_performance = workflow_summary.get("agent_performance_summary", {})
             
             # Group performance by role
-            role_performance = {}
+            role_performance: Dict[str, Dict[str, Any]] = {}
             for agent_name, perf in agent_performance.items():
                 # Extract role from agent performance data (assuming it's stored)
                 role = perf.get("role", "unknown_role")

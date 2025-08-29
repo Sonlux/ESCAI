@@ -364,7 +364,7 @@ class PIIMasker:
         if not isinstance(data, dict):
             return data
         
-        masked_data = {}
+        masked_data: Dict[str, Any] = {}
         for key, value in data.items():
             if isinstance(value, str):
                 pii_matches = detector.detect_pii(value, context=key)
@@ -385,7 +385,7 @@ class PIIMasker:
     
     def get_masking_summary(self, pii_matches: List[PIIMatch]) -> Dict[str, int]:
         """Get summary of masked PII types"""
-        summary = {}
+        summary: Dict[str, int] = {}
         for match in pii_matches:
             pii_type_name = match.pii_type.value
             summary[pii_type_name] = summary.get(pii_type_name, 0) + 1

@@ -342,7 +342,7 @@ class InputValidator:
         """Validate entire data dictionary"""
         all_errors = []
         all_warnings = []
-        sanitized_data = {}
+        sanitized_data: Dict[str, Any] = {}
         
         for field_name, value in data.items():
             result = self.validate_field(field_name, value)
@@ -416,7 +416,7 @@ class InputValidator:
             # This would integrate with jsonschema library
             # For now, basic implementation
             errors = []
-            sanitized_data = {}
+            sanitized_data: Dict[str, Any] = {}
             
             for field, field_schema in schema.get('properties', {}).items():
                 value = data.get(field)

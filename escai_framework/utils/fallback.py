@@ -111,7 +111,7 @@ class RuleBasedEpistemicExtractor(FallbackProvider):
                 text = str(input_data)
             
             # Extract beliefs using patterns
-            beliefs = []
+            beliefs: List[str] = []
             for pattern in self.belief_patterns:
                 matches = re.finditer(pattern, text, re.IGNORECASE)
                 for match in matches:
@@ -124,7 +124,7 @@ class RuleBasedEpistemicExtractor(FallbackProvider):
                     ))
             
             # Extract goals using patterns
-            goals = []
+            goals: List[str] = []
             for pattern in self.goal_patterns:
                 matches = re.finditer(pattern, text, re.IGNORECASE)
                 for match in matches:
@@ -192,8 +192,8 @@ class StatisticalPatternAnalyzer(FallbackProvider):
             sequences = input_data if isinstance(input_data, list) else [input_data]
             
             # Simple frequency-based pattern detection
-            action_counts = {}
-            sequence_lengths = []
+            action_counts: Dict[str, int] = {}
+            sequence_lengths: List[int] = []
             
             for seq in sequences:
                 if hasattr(seq, 'actions'):
@@ -210,7 +210,7 @@ class StatisticalPatternAnalyzer(FallbackProvider):
                     action_counts[action_str] = action_counts.get(action_str, 0) + 1
             
             # Create simple patterns based on frequency
-            patterns = []
+            patterns: List[Dict[str, Any]] = []
             total_actions = sum(action_counts.values())
             
             for action, count in sorted(action_counts.items(), key=lambda x: x[1], reverse=True):
@@ -262,8 +262,8 @@ class SimpleCausalAnalyzer(FallbackProvider):
             events = input_data if isinstance(input_data, list) else [input_data]
             
             # Simple temporal causality: if A happens before B consistently, assume A causes B
-            causal_relationships = []
-            event_pairs = {}
+            causal_relationships: List[Dict[str, Any]] = []
+            event_pairs: Dict[str, List[str]] = {}
             
             for i, event in enumerate(events[:-1]):
                 next_event = events[i + 1]

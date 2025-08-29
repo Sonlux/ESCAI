@@ -261,7 +261,7 @@ class EpistemicExtractor:
         text_lower = text.lower()
         
         # Count matches for each belief type
-        type_scores = {}
+        type_scores: Dict[BeliefType, int] = {}
         for belief_type, patterns in self.belief_type_patterns.items():
             score = sum(1 for pattern in patterns if re.search(pattern, text_lower))
             type_scores[belief_type] = score
@@ -302,10 +302,10 @@ class EpistemicExtractor:
         Returns:
             Extracted knowledge state
         """
-        facts = []
-        rules = []
-        concepts = {}
-        relationships = []
+        facts: List[str] = []
+        rules: List[str] = []
+        concepts: Dict[str, Any] = {}
+        relationships: List[Dict[str, str]] = []
         
         for event in agent_logs:
             if event.event_type == EventType.KNOWLEDGE_UPDATE:
@@ -448,7 +448,7 @@ class EpistemicExtractor:
             List of extracted goal states
         """
         goals = []
-        goal_tracker = {}  # Track goals by description
+        goal_tracker: Dict[str, GoalState] = {}  # Track goals by description
         
         for event in agent_logs:
             if event.event_type in [

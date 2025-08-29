@@ -298,7 +298,7 @@ class MonitoringCircuitBreaker(CircuitBreaker):
     
     def __init__(self, name: str = "monitoring", config: CircuitBreakerConfig = None):
         super().__init__(name, config)
-        self._baseline_performance = {}
+        self._baseline_performance: Dict[str, float] = {}
         self._monitoring_enabled = True
     
     def set_baseline_performance(self, response_time: float, memory_usage: float, cpu_usage: float):
@@ -319,7 +319,7 @@ class MonitoringCircuitBreaker(CircuitBreaker):
         current_memory = self.metrics.get_average_memory_usage()
         current_cpu = self.metrics.get_average_cpu_usage()
         
-        overhead = {}
+        overhead: Dict[str, float] = {}
         
         if self._baseline_performance["response_time"] > 0:
             overhead["response_time"] = (

@@ -236,7 +236,7 @@ class ErrorTracker:
         else:
             return []
         
-        recent_events = []
+        recent_events: List[ErrorEvent] = []
         for event in reversed(self._events):
             if event.timestamp.timestamp() < cutoff:
                 break
@@ -247,7 +247,7 @@ class ErrorTracker:
     
     def get_error_patterns(self, min_occurrences: int = 3) -> Dict[str, Dict[str, Any]]:
         """Get detected error patterns."""
-        patterns = {}
+        patterns: Dict[str, Dict[str, Any]] = {}
         
         for pattern_key, events in self._error_patterns.items():
             if len(events) >= min_occurrences:
@@ -286,7 +286,7 @@ class ErrorTracker:
         component: str = None
     ) -> List[ErrorEvent]:
         """Get error events with optional filtering."""
-        events = []
+        events: List[ErrorEvent] = []
         count = 0
         
         for event in reversed(self._events):

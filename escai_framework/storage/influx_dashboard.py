@@ -531,7 +531,7 @@ class InfluxDashboardManager:
         Returns:
             Dictionary of metric type to data points
         """
-        results = {}
+        results: Dict[str, List[Dict[str, Any]]] = {}
         target_bucket = bucket or self.influx_manager.bucket
 
         for metric_type in metric_types:
