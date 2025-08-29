@@ -173,7 +173,7 @@ class PredictionMetric(BaseMetric):
         return MetricType.PREDICTION_METRICS.value
     
     def get_fields(self) -> Dict[str, Union[float, int, str, bool]]:
-        fields = {
+        fields: Dict[str, Union[float, int, str, bool]] = {
             "accuracy": self.accuracy,
             "confidence": self.confidence,
             "processing_time_ms": self.processing_time_ms,

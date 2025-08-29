@@ -8,7 +8,8 @@ data models to and from various formats (JSON, dict, etc.).
 import json
 import pickle
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
+from collections.abc import Callable as CallableType
 from enum import Enum
 import base64
 
@@ -101,7 +102,7 @@ def to_json(obj: Any, indent: Optional[int] = None, ensure_ascii: bool = False) 
         raise SerializationError(f"Failed to serialize to JSON: {e}")
 
 
-def from_json(json_str: str, object_hook: Optional[callable] = None) -> Any:
+def from_json(json_str: str, object_hook: Optional[CallableType] = None) -> Any:
     """
     Parse JSON string using ESCAI custom decoder.
     
@@ -122,7 +123,7 @@ def from_json(json_str: str, object_hook: Optional[callable] = None) -> Any:
         raise SerializationError(f"Failed to deserialize from JSON: {e}")
 
 
-def to_dict(obj: Any, include_private: bool = False, max_depth: int = 10) -> Dict[str, Any]:
+def to_dict(obj: Any, include_private: bool = False, max_depth: int = 10) -> Any:
     """
     Convert an object to dictionary representation.
     
@@ -202,7 +203,8 @@ def from_dict(data: Dict[str, Any], model_class: Type[T]) -> T:
     """
     try:
         if hasattr(model_class, 'from_dict') and callable(getattr(model_class, 'from_dict')):
-            return model_class.from_dict(data)
+            from_dict_method = getattr(model_class, 'from_dict')
+            return from_dict_method(data)
         else:
             # Try to create instance directly
             return model_class(**data)
@@ -285,11 +287,15 @@ def deserialize_batch(data: Union[str, bytes], format: str = 'json') -> List[Any
         SerializationError: If deserialization fails
     """
     if format == 'json':
+        if isinstance(data, bytes):
+            data = data.decode('utf-8')
         result = from_json(data)
         if not isinstance(result, list):
             raise SerializationError("Expected list from JSON deserialization")
         return result
     elif format == 'pickle':
+        if isinstance(data, str):
+            data = data.encode('utf-8')
         result = from_pickle(data)
         if not isinstance(result, list):
             raise SerializationError("Expected list from pickle deserialization")
@@ -301,15 +307,15 @@ def deserialize_batch(data: Union[str, bytes], format: str = 'json') -> List[Any
 class SerializationRegistry:
     """Registry for custom serialization handlers."""
     
-    def __init__(self):
-        self._serializers: Dict[Type, callable] = {}
-        self._deserializers: Dict[str, callable] = {}
+    def __init__(self) -> None:
+        self._serializers: Dict[Type, CallableType] = {}
+        self._deserializers: Dict[str, CallableType] = {}
     
-    def register_serializer(self, type_class: Type, serializer: callable) -> None:
+    def register_serializer(self, type_class: Type, serializer: CallableType) -> None:
         """Register a custom serializer for a type."""
         self._serializers[type_class] = serializer
     
-    def register_deserializer(self, type_name: str, deserializer: callable) -> None:
+    def register_deserializer(self, type_name: str, deserializer: CallableType) -> None:
         """Register a custom deserializer for a type name."""
         self._deserializers[type_name] = deserializer
     
@@ -334,12 +340,12 @@ class SerializationRegistry:
 default_registry = SerializationRegistry()
 
 
-def register_serializer(type_class: Type, serializer: callable) -> None:
+def register_serializer(type_class: Type, serializer: CallableType) -> None:
     """Register a custom serializer globally."""
     default_registry.register_serializer(type_class, serializer)
 
 
-def register_deserializer(type_name: str, deserializer: callable) -> None:
+def register_deserializer(type_name: str, deserializer: CallableType) -> None:
     """Register a custom deserializer globally."""
     default_registry.register_deserializer(type_name, deserializer)
 

@@ -9,7 +9,7 @@ complete failure.
 import logging
 import re
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Callable, Union
+from typing import Any, Dict, List, Optional, Callable, Union, Tuple
 from dataclasses import dataclass
 from enum import Enum
 
@@ -111,7 +111,7 @@ class RuleBasedEpistemicExtractor(FallbackProvider):
                 text = str(input_data)
             
             # Extract beliefs using patterns
-            beliefs: List[str] = []
+            beliefs: List[BeliefState] = []
             for pattern in self.belief_patterns:
                 matches = re.finditer(pattern, text, re.IGNORECASE)
                 for match in matches:
@@ -140,11 +140,11 @@ class RuleBasedEpistemicExtractor(FallbackProvider):
                     confidence=0.5,
                     source="rule_based_fallback"
                 ),
-                goal_state=GoalState(
+                goal_states=[GoalState(
                     primary_goals=goals[:3],  # Take first 3 goals
                     secondary_goals=goals[3:],
                     completion_status={}
-                ),
+                )],
                 confidence_level=0.6,  # Lower confidence for rule-based extraction
                 uncertainty_score=0.4
             )
@@ -210,7 +210,7 @@ class StatisticalPatternAnalyzer(FallbackProvider):
                     action_counts[action_str] = action_counts.get(action_str, 0) + 1
             
             # Create simple patterns based on frequency
-            patterns: List[Dict[str, Any]] = []
+            patterns: List[BehavioralPattern] = []
             total_actions = sum(action_counts.values())
             
             for action, count in sorted(action_counts.items(), key=lambda x: x[1], reverse=True):
@@ -263,7 +263,7 @@ class SimpleCausalAnalyzer(FallbackProvider):
             
             # Simple temporal causality: if A happens before B consistently, assume A causes B
             causal_relationships: List[Dict[str, Any]] = []
-            event_pairs: Dict[str, List[str]] = {}
+            event_pairs: Dict[Tuple[str, str], int] = {}
             
             for i, event in enumerate(events[:-1]):
                 next_event = events[i + 1]
@@ -282,15 +282,16 @@ class SimpleCausalAnalyzer(FallbackProvider):
             for (cause, effect), count in event_pairs.items():
                 if count >= 2:  # Must occur at least twice
                     strength = count / total_pairs
-                    causal_relationships.append(CausalRelationship(
-                        cause_event=cause,
-                        effect_event=effect,
-                        strength=strength,
-                        confidence=min(strength * 0.8, 0.6),  # Conservative confidence
-                        delay_ms=1000,  # Default 1 second delay
-                        evidence=[f"Temporal sequence observed {count} times"],
-                        statistical_significance=min(strength, 0.5)  # Cap significance for simple analysis
-                    ))
+                    causal_relationships.append({
+                        'relationship_id': f"temp_{len(causal_relationships)}",
+                        'cause_event': cause,
+                        'effect_event': effect,
+                        'strength': strength,
+                        'confidence': min(strength * 0.8, 0.6),
+                        'delay_ms': 1000,
+                        'evidence': [f"Temporal sequence observed {count} times"],
+                        'statistical_significance': min(strength, 0.5)
+                    })
             
             return FallbackResult(
                 success=True,
