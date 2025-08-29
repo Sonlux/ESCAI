@@ -138,7 +138,7 @@ def show():
 @click.argument('section')
 @click.argument('key')
 @click.argument('value')
-def set(section: str, key: str, value: Union[str, bool, int, float]):
+def set(section: str, key: str, value: str):
     """Set a configuration value"""
     
     if not CONFIG_FILE.exists():
@@ -152,22 +152,23 @@ def set(section: str, key: str, value: Union[str, bool, int, float]):
         config[section] = {}
     
     # Try to convert value to appropriate type
+    converted_value: Union[str, bool, int, float] = value
     try:
         if value.lower() in ('true', 'false'):
-            value = value.lower() == 'true'
+            converted_value = value.lower() == 'true'
         elif value.isdigit():
-            value = int(value)
+            converted_value = int(value)
         elif '.' in value and value.replace('.', '').isdigit():
-            value = float(value)
+            converted_value = float(value)
     except:
         pass  # Keep as string
     
-    config[section][key] = value
+    config[section][key] = converted_value
     
     with open(CONFIG_FILE, 'w') as f:
         json.dump(config, f, indent=2)
     
-    console.print(f"[success]✅ Set {section}.{key} = {value}[/success]")
+    console.print(f"[success]✅ Set {section}.{key} = {converted_value}[/success]")
 
 @config_group.command()
 @click.argument('section')
