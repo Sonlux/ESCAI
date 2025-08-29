@@ -10,7 +10,7 @@ try:
 except ImportError:
     # Windows doesn't have termios
     HAS_TERMIOS = False
-from typing import List, Dict, Any, Optional, Callable, Tuple
+from typing import List, Dict, Any, Optional, Callable, Tuple, Literal
 from dataclasses import dataclass, field
 from enum import Enum
 import re
@@ -58,7 +58,7 @@ class TableColumn:
     width: Optional[int] = None
     sortable: bool = True
     filterable: bool = True
-    align: str = "left"
+    align: Literal['default', 'left', 'center', 'right', 'full'] = "left"
 
 
 @dataclass
@@ -450,8 +450,8 @@ class InteractiveTreeView:
         self.state = InteractiveState()
         self.console = get_console()
         self.keyboard = KeyboardHandler()
-        self.expanded_nodes = set()
-        self.node_list = []  # Flattened list for navigation
+        self.expanded_nodes: Set[str] = set()
+        self.node_list: List[Tuple[Dict[str, Any], int, str]] = []  # Flattened list for navigation
         self._build_node_list()
     
     def run(self) -> Optional[Dict[str, Any]]:

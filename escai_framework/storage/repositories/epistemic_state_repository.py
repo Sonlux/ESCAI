@@ -54,7 +54,7 @@ class EpistemicStateRepository(BaseRepository[EpistemicStateRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_by_session(
         self,
@@ -71,7 +71,7 @@ class EpistemicStateRepository(BaseRepository[EpistemicStateRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_recent_states(
         self,
@@ -109,7 +109,7 @@ class EpistemicStateRepository(BaseRepository[EpistemicStateRecord]):
             )
             .order_by(asc(EpistemicStateRecord.timestamp))
         )
-        return result.all()
+        return [r._tuple() for r in result.all()]
     
     async def get_uncertainty_stats(
         self,

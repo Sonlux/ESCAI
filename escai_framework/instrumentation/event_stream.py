@@ -9,12 +9,13 @@ import asyncio
 import threading
 import time
 import logging
-from typing import Any, Callable, Dict, List, Optional, Set, Union
+from typing import Any, Callable, Dict, List, Optional, Set, Union, Deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from collections import deque
 from concurrent.futures import ThreadPoolExecutor
 import weakref
+from asyncio import Queue
 
 from .events import AgentEvent, EventType, EventSeverity
 
@@ -133,6 +134,7 @@ class Subscriber:
                 f"Error notifying subscriber {self.subscriber_id}: {str(e)}"
             )
             return False
+        return True
 
 
 class EventBuffer:
@@ -146,7 +148,7 @@ class EventBuffer:
             max_size: Maximum number of events to buffer
         """
         self.max_size = max_size
-        self._buffer = deque(maxlen=max_size)
+        self._buffer: Deque[AgentEvent] = deque(maxlen=max_size)
         self._lock = threading.RLock()
         self._overflow_count = 0
     
@@ -222,14 +224,14 @@ class EventStream:
         self.max_workers = max_workers
         
         # Event buffer
-        self._buffer = EventBuffer(buffer_size)
+        self._buffer: EventBuffer = EventBuffer(buffer_size)
         
         # Subscribers
         self._subscribers: Dict[str, Subscriber] = {}
         self._subscribers_lock = threading.RLock()
         
         # Event processing
-        self._event_queue = asyncio.Queue(maxsize=buffer_size)
+        self._event_queue: Queue[AgentEvent] = asyncio.Queue(maxsize=buffer_size)
         self._processing_task: Optional[asyncio.Task] = None
         self._shutdown_event = asyncio.Event()
         

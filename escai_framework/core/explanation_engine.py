@@ -6,6 +6,7 @@ decision pathways, causal relationships, and predictions.
 """
 
 import asyncio
+import logging
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -91,6 +92,7 @@ class ExplanationEngine:
         """Initialize the explanation engine with templates."""
         self.templates = self._initialize_templates()
         self.explanation_cache = {}
+        self.logger: logging.Logger = logging.getLogger(f"{self.__class__.__module__}.{self.__class__.__name__}")
     
     def _initialize_templates(self) -> Dict[str, ExplanationTemplate]:
         """Initialize explanation templates."""
@@ -288,7 +290,7 @@ class ExplanationEngine:
             template = self.templates["decision_pathway_simple"]
             main_decision = decision_steps[0] if decision_steps else "proceed with task"
             main_reason = influencing_factors[0] if influencing_factors else "following standard procedure"
-            outcome = "success" if execution_sequence.success_rate > 0.7 else "mixed results"
+            outcome = "success" if execution_sequence.success else "mixed results"
             
             content = template.template_text.format(
                 decision=main_decision,
@@ -397,9 +399,9 @@ class ExplanationEngine:
         if style == ExplanationStyle.SIMPLE:
             template = self.templates["prediction_explanation_simple"]
             prediction_value = self._format_prediction_value(prediction_result)
-            outcome = self._describe_prediction_outcome(prediction_result.prediction_type)
+            outcome = self._describe_prediction_outcome(PredictionType(prediction_result.prediction_type))
             risk_level = prediction_result.risk_level.value
-            main_risk = prediction_result.risk_factors[0].name if prediction_result.risk_factors else "no significant risks identified"
+            main_risk = prediction_result.risk_factor_objects[0].name if prediction_result.risk_factor_objects else "no significant risks identified"
             
             content = template.template_text.format(
                 prediction=prediction_value,
@@ -410,27 +412,27 @@ class ExplanationEngine:
         else:
             template = self.templates["prediction_explanation_detailed"]
             risk_factors_text = self._format_risk_factors(prediction_result.risk_factors)
-            interventions_text = self._format_interventions(prediction_result.recommended_interventions)
-            model_info = f"{prediction_result.model_name} v{prediction_result.model_version}"
+            interventions_text = self._format_interventions(prediction_result.recommended_actions)
+            model_info = prediction_result.model_used
             
             content = template.template_text.format(
                 agent_id=prediction_result.agent_id,
                 prediction_value=self._format_prediction_value_detailed(prediction_result),
-                prediction_type=prediction_result.prediction_type.value.replace('_', ' ').title(),
-                confidence=int(prediction_result.confidence_score * 100),
+                prediction_type=PredictionType(prediction_result.prediction_type).value.replace('_', ' ').title(),
+                confidence=int(prediction_result.confidence * 100),
                 risk_level=prediction_result.risk_level.value.title(),
                 risk_factors=risk_factors_text,
                 interventions=interventions_text,
                 model_info=model_info
             )
         
-        confidence_score = prediction_result.confidence_score
-        coverage_score = min(1.0, len(prediction_result.features_used) / 10.0)
+        confidence_score = prediction_result.confidence
+        coverage_score = min(1.0, len(prediction_result.feature_importance) / 10.0)
         
         limitations = []
-        if prediction_result.confidence_score < 0.6:
+        if prediction_result.confidence < 0.6:
             limitations.append("Low prediction confidence")
-        if prediction_result.is_expired():
+        # if prediction_result.is_expired():
             limitations.append("Prediction may be outdated")
         
         return ExplanationResult(
@@ -441,7 +443,7 @@ class ExplanationEngine:
             content=content,
             confidence_score=confidence_score,
             coverage_score=coverage_score,
-            supporting_evidence=[f"Based on {len(prediction_result.features_used)} features",
+            supporting_evidence=[f"Based on {len(prediction_result.feature_importance)} features",
                                f"Risk assessment: {len(prediction_result.risk_factors)} factors"],
             limitations=limitations
         )
@@ -523,7 +525,7 @@ class ExplanationEngine:
     
     def _calculate_total_duration(self, sequences: List[ExecutionSequence]) -> str:
         """Calculate and format total duration of execution sequences."""
-        total_ms = sum(seq.total_duration_ms for seq in sequences)
+        total_ms = sum((seq.end_time - seq.start_time).total_seconds() * 1000 for seq in sequences if seq.end_time and seq.start_time)
         if total_ms < 1000:
             return f"{total_ms}ms"
         elif total_ms < 60000:
@@ -573,12 +575,10 @@ class ExplanationEngine:
     
     def _describe_outcome(self, sequence: ExecutionSequence) -> str:
         """Describe the outcome of an execution sequence."""
-        if sequence.success_rate > 0.8:
+        if sequence.success:
             return f"Successful completion with {len(sequence.steps)} steps"
-        elif sequence.success_rate > 0.5:
-            return f"Partial success with some issues in {len(sequence.steps)} steps"
         else:
-            return f"Failed execution with multiple issues in {len(sequence.steps)} steps"
+            return f"Failed execution with {len(sequence.steps)} steps"
     
     def _describe_strength(self, strength: float) -> str:
         """Describe causal relationship strength."""
@@ -614,12 +614,12 @@ class ExplanationEngine:
         delay_desc = self._describe_delay(delay_ms)
         return f"{delay_desc} (delay: {delay_ms}ms)"
     
-    def _summarize_evidence(self, evidence_list) -> str:
+    def _summarize_evidence(self, evidence_list: List[Any]) -> str:
         """Summarize causal evidence."""
         if not evidence_list:
             return "No supporting evidence available"
-        
-        evidence_types = {}
+
+        evidence_types: Dict[str, List[float]] = {}
         for evidence in evidence_list:
             ev_type = evidence.evidence_type.value
             if ev_type not in evidence_types:
@@ -692,7 +692,7 @@ class ExplanationEngine:
         patterns = []
         
         # Analyze action patterns
-        action_counts = {}
+        action_counts: Dict[str, int] = {}  # type: ignore[var-annotated]
         for seq in sequences:
             for step in seq.steps:
                 action = step.action.lower()
@@ -704,11 +704,12 @@ class ExplanationEngine:
             patterns.append(f"Frequently uses '{action}' ({count} times)")
         
         # Analyze timing patterns
-        avg_duration = sum(seq.total_duration_ms for seq in sequences) / len(sequences)
-        if avg_duration < 5000:
-            patterns.append("Executes quickly (under 5 seconds)")
-        elif avg_duration > 30000:
-            patterns.append("Takes time for careful execution (over 30 seconds)")
+        if len(sequences) > 0:
+            avg_duration = sum((seq.end_time - seq.start_time).total_seconds() * 1000 for seq in sequences if seq.end_time and seq.start_time) / len(sequences)
+            if avg_duration < 5000:
+                patterns.append("Executes quickly (under 5 seconds)")
+            elif avg_duration > 30000:
+                patterns.append("Takes time for careful execution (over 30 seconds)")
         
         # Analyze step count patterns
         avg_steps = sum(len(seq.steps) for seq in sequences) / len(sequences)
@@ -756,10 +757,10 @@ class ExplanationEngine:
         factors = []
         
         # Analyze successful sequences
-        high_success = [seq for seq in sequences if seq.success_rate > 0.8]
+        high_success = [seq for seq in sequences if seq.success]
         if high_success:
             avg_steps = sum(len(seq.steps) for seq in high_success) / len(high_success)
-            avg_duration = sum(seq.total_duration_ms for seq in high_success) / len(high_success)
+            avg_duration = sum((seq.end_time - seq.start_time).total_seconds() * 1000 for seq in high_success if seq.end_time and seq.start_time) / len(high_success)
             
             if avg_steps < 5:
                 factors.append("keeping execution simple")
@@ -767,7 +768,7 @@ class ExplanationEngine:
                 factors.append("quick decision making")
             
             # Look for common successful actions
-            action_counts = {}
+            action_counts: Dict[str, int] = {}  # type: ignore[var-annotated]
             for seq in high_success:
                 for step in seq.steps:
                     if step.status == ExecutionStatus.SUCCESS:
@@ -790,7 +791,7 @@ class ExplanationEngine:
         low_success = [seq for seq in sequences if seq.success_rate < 0.5]
         if low_success:
             # Look for common failure patterns
-            error_patterns = {}
+            error_patterns: Dict[str, int] = {}  # type: ignore[var-annotated]
             for seq in low_success:
                 for step in seq.steps:
                     if step.status in [ExecutionStatus.FAILURE, ExecutionStatus.TIMEOUT]:

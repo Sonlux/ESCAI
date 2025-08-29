@@ -5,7 +5,7 @@ Configuration management commands for ESCAI CLI
 import json
 import os
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Union
 
 import click
 from rich.prompt import Prompt, Confirm
@@ -138,7 +138,7 @@ def show():
 @click.argument('section')
 @click.argument('key')
 @click.argument('value')
-def set(section: str, key: str, value: str):
+def set(section: str, key: str, value: Union[str, bool, int, float]):
     """Set a configuration value"""
     
     if not CONFIG_FILE.exists():

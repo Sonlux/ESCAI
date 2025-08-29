@@ -15,7 +15,7 @@ import threading
 import weakref
 import json
 
-from .base_instrumentor import BaseInstrumentor, InstrumentationError, EventProcessingError
+from .base_instrumentor import BaseInstrumentor, InstrumentationError, EventProcessingError, MonitoringSummary as BaseMonitoringSummary
 from .events import AgentEvent, EventType, EventSeverity, MonitoringSummary
 
 # CrewAI imports (with fallback for optional dependency)
@@ -62,7 +62,7 @@ class CrewAIWorkflowMonitor:
         self._task_assignments: Dict[str, Dict[str, Any]] = {}
         self._agent_performance: Dict[str, Dict[str, Any]] = {}
         self._collaboration_patterns: List[Dict[str, Any]] = []
-        self._workflow_hierarchy: Dict[str, List[str]] = {}
+        self._workflow_hierarchy: Dict[str, Dict[str, Any]] = {}
         
         # Thread safety
         self._lock = threading.RLock()
@@ -137,7 +137,7 @@ class CrewAIWorkflowMonitor:
                 self._task_assignments[task_id]["status"] = "completed"
                 self._task_assignments[task_id]["completed_at"] = datetime.utcnow()
                 self._task_assignments[task_id]["execution_time"] = execution_time
-                self._task_assignments[task_id]["result"] = str(result)[:500] if result else None
+                self._task_assignments[task_id]["result"] = str(result)[:500] if result else None  # type: ignore[assignment]
                 
                 # Update agent performance metrics
                 agent_perf = self._agent_performance[agent_name]
@@ -406,7 +406,7 @@ class CrewAIWorkflowMonitor:
                     task_distribution[agent_name] += 1
                 
                 # Analyze agent utilization
-                agent_utilization: Dict[str, float] = {}
+                agent_utilization: Dict[str, Dict[str, Any]] = {}
                 for agent_name, perf in self._agent_performance.items():
                     total_tasks = perf["tasks_completed"] + perf["tasks_failed"]
                     success_rate = perf["tasks_completed"] / total_tasks if total_tasks > 0 else 0
@@ -590,7 +590,7 @@ class CrewAIInstrumentor(BaseInstrumentor):
         except Exception as e:
             raise InstrumentationError(f"Failed to start monitoring: {str(e)}")
     
-    async def stop_monitoring(self, session_id: str) -> MonitoringSummary:
+    async def stop_monitoring(self, session_id: str) -> BaseMonitoringSummary:
         """
         Stop monitoring CrewAI workflows.
         
@@ -645,7 +645,7 @@ class CrewAIInstrumentor(BaseInstrumentor):
             await self._queue_event(stop_event)
             
             # Create monitoring summary
-            summary = MonitoringSummary(
+            summary = BaseMonitoringSummary(
                 session_id=session_id,
                 agent_id=ended_session.agent_id,
                 framework=self.get_framework_name(),
@@ -761,42 +761,7 @@ class CrewAIInstrumentor(BaseInstrumentor):
         except Exception as e:
             self.logger.error(f"Failed to instrument crew: {str(e)}")
     
-    async def _instrument_crew(self, session_id: str, crew: Any,
-                             monitor: CrewAIWorkflowMonitor) -> None:
-        """Instrument a Crew instance."""
-        try:
-            if not hasattr(crew, 'kickoff'):
-                self.logger.warning(f"Crew {id(crew)} does not have kickoff method")
-                return
-            
-            # Store original method
-            original_kickoff = crew.kickoff
-            crew_key = f"crew_{id(crew)}_kickoff"
-            self._original_methods[session_id][crew_key] = original_kickoff
-            
-            # Create wrapped method
-            def wrapped_kickoff():
-                return monitor.monitor_crew_kickoff(original_kickoff, crew)
-            
-            # Replace method
-            crew.kickoff = wrapped_kickoff
-            
-            # Track crew
-            self._monitored_crews[session_id].add(crew)
-            
-            # Also instrument agents and tasks within the crew
-            if hasattr(crew, 'agents'):
-                for agent in crew.agents:
-                    await self._instrument_agent(session_id, agent, monitor)
-            
-            if hasattr(crew, 'tasks'):
-                for task in crew.tasks:
-                    await self._instrument_task(session_id, task, monitor)
-            
-            self.logger.debug(f"Instrumented crew with {len(getattr(crew, 'agents', []))} agents and {len(getattr(crew, 'tasks', []))} tasks")
-            
-        except Exception as e:
-            self.logger.error(f"Failed to instrument crew: {str(e)}")
+    
     
     async def _instrument_agent(self, session_id: str, agent: Any,
                               monitor: CrewAIWorkflowMonitor) -> None:
@@ -964,7 +929,7 @@ class CrewAIInstrumentor(BaseInstrumentor):
             success_rate = completed_tasks / total_tasks if total_tasks > 0 else 0
             
             # Analyze agent workload distribution
-            agent_workloads: Dict[str, Dict[str, Any]] = {}
+            agent_workloads: Dict[str, int] = {}
             for agent_name, perf in agent_performance.items():
                 total_agent_tasks = perf.get("tasks_completed", 0) + perf.get("tasks_failed", 0)
                 agent_workloads[agent_name] = total_agent_tasks
@@ -1028,7 +993,7 @@ class CrewAIInstrumentor(BaseInstrumentor):
             avg_collaboration_score = sum(collaboration_scores) / len(collaboration_scores) if collaboration_scores else 0
             
             # Analyze skill utilization
-            all_skills = set()
+            all_skills: Set[str] = set()
             for pattern in collaboration_patterns:
                 agent_utilization = pattern.get("agent_utilization", {})
                 for agent_data in agent_utilization.values():

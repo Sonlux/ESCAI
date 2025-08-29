@@ -13,7 +13,7 @@ import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union, Callable
+from typing import Any, Dict, List, Optional, Tuple, Union, Callable, cast
 from packaging import version
 import inspect
 
@@ -662,7 +662,7 @@ class FrameworkCompatibilityManager:
                     error_message=str(result)
                 )
             else:
-                results[name] = result
+                results[name] = cast(FrameworkInfo, result)  # type: ignore[assignment]
         
         return results
     

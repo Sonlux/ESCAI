@@ -206,7 +206,7 @@ class StatisticalAnalyzer:
             return {"error": "Insufficient data for time series analysis"}
         
         timestamps, values = zip(*time_series_data)
-        values = np.array(values)
+        values: np.ndarray = np.array(values)
         
         # Trend analysis
         trend_test = await self._mann_kendall_trend_test(values)
@@ -294,7 +294,7 @@ class StatisticalAnalyzer:
                 'best_lag': None
             }
     
-    async def multiple_comparison_correction(self, p_values: List[float], 
+    async def multiple_comparison_correction(self, p_values: np.ndarray, 
                                            method: str = 'bonferroni') -> Dict[str, Any]:
         """
         Apply multiple comparison correction to p-values.
@@ -306,7 +306,7 @@ class StatisticalAnalyzer:
         Returns:
             Corrected p-values and significance results
         """
-        p_values = np.array(p_values)
+        
         
         if method == 'bonferroni':
             corrected_p = p_values * len(p_values)

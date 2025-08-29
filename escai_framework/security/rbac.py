@@ -214,8 +214,11 @@ class RBACManager:
             
             await self.redis.hset(
                 f"rbac:role:{role.name}",
-                mapping={k: json.dumps(v) if isinstance(v, (list, bool)) else v 
-                        for k, v in role_data.items()}
+                mapping={k: json.dumps(list(v)) if isinstance(v, set) else 
+                           json.dumps(v) if isinstance(v, (list, bool)) else 
+                           v.isoformat() if isinstance(v, datetime) else 
+                           v 
+                         for k, v in role_data.items()}
             )
             
             logger.info(f"Created role: {role.name}")

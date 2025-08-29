@@ -189,11 +189,11 @@ class ConfigSchema(BaseModel):
     log_level: LogLevel = Field(default=LogLevel.INFO, description="Logging level")
     
     # Component configurations
-    database: DatabaseConfig = Field(default_factory=DatabaseConfig, description="Database configuration")
-    api: APIConfig = Field(default_factory=APIConfig, description="API configuration")
+    database: DatabaseConfig = Field(default_factory=lambda: DatabaseConfig(), description="Database configuration")
+    api: APIConfig = Field(default_factory=lambda: APIConfig(), description="API configuration")
     security: SecurityConfig = Field(description="Security configuration")
-    monitoring: MonitoringConfig = Field(default_factory=MonitoringConfig, description="Monitoring configuration")
-    ml: MLConfig = Field(default_factory=MLConfig, description="Machine learning configuration")
+    monitoring: MonitoringConfig = Field(default_factory=lambda: MonitoringConfig(), description="Monitoring configuration")
+    ml: MLConfig = Field(default_factory=lambda: MLConfig(), description="Machine learning configuration")
     
     # Custom settings
     custom_settings: Dict[str, Any] = Field(default_factory=dict, description="Custom application settings")

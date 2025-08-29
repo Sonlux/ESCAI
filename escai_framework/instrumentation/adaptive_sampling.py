@@ -150,7 +150,7 @@ class AdaptiveRateSampler(SamplingDecisionMaker):
     def __init__(self, config: SamplingConfig):
         self.config = config
         self.sampling_rate = config.base_sampling_rate
-        self._recent_overheads = deque(maxlen=config.adaptation_window)
+        self._recent_overheads: deque[float] = deque(maxlen=config.adaptation_window)
         self._counter = 0
         self._lock = threading.RLock()
     
@@ -270,7 +270,7 @@ class PerformanceAwareSampler(SamplingDecisionMaker):
     def __init__(self, config: SamplingConfig):
         self.config = config
         self.sampling_rate = config.base_sampling_rate
-        self._system_load_history = deque(maxlen=50)
+        self._system_load_history: deque[float] = deque(maxlen=50)
         self._counter = 0
         self._lock = threading.RLock()
     
@@ -373,7 +373,7 @@ class AdaptiveSamplingManager:
         self.config = config or SamplingConfig()
         self.metrics = SamplingMetrics()
         self._sampler = self._create_sampler()
-        self._event_batch = []
+        self._event_batch: List[AgentEvent] = []
         self._batch_timer = None
         self._lock = threading.RLock()
         self._circuit_breaker = get_monitoring_circuit_breaker()

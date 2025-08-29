@@ -2,7 +2,7 @@
 Repository for MonitoringSession model operations.
 """
 
-from typing import List, Optional
+from typing import List, Optional, cast
 from datetime import datetime, timedelta
 from uuid import UUID
 
@@ -47,7 +47,7 @@ class MonitoringSessionRepository(BaseRepository[MonitoringSession]):
         query = query.order_by(desc(MonitoringSession.started_at))
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_by_agent(
         self,
@@ -70,7 +70,7 @@ class MonitoringSessionRepository(BaseRepository[MonitoringSession]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_recent_sessions(
         self,
@@ -95,7 +95,7 @@ class MonitoringSessionRepository(BaseRepository[MonitoringSession]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def end_session(
         self,
@@ -107,14 +107,14 @@ class MonitoringSessionRepository(BaseRepository[MonitoringSession]):
         """End a monitoring session."""
         monitoring_session = await self.get_by_session_id(session, session_id)
         if monitoring_session and monitoring_session.status == 'active':
-            monitoring_session.ended_at = datetime.utcnow()
-            monitoring_session.status = status
+            monitoring_session.ended_at = cast(datetime, datetime.utcnow())
+            monitoring_session.status = cast(str, status)
             
             if metadata:
                 if monitoring_session.session_metadata:
-                    monitoring_session.session_metadata.update(metadata)
+                    monitoring_session.session_metadata.update(cast(dict, metadata))
                 else:
-                    monitoring_session.session_metadata = metadata
+                    monitoring_session.session_metadata = cast(dict, metadata)
             
             await session.flush()
             await session.refresh(monitoring_session)
@@ -179,7 +179,7 @@ class MonitoringSessionRepository(BaseRepository[MonitoringSession]):
             .group_by(MonitoringSession.status)
         )
         
-        status_counts = {row.status: row.count for row in result}
+        status_counts = {row.status: cast(int, row.count) for row in result}
         
         # Ensure all statuses are represented
         for status in ['active', 'completed', 'failed']:

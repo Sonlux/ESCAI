@@ -361,7 +361,7 @@ class StatisticalAnalysis:
         
         return stats
     
-    def correlation_analysis(self, x_data: List[float], y_data: List[float]) -> Dict[str, float]:
+    def correlation_analysis(self, x_data: List[float], y_data: List[float]) -> Dict[str, Any]:
         """Calculate correlation between two datasets"""
         if len(x_data) != len(y_data) or len(x_data) < 2:
             return {"error": "Invalid data for correlation analysis"}
@@ -610,6 +610,8 @@ class DataCorrelationExplorer:
                 return None
         
         # Try to convert to float
+        if isinstance(value, dict):
+            return None
         try:
             return float(value)
         except (ValueError, TypeError):
@@ -796,6 +798,8 @@ class TimeSeriesAnalyzer:
             else:
                 return None
         
+        if isinstance(value, dict):
+            return None
         try:
             return float(value)
         except (ValueError, TypeError):

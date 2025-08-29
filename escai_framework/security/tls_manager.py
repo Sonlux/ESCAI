@@ -11,7 +11,7 @@ import logging
 import ipaddress
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, cast
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes, serialization
@@ -216,9 +216,9 @@ class TLSManager:
             
             # Check hostname in SAN extension
             try:
-                san_ext = cert.extensions.get_extension_for_oid(
+                san_ext = cast(x509.SubjectAlternativeName, cert.extensions.get_extension_for_oid(
                     x509.oid.ExtensionOID.SUBJECT_ALTERNATIVE_NAME
-                ).value
+                ).value)
                 
                 for name in san_ext:
                     if isinstance(name, x509.DNSName) and name.value == hostname:

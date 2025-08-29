@@ -289,6 +289,9 @@ class ConfigValidator:
                 else:
                     return False, [f"Unsupported configuration file format: {config_path.suffix}"]
             
+            if not isinstance(config_data, dict):
+                return False, [f"Invalid configuration file format: Expected a dictionary, got {type(config_data).__name__}"]
+            
             return self.validate_config(config_data)
             
         except Exception as e:

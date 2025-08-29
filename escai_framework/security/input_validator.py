@@ -465,7 +465,7 @@ class InputValidator:
         }
         
         expected_python_type = type_map.get(expected_type)
-        if expected_python_type:
+        if expected_python_type is not None:
             return isinstance(value, expected_python_type)
         
         return True

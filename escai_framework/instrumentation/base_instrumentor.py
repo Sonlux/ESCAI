@@ -8,13 +8,16 @@ instrumentors must implement to ensure consistent monitoring capabilities.
 import asyncio
 import logging
 from abc import ABC, abstractmethod
+from typing import Awaitable
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Set
+from asyncio import Queue
 from concurrent.futures import ThreadPoolExecutor
 import threading
 import time
 import traceback
+from asyncio import Queue
 
 from .events import (
     AgentEvent, EventType, EventSeverity, MonitoringSession
@@ -106,8 +109,8 @@ class BaseInstrumentor(ABC):
         self.event_buffer_size = event_buffer_size
         
         # Thread-safe event handling
-        self._event_queue = asyncio.Queue(maxsize=event_buffer_size)
-        self._event_handlers: List[Callable[[AgentEvent], None]] = []
+        self._event_queue: Queue[AgentEvent] = asyncio.Queue(maxsize=event_buffer_size)
+        self._event_handlers: List[Callable[[AgentEvent], Awaitable[None]] | Callable[[AgentEvent], None]] = []
         self._processing_task: Optional[asyncio.Task] = None
         self._shutdown_event = asyncio.Event()
         
@@ -128,7 +131,7 @@ class BaseInstrumentor(ABC):
         # Circuit breaker for overhead protection
         self._circuit_breaker_open = False
         self._circuit_breaker_failures = 0
-        self._circuit_breaker_last_failure = None
+        self._circuit_breaker_last_failure: Optional[float] = None
         self._circuit_breaker_threshold = 5
         self._circuit_breaker_timeout = 60  # seconds
         
@@ -481,6 +484,7 @@ class BaseInstrumentor(ABC):
         # Wait for processing task to complete
         if self._processing_task and not self._processing_task.done():
             try:
+                assert self._processing_task is not None
                 await asyncio.wait_for(self._processing_task, timeout=5.0)
             except asyncio.TimeoutError:
                 self.logger.warning("Processing task did not complete within timeout")

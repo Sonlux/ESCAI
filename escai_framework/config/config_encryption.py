@@ -160,7 +160,7 @@ class ConfigEncryption:
         Returns:
             Configuration with encrypted sensitive values
         """
-        encrypted_config = {}
+        encrypted_config: Dict[str, Any] = {}
         
         for key, value in config_data.items():
             if isinstance(value, dict):
@@ -191,7 +191,7 @@ class ConfigEncryption:
         Returns:
             Configuration with decrypted values
         """
-        decrypted_config = {}
+        decrypted_config: Dict[str, Any] = {}
         
         for key, value in config_data.items():
             if isinstance(value, dict):

@@ -2,7 +2,7 @@
 Repository for Agent model operations.
 """
 
-from typing import List, Optional
+from typing import List, Optional, cast
 from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,7 +27,7 @@ class AgentRepository(BaseRepository[Agent]):
     
     async def get_active_agents(self, session: AsyncSession) -> List[Agent]:
         """Get all active agents."""
-        return await self.find_by(session, is_active=True, order_by='created_at')
+        return await self.find_by(session, offset=None, is_active=True, order_by='created_at')
     
     async def get_by_framework(
         self,
@@ -40,14 +40,14 @@ class AgentRepository(BaseRepository[Agent]):
         if active_only:
             filters['is_active'] = True
         
-        return await self.find_by(session, order_by='created_at', **filters)
+        return await self.find_by(session, offset=None, order_by='created_at', **filters)
     
     async def deactivate_agent(self, session: AsyncSession, agent_id: str) -> bool:
         """Deactivate an agent."""
         agent = await self.get_by_agent_id(session, agent_id)
         if agent:
-            agent.is_active = False
-            agent.updated_at = datetime.utcnow()
+            agent.is_active = cast(bool, False)
+            agent.updated_at = cast(datetime, datetime.utcnow())
             await session.flush()
             return True
         return False
@@ -56,8 +56,8 @@ class AgentRepository(BaseRepository[Agent]):
         """Activate an agent."""
         agent = await self.get_by_agent_id(session, agent_id)
         if agent:
-            agent.is_active = True
-            agent.updated_at = datetime.utcnow()
+            agent.is_active = cast(bool, True)
+            agent.updated_at = cast(datetime, datetime.utcnow())
             await session.flush()
             return True
         return False
@@ -71,8 +71,8 @@ class AgentRepository(BaseRepository[Agent]):
         """Update agent configuration."""
         agent = await self.get_by_agent_id(session, agent_id)
         if agent:
-            agent.configuration = configuration
-            agent.updated_at = datetime.utcnow()
+            agent.configuration = cast(dict, configuration)
+            agent.updated_at = cast(datetime, datetime.utcnow())
             await session.flush()
             await session.refresh(agent)
             return agent

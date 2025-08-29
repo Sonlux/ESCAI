@@ -11,7 +11,7 @@ import hmac
 import json
 import secrets
 from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Optional, Any, Union
+from typing import Dict, List, Optional, Any, Union, cast
 from dataclasses import dataclass, asdict
 from enum import Enum
 import logging
@@ -227,7 +227,7 @@ class AuditLogger:
             
             # Store in Redis with multiple keys for different access patterns
             event_key = f"audit:event:{event.event_id}"
-            await self.redis.hset(event_key, mapping=encrypted_event)
+            await self.redis.hset(event_key, mapping=cast(Dict[str, Union[str, bytes]], encrypted_event))
             await self.redis.expire(event_key, self.retention_days * 86400)
             
             # Add to time-based index
@@ -292,7 +292,7 @@ class AuditLogger:
     ) -> List[AuditEvent]:
         """Query audit events with filters"""
         try:
-            event_ids = set()
+            event_ids: Set[str] = set()
             
             # Query by time range
             if start_time or end_time:

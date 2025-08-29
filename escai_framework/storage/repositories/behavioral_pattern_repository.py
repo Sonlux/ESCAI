@@ -2,7 +2,7 @@
 Repository for BehavioralPatternRecord model operations.
 """
 
-from typing import List, Optional
+from typing import List, Optional, cast
 from datetime import datetime, timedelta
 from uuid import UUID
 
@@ -52,7 +52,7 @@ class BehavioralPatternRepository(BaseRepository[BehavioralPatternRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_high_success_patterns(
         self,
@@ -73,7 +73,7 @@ class BehavioralPatternRepository(BaseRepository[BehavioralPatternRecord]):
             )
             .order_by(desc(BehavioralPatternRecord.success_rate))
         )
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_frequent_patterns(
         self,
@@ -94,7 +94,7 @@ class BehavioralPatternRepository(BaseRepository[BehavioralPatternRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_recent_patterns(
         self,
@@ -115,7 +115,7 @@ class BehavioralPatternRepository(BaseRepository[BehavioralPatternRecord]):
             )
             .order_by(desc(BehavioralPatternRecord.discovered_at))
         )
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def update_pattern_stats(
         self,
@@ -128,15 +128,15 @@ class BehavioralPatternRepository(BaseRepository[BehavioralPatternRecord]):
         """Update pattern statistics."""
         pattern = await self.get_by_pattern_id(session, pattern_id)
         if pattern:
-            pattern.frequency += frequency_increment
+            pattern.frequency = cast(int, pattern.frequency + frequency_increment)
             
             if success_rate is not None:
-                pattern.success_rate = success_rate
+                pattern.success_rate = cast(float, success_rate)
             
             if last_observed:
-                pattern.last_observed = last_observed
+                pattern.last_observed = cast(datetime, last_observed)
             else:
-                pattern.last_observed = datetime.utcnow()
+                pattern.last_observed = cast(datetime, datetime.utcnow())
             
             await session.flush()
             await session.refresh(pattern)
@@ -187,4 +187,4 @@ class BehavioralPatternRepository(BaseRepository[BehavioralPatternRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())

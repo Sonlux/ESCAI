@@ -210,7 +210,7 @@ class LiveDashboard:
             "memory_usage": 85,
             "response_time": 600
         }
-        self.active_alerts = set()
+        self.active_alerts: Set[str] = set()
     
     def run(self):
         """Run the live dashboard"""

@@ -15,7 +15,7 @@ import threading
 import weakref
 import json
 
-from .base_instrumentor import BaseInstrumentor, InstrumentationError, EventProcessingError
+from .base_instrumentor import BaseInstrumentor, InstrumentationError, EventProcessingError, MonitoringSummary as BaseMonitoringSummary
 from .events import AgentEvent, EventType, EventSeverity, MonitoringSummary
 
 # OpenAI imports (with fallback for optional dependency)
@@ -62,7 +62,7 @@ class OpenAIAssistantMonitor:
         self._thread_conversations: Dict[str, List[Dict[str, Any]]] = {}
         self._function_calls: Dict[str, List[Dict[str, Any]]] = {}
         self._tool_usage: Dict[str, Dict[str, Any]] = {}
-        self._reasoning_traces: Dict[str, List[str]] = {}
+        self._reasoning_traces: Dict[str, List[Dict[str, Any]]] = {}
         
         # Thread safety
         self._lock = threading.RLock()
@@ -569,7 +569,7 @@ class OpenAIAssistantMonitor:
                     if thread_id not in self._reasoning_traces:
                         self._reasoning_traces[thread_id] = []
                     
-                    self._reasoning_traces[thread_id].extend(reasoning_patterns)
+                    self._reasoning_traces[thread_id].extend(reasoning_patterns)  # type: ignore[arg-type]
                     
                     # Create reasoning trace event
                     reasoning_event = self._create_event(
@@ -712,7 +712,7 @@ class OpenAIInstrumentor(BaseInstrumentor):
         except Exception as e:
             raise InstrumentationError(f"Failed to start monitoring: {str(e)}")
     
-    async def stop_monitoring(self, session_id: str) -> MonitoringSummary:
+    async def stop_monitoring(self, session_id: str) -> BaseMonitoringSummary:  # type: ignore[override]
         """
         Stop monitoring OpenAI Assistants.
         
@@ -765,7 +765,7 @@ class OpenAIInstrumentor(BaseInstrumentor):
             await self._queue_event(stop_event)
             
             # Create monitoring summary
-            summary = MonitoringSummary(
+            summary = BaseMonitoringSummary(
                 session_id=session_id,
                 agent_id=ended_session.agent_id,
                 framework=self.get_framework_name(),

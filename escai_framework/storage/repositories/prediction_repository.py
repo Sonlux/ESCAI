@@ -2,7 +2,7 @@
 Repository for PredictionRecord model operations.
 """
 
-from typing import List, Optional
+from typing import List, Optional, cast
 from datetime import datetime, timedelta
 from uuid import UUID
 
@@ -52,7 +52,7 @@ class PredictionRepository(BaseRepository[PredictionRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_by_session(
         self,
@@ -69,7 +69,7 @@ class PredictionRepository(BaseRepository[PredictionRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_recent_predictions(
         self,
@@ -92,7 +92,7 @@ class PredictionRepository(BaseRepository[PredictionRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_high_confidence_predictions(
         self,
@@ -113,7 +113,7 @@ class PredictionRepository(BaseRepository[PredictionRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_validated_predictions(
         self,
@@ -140,7 +140,7 @@ class PredictionRepository(BaseRepository[PredictionRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def validate_prediction(
         self,
@@ -153,10 +153,10 @@ class PredictionRepository(BaseRepository[PredictionRecord]):
         """Validate a prediction with actual results."""
         prediction = await self.get_by_prediction_id(session, prediction_id)
         if prediction:
-            prediction.actual_value = actual_value
-            prediction.accuracy_score = accuracy_score
-            prediction.validated_at = datetime.utcnow()
-            prediction.validation_method = validation_method
+            prediction.actual_value = cast(dict, actual_value)
+            prediction.accuracy_score = cast(float, accuracy_score)
+            prediction.validated_at = cast(datetime, datetime.utcnow())
+            prediction.validation_method = cast(str, validation_method)
             
             await session.flush()
             await session.refresh(prediction)

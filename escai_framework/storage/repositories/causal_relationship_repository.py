@@ -49,7 +49,7 @@ class CausalRelationshipRepository(BaseRepository[CausalRelationshipRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_by_effect_event(
         self,
@@ -70,7 +70,7 @@ class CausalRelationshipRepository(BaseRepository[CausalRelationshipRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_strong_relationships(
         self,
@@ -91,7 +91,7 @@ class CausalRelationshipRepository(BaseRepository[CausalRelationshipRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_by_analysis_method(
         self,
@@ -108,7 +108,7 @@ class CausalRelationshipRepository(BaseRepository[CausalRelationshipRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_recent_discoveries(
         self,
@@ -127,7 +127,7 @@ class CausalRelationshipRepository(BaseRepository[CausalRelationshipRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def search_relationships(
         self,
@@ -147,7 +147,7 @@ class CausalRelationshipRepository(BaseRepository[CausalRelationshipRecord]):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return list(result.scalars().all())
     
     async def get_causal_chain(
         self,
@@ -179,6 +179,18 @@ class CausalRelationshipRepository(BaseRepository[CausalRelationshipRecord]):
             current_events = list(set(next_events))  # Remove duplicates
         
         return relationships
+    
+    async def get_common_causes(
+        self,
+        session: AsyncSession,
+        limit: Optional[int] = None
+    ) -> List[str]:
+        """Get common cause event types."""
+        query = select(CausalRelationshipRecord.cause_event_type).distinct()
+        if limit:
+            query = query.limit(limit)
+        result = await session.execute(query)
+        return list(set(r.cause_event_type.value for r in result.scalars().all()))
     
     async def get_relationship_statistics(self, session: AsyncSession) -> dict:
         """Get causal relationship statistics."""

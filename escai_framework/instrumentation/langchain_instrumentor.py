@@ -14,7 +14,7 @@ from datetime import datetime
 import threading
 import weakref
 
-from .base_instrumentor import BaseInstrumentor, InstrumentationError, EventProcessingError
+from .base_instrumentor import BaseInstrumentor, InstrumentationError, EventProcessingError, MonitoringSummary as BaseMonitoringSummary
 from .events import AgentEvent, EventType, EventSeverity, MonitoringSummary
 
 # LangChain imports (with fallback for optional dependency)
@@ -537,7 +537,7 @@ class LangChainInstrumentor(BaseInstrumentor):
         
         # Memory and context tracking
         self._memory_usage: Dict[str, Dict[str, Any]] = {}
-        self._context_windows: Dict[str, List[str]] = {}
+        self._context_windows: Dict[str, List[Dict[str, Any]]] = {}
         
         self.logger.info("LangChain instrumentor initialized")
     
@@ -598,7 +598,7 @@ class LangChainInstrumentor(BaseInstrumentor):
         except Exception as e:
             raise InstrumentationError(f"Failed to start monitoring: {str(e)}")
     
-    async def stop_monitoring(self, session_id: str) -> MonitoringSummary:
+    async def stop_monitoring(self, session_id: str) -> BaseMonitoringSummary:  # type: ignore[override]
         """
         Stop monitoring a LangChain agent session.
         
@@ -648,7 +648,7 @@ class LangChainInstrumentor(BaseInstrumentor):
             await self._queue_event(stop_event)
             
             # Create monitoring summary
-            summary = MonitoringSummary(
+            summary = BaseMonitoringSummary(
                 session_id=session_id,
                 agent_id=ended_session.agent_id,
                 framework=self.get_framework_name(),
@@ -745,7 +745,7 @@ class LangChainInstrumentor(BaseInstrumentor):
                     "event_type": event.event_type.value,
                     "memory_usage_mb": event.memory_usage_mb
                 }
-                self._memory_usage[session_id]["memory_snapshots"].append(memory_info)
+                self._memory_usage[session_id]["memory_snapshots"].append(memory_info)  # type: ignore[arg-type]
             
             # Track context updates
             if session_id in self._context_windows:
@@ -921,8 +921,8 @@ class LangChainInstrumentor(BaseInstrumentor):
             
             return {
                 "total_updates": len(context_updates),
-                "update_types": list(set(u.get("event_type", "unknown") for u in context_updates)),
-                "last_update": context_updates[-1].get("timestamp") if context_updates else None
+                "update_types": list(set(u.get("event_type", "unknown") for u in context_updates))  # type: ignore[attr-defined],
+                "last_update": context_updates[-1].get("timestamp") if context_updates else None  # type: ignore[attr-defined]
             }
             
         except Exception as e:

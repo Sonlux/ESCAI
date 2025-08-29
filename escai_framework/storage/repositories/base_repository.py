@@ -2,7 +2,7 @@
 Base repository class with common CRUD operations.
 """
 
-from typing import TypeVar, Generic, List, Optional, Dict, Any
+from typing import TypeVar, Generic, List, Optional, Dict, Any, Protocol, cast
 from abc import ABC, abstractmethod
 from uuid import UUID
 
@@ -10,7 +10,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete, func
 from sqlalchemy.orm import selectinload
 
-T = TypeVar('T')
+class ModelWithID(Protocol):
+    id: UUID
+
+T = TypeVar('T', bound=ModelWithID)
 
 
 class BaseRepository(Generic[T], ABC):
@@ -30,7 +33,7 @@ class BaseRepository(Generic[T], ABC):
     async def get_by_id(self, session: AsyncSession, id: UUID) -> Optional[T]:
         """Get a record by ID."""
         result = await session.execute(
-            select(self.model_class).where(self.model_class.id == id)
+            select(self.model_class).where(getattr(self.model_class, 'id') == id)
         )
         return result.scalar_one_or_none()
     
@@ -55,7 +58,7 @@ class BaseRepository(Generic[T], ABC):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return cast(List[T], list(result.scalars().all()))
     
     async def update(
         self,
@@ -66,7 +69,7 @@ class BaseRepository(Generic[T], ABC):
         """Update a record by ID."""
         await session.execute(
             update(self.model_class)
-            .where(self.model_class.id == id)
+            .where(getattr(self.model_class, 'id') == id)
             .values(**kwargs)
         )
         return await self.get_by_id(session, id)
@@ -74,13 +77,13 @@ class BaseRepository(Generic[T], ABC):
     async def delete(self, session: AsyncSession, id: UUID) -> bool:
         """Delete a record by ID."""
         result = await session.execute(
-            delete(self.model_class).where(self.model_class.id == id)
+            delete(self.model_class).where(getattr(self.model_class, 'id') == id)
         )
         return result.rowcount > 0
     
     async def count(self, session: AsyncSession, **filters) -> int:
         """Count records with optional filters."""
-        query = select(func.count(self.model_class.id))
+        query = select(func.count(getattr(self.model_class, 'id')))
         
         for key, value in filters.items():
             if hasattr(self.model_class, key):
@@ -91,7 +94,7 @@ class BaseRepository(Generic[T], ABC):
     
     async def exists(self, session: AsyncSession, **filters) -> bool:
         """Check if records exist with given filters."""
-        query = select(self.model_class.id)
+        query = select(getattr(self.model_class, 'id'))
         
         for key, value in filters.items():
             if hasattr(self.model_class, key):
@@ -127,7 +130,7 @@ class BaseRepository(Generic[T], ABC):
             query = query.limit(limit)
         
         result = await session.execute(query)
-        return result.scalars().all()
+        return cast(List[T], list(result.scalars().all()))
     
     async def find_one_by(self, session: AsyncSession, **filters) -> Optional[T]:
         """Find one record by filters."""

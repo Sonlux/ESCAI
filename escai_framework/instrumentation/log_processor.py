@@ -386,7 +386,7 @@ class LogProcessor:
                 self.logger.error(f"Batch processing error: {str(result)}")
                 with self._metrics_lock:
                     self._metrics["processing_errors"] += 1
-            elif result is not None:
+            elif isinstance(result, AgentEvent):
                 events.append(result)
         
         return events

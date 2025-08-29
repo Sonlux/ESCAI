@@ -114,7 +114,7 @@ def format_causal_tree(relationships: List[Dict[str, Any]]) -> Tree:
     tree = Tree("🔗 [bold cyan]Causal Relationships[/bold cyan]")
     
     # Group by cause events
-    cause_groups = {}
+    cause_groups: Dict[str, List[Dict[str, Any]]] = {}
     for rel in relationships:
         cause = rel.get('cause_event', 'Unknown')
         if cause not in cause_groups:

@@ -10,7 +10,7 @@ import secrets
 import hashlib
 import asyncio
 from datetime import datetime, timedelta
-from typing import Dict, Optional, List, Any
+from typing import Dict, Optional, List, Any, cast
 from dataclasses import dataclass, asdict
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -130,14 +130,14 @@ class TokenManager:
             "last_activity": now.isoformat(),
             "active": "true"
         }
-        await self.redis.hmset(session_key, session_data)
+        await self.redis.hset(session_key, mapping=session_data)
         await self.redis.expire(session_key, self.refresh_token_ttl)
         
         return TokenPair(
             access_token=access_token,
             refresh_token=refresh_token,
-            access_expires_at=access_claims["exp"],
-            refresh_expires_at=refresh_claims["exp"]
+            access_expires_at=cast(datetime, access_claims["exp"]),
+            refresh_expires_at=cast(datetime, refresh_claims["exp"])
         )
     
     async def validate_access_token(self, token: str) -> Optional[Dict[str, Any]]:
