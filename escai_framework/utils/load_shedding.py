@@ -108,7 +108,7 @@ class SystemMonitor:
         self._monitoring_task: Optional[asyncio.Task] = None
         self._running = False
     
-    async def start_monitoring(self):
+    async def start_monitoring(self) -> None:
         """Start system monitoring."""
         if self._running:
             return
@@ -117,7 +117,7 @@ class SystemMonitor:
         self._monitoring_task = asyncio.create_task(self._monitor_loop())
         logger.info("System monitoring started")
     
-    async def stop_monitoring(self):
+    async def stop_monitoring(self) -> None:
         """Stop system monitoring."""
         self._running = False
         if self._monitoring_task:
@@ -249,12 +249,12 @@ class LoadShedder:
             )
         ]
     
-    async def start(self):
+    async def start(self) -> None:
         """Start the load shedder."""
         await self.system_monitor.start_monitoring()
         logger.info("Load shedder started")
     
-    async def stop(self):
+    async def stop(self) -> None:
         """Stop the load shedder."""
         await self.system_monitor.stop_monitoring()
         logger.info("Load shedder stopped")
@@ -369,19 +369,19 @@ class LoadShedder:
         
         return stats
     
-    def reset_stats(self):
+    def reset_stats(self) -> None:
         """Reset shedding statistics."""
         with self._lock:
             self._shed_counters.clear()
             self._total_requests.clear()
         logger.info("Load shedding statistics reset")
     
-    def add_rule(self, rule: LoadSheddingRule):
+    def add_rule(self, rule: LoadSheddingRule) -> None:
         """Add a custom load shedding rule."""
         self.rules.append(rule)
         logger.info(f"Added load shedding rule: {rule.name}")
     
-    def remove_rule(self, rule_name: str):
+    def remove_rule(self, rule_name: str) -> None:
         """Remove a load shedding rule by name."""
         self.rules = [rule for rule in self.rules if rule.name != rule_name]
         logger.info(f"Removed load shedding rule: {rule_name}")
