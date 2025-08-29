@@ -433,7 +433,7 @@ class ConfigVersioning:
     
     def _get_versions_by_month(self, versions: List[Dict[str, Any]]) -> Dict[str, int]:
         """Get version count by month."""
-        by_month = {}
+        by_month: Dict[str, int] = {}
         
         for version in versions:
             try:

@@ -419,8 +419,9 @@ def get_monitoring_circuit_breaker(config: CircuitBreakerConfig = None) -> Monit
     """Get or create the monitoring circuit breaker."""
     with _registry_lock:
         if "monitoring" not in _circuit_breakers:
-            _circuit_breakers["monitoring"] = MonitoringCircuitBreaker("monitoring", config)
-        return _circuit_breakers["monitoring"]
+            monitoring_breaker = MonitoringCircuitBreaker("monitoring", config)
+            _circuit_breakers["monitoring"] = monitoring_breaker
+        return _circuit_breakers["monitoring"]  # type: ignore
 
 
 def get_all_circuit_breakers() -> Dict[str, CircuitBreaker]:

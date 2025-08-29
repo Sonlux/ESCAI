@@ -258,7 +258,7 @@ class PIIDetector:
         # Sort by position
         matches.sort(key=lambda m: m.start_pos)
         
-        filtered_matches = []
+        filtered_matches: List[PIIMatch] = []
         for match in matches:
             # Check if this match overlaps with any existing match
             overlaps = False

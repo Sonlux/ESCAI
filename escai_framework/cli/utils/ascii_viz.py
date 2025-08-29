@@ -308,7 +308,8 @@ class ASCIIHistogram(ASCIIChart):
         
         # Create bar chart of histogram
         bar_chart = ASCIIBarChart(self.config)
-        return bar_chart.create(bin_counts, bin_labels)
+        float_bin_counts = [float(count) for count in bin_counts]
+        return bar_chart.create(float_bin_counts, bin_labels)
 
 
 class ASCIIScatterPlot(ASCIIChart):
@@ -457,11 +458,9 @@ class ASCIIProgressBar:
     def __init__(self, width: int = 40, unicode_chars: bool = True):
         self.width = width
         self.unicode_chars = unicode_chars
-        self.chars = {
-            'full': '█' if unicode_chars else '#',
-            'empty': '░' if unicode_chars else '-',
-            'partial': ['▏', '▎', '▍', '▌', '▋', '▊', '▉'] if unicode_chars else ['.']
-        }
+        self.full_char = '█' if unicode_chars else '#'
+        self.empty_char = '░' if unicode_chars else '-'
+        self.partial_chars = ['▏', '▎', '▍', '▌', '▋', '▊', '▉'] if unicode_chars else ['.', ':', '|', '#']
     
     def create(self, progress: float, status: str = "", eta: Optional[timedelta] = None,
                rate: Optional[float] = None) -> str:
@@ -475,21 +474,21 @@ class ASCIIProgressBar:
         partial_block = filled_width - full_blocks
         
         # Build progress bar
-        bar = self.chars['full'] * full_blocks
+        bar = self.full_char * full_blocks
         
         # Add partial block if needed
         if partial_block > 0 and full_blocks < self.width:
             if self.unicode_chars:
-                partial_index = min(len(self.chars['partial']) - 1, 
-                                  int(partial_block * len(self.chars['partial'])))
-                bar += self.chars['partial'][partial_index]
+                partial_index = min(len(self.partial_chars) - 1, 
+                                  int(partial_block * len(self.partial_chars)))
+                bar += self.partial_chars[partial_index]
                 full_blocks += 1
             else:
-                bar += self.chars['partial'][0]
+                bar += self.partial_chars[0]
                 full_blocks += 1
         
         # Fill remaining with empty blocks
-        bar += self.chars['empty'] * (self.width - full_blocks)
+        bar += self.empty_char * (self.width - full_blocks)
         
         # Add percentage
         percentage = f"{progress * 100:5.1f}%"
@@ -524,7 +523,7 @@ class ASCIITreeView:
     
     def create(self, tree_data: Dict[str, Any], max_depth: int = 10) -> str:
         """Create ASCII tree from hierarchical data"""
-        lines = []
+        lines: List[str] = []
         self._render_node(tree_data, lines, "", True, 0, max_depth)
         return '\n'.join(lines)
     
@@ -569,12 +568,12 @@ class ASCIITreeView:
 
 def create_epistemic_state_chart(epistemic_data: Dict[str, Any]) -> str:
     """Create visualization for epistemic state data"""
-    lines = []
+    lines: List[str] = []
     
     # Beliefs confidence chart
     beliefs = epistemic_data.get('beliefs', [])
     if beliefs:
-        confidences = [b.get('confidence', 0) for b in beliefs[:10]]  # Top 10
+        confidences = [float(b.get('confidence', 0)) for b in beliefs[:10]]  # Top 10
         labels = [b.get('content', '')[:15] + '...' if len(b.get('content', '')) > 15 
                  else b.get('content', '') for b in beliefs[:10]]
         
@@ -587,7 +586,8 @@ def create_epistemic_state_chart(epistemic_data: Dict[str, Any]) -> str:
     uncertainty_history = epistemic_data.get('uncertainty_history', [])
     if uncertainty_history:
         sparkline = ASCIISparkline()
-        spark = sparkline.create(uncertainty_history, 40)
+        float_uncertainty = [float(u) for u in uncertainty_history]
+        spark = sparkline.create(float_uncertainty, 40)
         lines.append(f"Uncertainty Trend: {spark} ({uncertainty_history[-1]:.2f})")
         lines.append("")
     
@@ -615,7 +615,7 @@ def create_pattern_frequency_heatmap(pattern_data: List[Dict[str, Any]]) -> str:
                     p.get('time_period') == period):
                     freq = p.get('frequency', 0)
                     break
-            row.append(freq)
+            row.append(float(freq))
         freq_matrix.append(row)
     
     config = ChartConfig(width=80, height=len(patterns) + 5, 
@@ -629,8 +629,8 @@ def create_causal_strength_scatter(causal_data: List[Dict[str, Any]]) -> str:
     if not causal_data:
         return "No causal data available"
     
-    strengths = [c.get('strength', 0) for c in causal_data]
-    confidences = [c.get('confidence', 0) for c in causal_data]
+    strengths = [float(c.get('strength', 0)) for c in causal_data]
+    confidences = [float(c.get('confidence', 0)) for c in causal_data]
     
     config = ChartConfig(width=50, height=15, 
                         title="Causal Relationships: Strength vs Confidence")

@@ -104,9 +104,10 @@ class SystemMonitor:
     
     def __init__(self, monitoring_interval: float = 5.0):
         self.monitoring_interval = monitoring_interval
-        self._metrics_history: deque = deque(maxlen=100)
+        self._metrics_history: deque[SystemMetrics] = deque(maxlen=100)
         self._monitoring_task: Optional[asyncio.Task] = None
         self._running = False
+        self._last_net_io: Optional[Any] = None
     
     async def start_monitoring(self) -> None:
         """Start system monitoring."""
@@ -158,7 +159,7 @@ class SystemMonitor:
         network_io = 0.0
         try:
             net_io = psutil.net_io_counters()
-            if hasattr(self, '_last_net_io'):
+            if self._last_net_io is not None:
                 bytes_sent_diff = net_io.bytes_sent - self._last_net_io.bytes_sent
                 bytes_recv_diff = net_io.bytes_recv - self._last_net_io.bytes_recv
                 network_io = (bytes_sent_diff + bytes_recv_diff) / self.monitoring_interval
@@ -344,16 +345,20 @@ class LoadShedder:
     def get_shedding_stats(self) -> Dict[str, Any]:
         """Get load shedding statistics."""
         with self._lock:
-            stats = {
-                "total_requests": dict(self._total_requests),
-                "shed_requests": dict(self._shed_counters),
-                "shed_rates": {}
-            }
+            total_dict: Dict[str, int] = {p.name: self._total_requests.get(p, 0) for p in Priority}
+            shed_dict: Dict[str, int] = {p.name: self._shed_counters.get(p, 0) for p in Priority}
+            shed_rates: Dict[str, float] = {}
             
             for priority in Priority:
                 total = self._total_requests.get(priority, 0)
                 shed = self._shed_counters.get(priority, 0)
-                stats["shed_rates"][priority.name] = shed / total if total > 0 else 0.0
+                shed_rates[priority.name] = float(shed) / float(total) if total > 0 else 0.0
+            
+            stats = {
+                "total_requests": total_dict,
+                "shed_requests": shed_dict,
+                "shed_rates": shed_rates
+            }
         
         # Add current system metrics
         current_metrics = self.system_monitor.get_current_metrics()

@@ -378,9 +378,9 @@ class StatisticalAnalysis:
         denominator = math.sqrt((n * sum_x2 - sum_x * sum_x) * (n * sum_y2 - sum_y * sum_y))
         
         if denominator == 0:
-            correlation = 0
+            correlation = 0.0
         else:
-            correlation = numerator / denominator
+            correlation = float(numerator / denominator)
         
         # Determine correlation strength
         abs_corr = abs(correlation)
@@ -396,9 +396,9 @@ class StatisticalAnalysis:
             strength = "very weak"
         
         return {
-            "correlation": correlation,
+            "correlation": float(correlation),
             "strength": strength,
-            "r_squared": correlation ** 2,
+            "r_squared": float(correlation ** 2),
             "sample_size": n
         }
     
@@ -431,14 +431,14 @@ class StatisticalAnalysis:
         p_value = 2 * (1 - self._normal_cdf(abs(t_stat)))
         
         return {
-            "t_statistic": t_stat,
+            "t_statistic": float(t_stat),
             "degrees_of_freedom": df,
-            "p_value": p_value,
-            "critical_value": critical_value,
+            "p_value": float(p_value),
+            "critical_value": float(critical_value),
             "significant": abs(t_stat) > critical_value,
             "alpha": alpha,
-            "mean_difference": mean1 - mean2,
-            "effect_size": (mean1 - mean2) / math.sqrt((var1 + var2) / 2) if (var1 + var2) > 0 else 0
+            "mean_difference": float(mean1 - mean2),
+            "effect_size": float((mean1 - mean2) / math.sqrt((var1 + var2) / 2)) if (var1 + var2) > 0 else 0.0
         }
     
     def trend_analysis(self, data: List[float], time_points: Optional[List[float]] = None) -> Dict[str, Any]:
@@ -527,7 +527,7 @@ class DataCorrelationExplorer:
             field_data[field] = values
         
         # Calculate correlation matrix
-        correlation_matrix = {}
+        correlation_matrix: Dict[str, Dict[str, float]] = {}
         for i, field1 in enumerate(numeric_fields):
             correlation_matrix[field1] = {}
             for j, field2 in enumerate(numeric_fields):
@@ -731,7 +731,7 @@ class TimeSeriesAnalyzer:
             if len(original) == len(lagged) and len(original) >= 2:
                 try:
                     corr_result = self.stats.correlation_analysis(original, lagged)
-                    correlation = abs(corr_result.get("correlation", 0))
+                    correlation = abs(float(corr_result.get("correlation", 0)))
                     
                     if correlation > best_correlation:
                         best_correlation = correlation
@@ -762,10 +762,10 @@ class TimeSeriesAnalyzer:
             return {"error": "Cannot calculate returns"}
         
         return {
-            "return_volatility": statistics.stdev(returns) if len(returns) > 1 else 0,
-            "price_volatility": statistics.stdev(values),
+            "return_volatility": float(statistics.stdev(returns)) if len(returns) > 1 else 0.0,
+            "price_volatility": float(statistics.stdev(values)),
             "max_drawdown": self._calculate_max_drawdown(values),
-            "average_return": statistics.mean(returns)
+            "average_return": float(statistics.mean(returns))
         }
     
     def _calculate_max_drawdown(self, values: List[float]) -> float:
@@ -780,8 +780,8 @@ class TimeSeriesAnalyzer:
             if value > peak:
                 peak = value
             
-            drawdown = (peak - value) / peak if peak != 0 else 0
-            max_drawdown = max(max_drawdown, drawdown)
+            drawdown_ratio = (peak - value) / peak if peak != 0 else 0.0
+            max_drawdown = max(max_drawdown, drawdown_ratio)
         
         return max_drawdown
     
