@@ -412,7 +412,7 @@ class CausalEngine:
     
     def _group_events(self, events: List[TemporalEvent]) -> Dict[str, List[TemporalEvent]]:
         """Group events by type for analysis."""
-        groups = {}
+        groups: Dict[str, List[TemporalEvent]] = {}
         for event in events:
             event_type = event.event_type
             if event_type not in groups:
@@ -464,15 +464,15 @@ class CausalEngine:
             return None
         
         # Calculate statistics
-        delays = [corr['delay'] for corr in temporal_correlations]
-        avg_delay = np.mean(delays)
-        delay_std = np.std(delays)
+        delays = [float(corr['delay']) if isinstance(corr['delay'], (int, float, str)) else 0.0 for corr in temporal_correlations]
+        avg_delay = float(np.mean(np.array(delays, dtype=float)))
+        delay_std = float(np.std(np.array(delays, dtype=float)))
         
         # Calculate strength based on frequency and consistency
         total_cause_events = len(cause_events)
         correlation_count = len(temporal_correlations)
         frequency_strength = min(1.0, correlation_count / total_cause_events)
-        consistency_strength = max(0.0, 1.0 - (delay_std / max(avg_delay, 1.0)))
+        consistency_strength = float(max(0.0, 1.0 - (delay_std / max(float(avg_delay), 1.0))))
         
         strength = (frequency_strength + consistency_strength) / 2.0
         
@@ -480,7 +480,7 @@ class CausalEngine:
             return None
         
         # Create representative events
-        cause_event = CausalEvent(
+        representative_cause_event: CausalEvent = CausalEvent(
             event_id=f"temporal_{cause_type}_{uuid.uuid4().hex[:8]}",
             event_type=cause_type,
             description=f"Temporal pattern: {cause_type}",
@@ -488,7 +488,7 @@ class CausalEngine:
             agent_id=cause_events[0].agent_id
         )
         
-        effect_event = CausalEvent(
+        representative_effect_event: CausalEvent = CausalEvent(
             event_id=f"temporal_{effect_type}_{uuid.uuid4().hex[:8]}",
             event_type=effect_type,
             description=f"Temporal pattern: {effect_type}",
@@ -514,15 +514,14 @@ class CausalEngine:
         
         relationship = CausalRelationship(
             relationship_id=f"temporal_{cause_type}_{effect_type}_{uuid.uuid4().hex[:8]}",
-            cause_event=cause_event,
-            effect_event=effect_event,
+            cause_event=representative_cause_event,
+            effect_event=representative_effect_event,
             causal_type=CausalType.DIRECT,
             strength=strength,
             confidence=evidence.confidence,
             delay_ms=int(avg_delay),
             evidence=[evidence],
-            statistical_significance=1.0 - (delay_std / max(avg_delay, 1.0)),
-            effect_size=strength
+            statistical_significance=float(1.0 - (delay_std / max(float(avg_delay), 1.0)))
         )
         
         return relationship
@@ -549,7 +548,7 @@ class CausalEngine:
     async def _detect_statistical_relationships(self, 
                                               event_groups: Dict[str, List[TemporalEvent]]) -> List[CausalRelationship]:
         """Detect statistical causal relationships using advanced methods."""
-        relationships = []
+        relationships: List[CausalRelationship] = []
         
         # Convert events to time series for statistical analysis
         time_series_data = self._events_to_time_series(event_groups)
@@ -661,10 +660,7 @@ class CausalEngine:
             delay_ms=granger_result.optimal_lag * 60000,  # Convert lag to milliseconds (assuming 1-minute intervals)
             evidence=[evidence],
             statistical_significance=1.0 - min(granger_result.p_values.values()) if granger_result.p_values else 0.0,
-            effect_size=granger_result.confidence,
-            causal_mechanism="Granger causality",
-            validation_method="granger_causality_test",
-            validated=True
+            causal_mechanism="Granger causality"
         )
         
         return relationship

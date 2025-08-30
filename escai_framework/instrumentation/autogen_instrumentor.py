@@ -799,7 +799,7 @@ class AutoGenInstrumentor(BaseInstrumentor):
                     "min_seconds": min(message_intervals) if message_intervals else 0,
                     "max_seconds": max(message_intervals) if message_intervals else 0
                 },
-                "speaker_distribution": speaker_counts,
+                "speaker_distribution": {k: float(v) for k, v in speaker_counts.items()},
                 "speaker_balance": speaker_balance,
                 "conversation_flow": "balanced" if all(0.1 <= balance <= 0.6 for balance in speaker_balance.values()) else "unbalanced"
             })
