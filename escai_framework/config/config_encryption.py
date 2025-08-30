@@ -205,7 +205,7 @@ class ConfigEncryption:
                         raise ConfigEncryptionError(f"Failed to decrypt field {key}: {e}")
                 else:
                     # Recursively decrypt nested dictionaries
-                    decrypted_config[key] = self.decrypt_config(value)
+                    decrypted_config[key] = self.decrypt_config(value)  # type: ignore[assignment]
             else:
                 # Keep non-encrypted values as-is
                 decrypted_config[key] = value
