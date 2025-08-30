@@ -2,7 +2,7 @@
 Repository for Agent model operations.
 """
 
-from typing import List, Optional, cast
+from typing import List, Optional
 from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -46,8 +46,8 @@ class AgentRepository(BaseRepository[Agent]):
         """Deactivate an agent."""
         agent = await self.get_by_agent_id(session, agent_id)
         if agent:
-            agent.is_active = cast(bool, False)
-            agent.updated_at = cast(datetime, datetime.utcnow())
+            agent.is_active = False  # type: ignore
+            agent.updated_at = datetime.utcnow()  # type: ignore
             await session.flush()
             return True
         return False
@@ -56,8 +56,8 @@ class AgentRepository(BaseRepository[Agent]):
         """Activate an agent."""
         agent = await self.get_by_agent_id(session, agent_id)
         if agent:
-            agent.is_active = cast(bool, True)
-            agent.updated_at = cast(datetime, datetime.utcnow())
+            agent.is_active = True  # type: ignore
+            agent.updated_at = datetime.utcnow()  # type: ignore
             await session.flush()
             return True
         return False
@@ -71,8 +71,8 @@ class AgentRepository(BaseRepository[Agent]):
         """Update agent configuration."""
         agent = await self.get_by_agent_id(session, agent_id)
         if agent:
-            agent.configuration = cast(dict, configuration)
-            agent.updated_at = cast(datetime, datetime.utcnow())
+            agent.configuration = configuration  # type: ignore
+            agent.updated_at = datetime.utcnow()  # type: ignore
             await session.flush()
             await session.refresh(agent)
             return agent

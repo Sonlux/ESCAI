@@ -2,7 +2,7 @@
 Repository for BehavioralPatternRecord model operations.
 """
 
-from typing import List, Optional, cast
+from typing import List, Optional
 from datetime import datetime, timedelta
 from uuid import UUID
 
@@ -128,15 +128,15 @@ class BehavioralPatternRepository(BaseRepository[BehavioralPatternRecord]):
         """Update pattern statistics."""
         pattern = await self.get_by_pattern_id(session, pattern_id)
         if pattern:
-            pattern.frequency = cast(int, pattern.frequency + frequency_increment)
+            pattern.frequency = pattern.frequency + frequency_increment  # type: ignore
             
             if success_rate is not None:
-                pattern.success_rate = cast(float, success_rate)
+                pattern.success_rate = success_rate  # type: ignore
             
             if last_observed:
-                pattern.last_observed = cast(datetime, last_observed)
+                pattern.last_observed = last_observed  # type: ignore
             else:
-                pattern.last_observed = cast(datetime, datetime.utcnow())
+                pattern.last_observed = datetime.utcnow()  # type: ignore
             
             await session.flush()
             await session.refresh(pattern)
