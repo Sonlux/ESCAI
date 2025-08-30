@@ -41,8 +41,8 @@ except ImportError as e:
     classification_report = None
     xgb = None
     torch = None
-    nn_module = None
-    optim_module = None
+    nn = None  # type: ignore[assignment]
+    optim = None  # type: ignore[assignment]
     DataLoader = None
     TensorDataset = None
 
