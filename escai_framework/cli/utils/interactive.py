@@ -10,7 +10,7 @@ try:
 except ImportError:
     # Windows doesn't have termios
     HAS_TERMIOS = False
-from typing import List, Dict, Any, Optional, Callable, Tuple, Literal
+from typing import List, Dict, Any, Optional, Callable, Tuple, Literal, Set
 from dataclasses import dataclass, field
 from enum import Enum
 import re

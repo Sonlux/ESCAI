@@ -5,7 +5,7 @@ Real-time live monitoring displays for ESCAI CLI
 import asyncio
 import json
 import time
-from typing import Dict, List, Any, Optional, Callable
+from typing import Dict, List, Any, Optional, Callable, Set
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from threading import Thread, Event
