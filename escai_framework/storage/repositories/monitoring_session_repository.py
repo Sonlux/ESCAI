@@ -2,7 +2,7 @@
 Repository for MonitoringSession model operations.
 """
 
-from typing import List, Optional, cast
+from typing import List, Optional
 from datetime import datetime, timedelta
 from uuid import UUID
 
@@ -107,14 +107,14 @@ class MonitoringSessionRepository(BaseRepository[MonitoringSession]):
         """End a monitoring session."""
         monitoring_session = await self.get_by_session_id(session, session_id)
         if monitoring_session and monitoring_session.status == 'active':
-            monitoring_session.ended_at = cast(datetime, datetime.utcnow())
-            monitoring_session.status = cast(str, status)
+            monitoring_session.ended_at = datetime.utcnow()  # type: ignore
+            monitoring_session.status = status  # type: ignore
             
             if metadata:
                 if monitoring_session.session_metadata:
-                    monitoring_session.session_metadata.update(cast(dict, metadata))
+                    monitoring_session.session_metadata.update(metadata)  # type: ignore
                 else:
-                    monitoring_session.session_metadata = cast(dict, metadata)
+                    monitoring_session.session_metadata = metadata  # type: ignore
             
             await session.flush()
             await session.refresh(monitoring_session)

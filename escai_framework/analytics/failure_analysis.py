@@ -313,24 +313,24 @@ class RootCauseAnalyzer:
         """Extract features for causal analysis."""
         features = [
             # Sequence features
-            len(sequence.steps),
-            sequence.total_duration_ms,
-            sequence.success_rate,
-            sum(1 for step in sequence.steps if step.error_message),
+            float(len(sequence.steps)),
+            float(sequence.total_duration_ms),
+            float(sequence.success_rate),
+            float(sum(1 for step in sequence.steps if step.error_message)),
             
             # Epistemic state features
-            epistemic_state.confidence_level,
-            epistemic_state.uncertainty_score,
-            len(epistemic_state.belief_states),
-            len(epistemic_state.goal_states) if epistemic_state.goal_states else 0,
+            float(epistemic_state.confidence_level),
+            float(epistemic_state.uncertainty_score),
+            float(len(epistemic_state.belief_states)),
+            float(len(epistemic_state.goal_states) if epistemic_state.goal_states else 0),
             
             # Timing features
-            np.mean([step.duration for step in sequence.steps]) if sequence.steps else 0,
-            np.max([step.duration for step in sequence.steps]) if sequence.steps else 0,
+            float(np.mean([step.duration for step in sequence.steps]) if sequence.steps else 0),
+            float(np.max([step.duration for step in sequence.steps]) if sequence.steps else 0),
             
             # Complexity features
-            len(set(step.step_type for step in sequence.steps)),
-            np.mean([step.success_probability for step in sequence.steps]) if sequence.steps else 0
+            float(len(set(step.step_type for step in sequence.steps))),
+            float(np.mean([step.success_probability for step in sequence.steps]) if sequence.steps else 0)
         ]
         
         return features

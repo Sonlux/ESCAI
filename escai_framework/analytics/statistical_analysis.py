@@ -442,7 +442,7 @@ class StatisticalAnalyzer:
     
     def _extract_epistemic_features(self, epistemic_states: List[EpistemicState]) -> Dict[str, List[float]]:
         """Extract numerical features from epistemic states."""
-        features = {
+        features: Dict[str, List[float]] = {
             'confidence_level': [],
             'uncertainty_score': [],
             'num_beliefs': [],

@@ -170,7 +170,7 @@ class CausalRelationshipRepository(BaseRepository[CausalRelationshipRecord]):
             for event in current_events:
                 event_relationships = await self.get_by_cause_event(session, event)
                 next_relationships.extend(event_relationships)
-                next_events.extend([r.effect_event for r in event_relationships])
+                next_events.extend([r.effect_event.event_id if hasattr(r.effect_event, 'event_id') else str(r.effect_event) for r in event_relationships])
             
             if not next_relationships:
                 break

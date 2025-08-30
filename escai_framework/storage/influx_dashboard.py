@@ -457,7 +457,7 @@ class InfluxDashboardManager:
         time_range = time_range_hours or dashboard.time_range_hours
         target_bucket = bucket or self.influx_manager.bucket
 
-        dashboard_data = {
+        dashboard_data: Dict[str, Any] = {
             "name": dashboard.name,
             "description": dashboard.description,
             "refresh_interval": dashboard.refresh_interval_seconds,

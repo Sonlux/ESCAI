@@ -2,7 +2,7 @@
 Repository for PredictionRecord model operations.
 """
 
-from typing import List, Optional, cast
+from typing import List, Optional
 from datetime import datetime, timedelta
 from uuid import UUID
 
@@ -153,10 +153,10 @@ class PredictionRepository(BaseRepository[PredictionRecord]):
         """Validate a prediction with actual results."""
         prediction = await self.get_by_prediction_id(session, prediction_id)
         if prediction:
-            prediction.actual_value = cast(dict, actual_value)
-            prediction.accuracy_score = cast(float, accuracy_score)
-            prediction.validated_at = cast(datetime, datetime.utcnow())
-            prediction.validation_method = cast(str, validation_method)
+            prediction.actual_value = actual_value  # type: ignore
+            prediction.accuracy_score = accuracy_score  # type: ignore
+            prediction.validated_at = datetime.utcnow()  # type: ignore
+            prediction.validation_method = validation_method  # type: ignore
             
             await session.flush()
             await session.refresh(prediction)
