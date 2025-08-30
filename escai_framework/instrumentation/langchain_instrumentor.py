@@ -921,7 +921,7 @@ class LangChainInstrumentor(BaseInstrumentor):
             
             return {
                 "total_updates": len(context_updates),
-                "update_types": list(set(u.get("event_type", "unknown") for u in context_updates))  # type: ignore[attr-defined],
+                "update_types": list(set(u.get("event_type", "unknown") for u in context_updates)),  # type: ignore[attr-defined],
                 "last_update": context_updates[-1].get("timestamp") if context_updates else None  # type: ignore[attr-defined]
             }
             
