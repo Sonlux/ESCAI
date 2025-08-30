@@ -744,8 +744,8 @@ class EpistemicExtractor:
         normalized_entropy = entropy / max_entropy if max_entropy > 0 else 0.0
         
         # Also consider variance in confidence scores
-        if np is not None:
-            confidence_variance = float(np.var(confidences))
+        if np_module is not None:
+            confidence_variance = float(np_module.var(confidences))
             # Combine entropy and variance
             uncertainty = (normalized_entropy + confidence_variance) / 2.0
         else:
