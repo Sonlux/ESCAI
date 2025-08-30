@@ -141,7 +141,7 @@ class RobustInstrumentor(BaseInstrumentor):
         )
         
         # Performance monitoring
-        self._performance_history = []
+        self._performance_history: List[Dict[str, Any]] = []
         self._last_performance_check = time.time()
         
         # Recovery management

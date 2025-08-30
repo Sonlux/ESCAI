@@ -86,7 +86,7 @@ class PrefixSpanMiner:
     
     def _find_frequent_items(self, sequences: List[List[str]]) -> List[str]:
         """Find items that meet minimum support threshold."""
-        item_counts = Counter()
+        item_counts: Counter[str] = Counter()
         for sequence in sequences:
             unique_items = set(sequence)
             for item in unique_items:
@@ -496,7 +496,7 @@ class PatternMiningEngine:
     
     def _extract_common_triggers(self, patterns: List[SequentialPattern]) -> List[str]:
         """Extract common triggers from patterns."""
-        trigger_counts = Counter()
+        trigger_counts: Counter[str] = Counter()
         
         for pattern in patterns:
             if pattern.pattern:

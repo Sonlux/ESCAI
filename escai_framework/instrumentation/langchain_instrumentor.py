@@ -26,12 +26,12 @@ try:
     LANGCHAIN_AVAILABLE = True
 except ImportError:
     # Create mock classes for type hints when LangChain is not available
-    BaseCallbackHandler = object
-    BaseMessage = object
-    AgentAction = object
-    AgentFinish = object
-    LLMResult = object
-    Document = object
+    BaseCallbackHandler = None  # type: ignore[assignment]
+    BaseMessage = None  # type: ignore[assignment]
+    AgentAction = None  # type: ignore[assignment]
+    AgentFinish = None  # type: ignore[assignment]
+    LLMResult = None  # type: ignore[assignment]
+    Document = None  # type: ignore[assignment]
     LANGCHAIN_AVAILABLE = False
 
 
@@ -921,7 +921,7 @@ class LangChainInstrumentor(BaseInstrumentor):
             
             return {
                 "total_updates": len(context_updates),
-                "update_types": list(set(u.get("event_type", "unknown") for u in context_updates)),  # type: ignore[attr-defined],
+                "update_types": list(set(u.get("event_type", "unknown") for u in context_updates)),  # type: ignore[attr-defined]
                 "last_update": context_updates[-1].get("timestamp") if context_updates else None  # type: ignore[attr-defined]
             }
             

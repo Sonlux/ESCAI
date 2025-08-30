@@ -9,7 +9,7 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from typing import Awaitable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Set
 from asyncio import Queue
@@ -68,20 +68,28 @@ class MonitoringSummary:
     """Summary of monitoring session."""
     session_id: str
     agent_id: str
+    framework: str
+    start_time: datetime
+    end_time: datetime
+    total_duration_ms: int
     total_events: int
-    duration_seconds: float
-    average_overhead: float
-    error_count: int
+    event_types_count: Dict[str, int] = field(default_factory=dict)
+    error_count: int = 0
+    performance_metrics: Dict[str, Any] = field(default_factory=dict)
     
     def dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
         return {
             "session_id": self.session_id,
             "agent_id": self.agent_id,
+            "framework": self.framework,
+            "start_time": self.start_time.isoformat(),
+            "end_time": self.end_time.isoformat(),
+            "total_duration_ms": self.total_duration_ms,
             "total_events": self.total_events,
-            "duration_seconds": self.duration_seconds,
-            "average_overhead": self.average_overhead,
-            "error_count": self.error_count
+            "event_types_count": self.event_types_count,
+            "error_count": self.error_count,
+            "performance_metrics": self.performance_metrics
         }
 
 

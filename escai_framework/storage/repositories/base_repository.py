@@ -33,7 +33,7 @@ class BaseRepository(Generic[T], ABC):
     async def get_by_id(self, session: AsyncSession, id: UUID) -> Optional[T]:
         """Get a record by ID."""
         result = await session.execute(
-            select(self.model_class).where(self.model_class.id == id)  # type: ignore[attr-defined]
+            select(self.model_class).where(self.model_class.id == id)  # type: ignore[arg-type]
         )
         return result.scalar_one_or_none()
     
@@ -69,7 +69,7 @@ class BaseRepository(Generic[T], ABC):
         """Update a record by ID."""
         await session.execute(
             update(self.model_class)
-            .where(self.model_class.id == id)  # type: ignore[attr-defined]
+            .where(self.model_class.id == id)  # type: ignore[arg-type]
             .values(**kwargs)
         )
         return await self.get_by_id(session, id)
@@ -77,13 +77,13 @@ class BaseRepository(Generic[T], ABC):
     async def delete(self, session: AsyncSession, id: UUID) -> bool:
         """Delete a record by ID."""
         result = await session.execute(
-            delete(self.model_class).where(self.model_class.id == id)  # type: ignore[attr-defined]
+            delete(self.model_class).where(self.model_class.id == id)  # type: ignore[arg-type]
         )
         return result.rowcount > 0
     
     async def count(self, session: AsyncSession, **filters) -> int:
         """Count records with optional filters."""
-        query = select(func.count(self.model_class.id))  # type: ignore[attr-defined]
+        query = select(func.count(self.model_class.id))  # type: ignore[arg-type]
         
         for key, value in filters.items():
             if hasattr(self.model_class, key):
@@ -94,7 +94,7 @@ class BaseRepository(Generic[T], ABC):
     
     async def exists(self, session: AsyncSession, **filters) -> bool:
         """Check if records exist with given filters."""
-        query = select(self.model_class.id)  # type: ignore[attr-defined]
+        query = select(self.model_class.id)  # type: ignore[call-overload]
         
         for key, value in filters.items():
             if hasattr(self.model_class, key):

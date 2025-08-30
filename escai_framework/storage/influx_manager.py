@@ -95,9 +95,10 @@ class InfluxDBManager:
         self.batch_size = batch_size
         
         self._client: Optional[InfluxDBClient] = None
-        self._write_api = None
-        self._query_api = None
-        self._delete_api = None
+        self._write_api: Optional[Any] = None
+        self._query_api: Optional[Any] = None
+        self._delete_api: Optional[Any] = None
+        self._buckets_api: Optional[Any] = None
         self._buckets_api = None
         
         # Metric schemas for validation

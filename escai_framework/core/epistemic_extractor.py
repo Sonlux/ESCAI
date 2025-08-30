@@ -15,7 +15,7 @@ import logging
 
 try:
     import networkx as nx
-    import numpy as np
+    import numpy as np_module
     from transformers import pipeline, AutoTokenizer, AutoModel
     import torch
     from sentence_transformers import SentenceTransformer
@@ -23,7 +23,7 @@ except ImportError as e:
     # Graceful degradation if optional dependencies are not available
     logging.warning(f"Optional dependency not available: {e}")
     nx = None
-    np = None
+    np_module = None
     pipeline = None
     AutoTokenizer = None
     AutoModel = None

@@ -517,7 +517,7 @@ class AutoGenInstrumentor(BaseInstrumentor):
         except Exception as e:
             raise InstrumentationError(f"Failed to start monitoring: {str(e)}")
     
-    async def stop_monitoring(self, session_id: str) -> MonitoringSummary:
+    async def stop_monitoring(self, session_id: str) -> MonitoringSummary:  # type: ignore[override]
         """
         Stop monitoring AutoGen agents.
         

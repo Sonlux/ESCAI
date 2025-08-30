@@ -43,7 +43,7 @@ class Neo4jManager:
         self.username = username
         self.password = password
         self.database = database
-        self.driver = None
+        self.driver: Optional[Any] = None
         self.max_connection_lifetime = max_connection_lifetime
         
     async def connect(self) -> None:
