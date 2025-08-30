@@ -466,7 +466,7 @@ class InfluxDashboardManager:
         }
 
         for panel in dashboard.panels:
-            panel_data = {
+            panel_data: Dict[str, Any] = {
                 "title": panel.title,
                 "width": panel.width,
                 "height": panel.height,

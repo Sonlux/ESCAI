@@ -26,15 +26,11 @@ try:
 except ImportError:
     INFLUXDB_AVAILABLE = False
     # Mock classes for when InfluxDB is not available
-    class InfluxDBClient:
-        pass
-    class Point:
-        pass
-    class WritePrecision:
-        NS = "ns"
-        US = "us"
-        MS = "ms"
-        S = "s"
+    InfluxDBClient = None
+    Point = None
+    WritePrecision = None
+    SYNCHRONOUS = None
+    ASYNCHRONOUS = None
 
 
 logger = logging.getLogger(__name__)
@@ -231,7 +227,9 @@ class InfluxDBManager:
         
         # Add fields
         for key, value in metric_point.fields.items():
-            point = point.field(key, value)
+            field_key: str = key
+            field_value: Union[float, int, str, bool] = value
+            point = point.field(field_key, field_value)
         
         # Add timestamp if provided
         if metric_point.timestamp:

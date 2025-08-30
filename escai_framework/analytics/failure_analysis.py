@@ -133,7 +133,7 @@ class FailurePatternDetector:
             # Sequence-level features
             seq_features = [
                 len(seq.steps),
-                seq.total_duration,
+                seq.total_duration_ms,
                 seq.success_rate,
                 sum(1 for step in seq.steps if step.error_message),  # Error count
                 np.mean([step.duration for step in seq.steps]) if seq.steps else 0,
@@ -186,7 +186,7 @@ class FailurePatternDetector:
         common_patterns = Counter(step_patterns).most_common(3)
         
         # Timing characteristics
-        durations = [seq.total_duration for seq in sequences]
+        durations = [seq.total_duration_ms for seq in sequences]
         step_counts = [len(seq.steps) for seq in sequences]
         
         signature = {
@@ -314,7 +314,7 @@ class RootCauseAnalyzer:
         features = [
             # Sequence features
             len(sequence.steps),
-            sequence.total_duration,
+            sequence.total_duration_ms,
             sequence.success_rate,
             sum(1 for step in sequence.steps if step.error_message),
             
@@ -322,7 +322,7 @@ class RootCauseAnalyzer:
             epistemic_state.confidence_level,
             epistemic_state.uncertainty_score,
             len(epistemic_state.belief_states),
-            len(epistemic_state.goal_state.active_goals) if epistemic_state.goal_state else 0,
+            len(epistemic_state.goal_states) if epistemic_state.goal_states else 0,
             
             # Timing features
             np.mean([step.duration for step in sequence.steps]) if sequence.steps else 0,
@@ -568,12 +568,12 @@ class FailureAnalysisEngine:
     def _calculate_failure_severity(self, sequences: List[ExecutionSequence]) -> float:
         """Calculate severity score for failure mode."""
         # Consider factors like duration, complexity, and impact
-        avg_duration = np.mean([seq.total_duration for seq in sequences])
+        avg_duration = np.mean([seq.total_duration_ms for seq in sequences])
         avg_steps = np.mean([len(seq.steps) for seq in sequences])
         
         # Normalize to 0-1 scale
-        duration_score = min(1.0, avg_duration / 3600)  # Assume 1 hour is high
-        complexity_score = min(1.0, avg_steps / 50)     # Assume 50 steps is high
+        duration_score = min(1.0, float(avg_duration) / 3600)  # Assume 1 hour is high
+        complexity_score = min(1.0, float(avg_steps) / 50)     # Assume 50 steps is high
         
         return (duration_score + complexity_score) / 2
     

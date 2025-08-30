@@ -435,7 +435,7 @@ class StatisticalAnalyzer:
             p_value=p_value,
             effect_size=float(abs(cohens_d)),
             confidence_interval=None,
-            interpretation=self._interpret_t_test(t_stat, p_value, cohens_d),
+            interpretation=self._interpret_t_test(t_stat, p_value, float(cohens_d)),
             assumptions_met=True,
             sample_size=len(sample)
         )
@@ -454,7 +454,7 @@ class StatisticalAnalyzer:
             features['confidence_level'].append(state.confidence_level)
             features['uncertainty_score'].append(state.uncertainty_score)
             features['num_beliefs'].append(len(state.belief_states))
-            features['num_goals'].append(len(state.goal_state.active_goals) if state.goal_state else 0)
+            features['num_goals'].append(len(state.goal_states) if state.goal_states else 0)
             features['num_facts'].append(len(state.knowledge_state.facts) if state.knowledge_state else 0)
         
         return features
