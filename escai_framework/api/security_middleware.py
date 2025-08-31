@@ -7,7 +7,7 @@ comprehensive request processing and protection.
 
 import asyncio
 import time
-from typing import Callable, Dict, Any, Optional
+from typing import Callable, Dict, Any, Optional, Union
 from datetime import datetime
 
 from fastapi import Request, Response, HTTPException, status
@@ -29,7 +29,7 @@ from ..security import (
     SensitivityLevel,
     ValidationLevel
 )
-from ..security.config import get_security_config
+from ..security.config import get_security_config, SecurityConfig
 from ..utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -42,11 +42,18 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         self,
         app,
         redis_client: redis.Redis,
-        security_config: Optional[Dict[str, Any]] = None
+        security_config: Optional[Union[Dict[str, Any], SecurityConfig]] = None
     ):
         super().__init__(app)
         self.redis = redis_client
-        self.config = security_config or get_security_config()
+        config = security_config or get_security_config()
+        
+        # Handle both dict and SecurityConfig types
+        if isinstance(config, dict):
+            # Convert dict to SecurityConfig if needed
+            self.config = get_security_config()
+        else:
+            self.config = config
         
         # Initialize security components
         self.auth_manager = AuthManager(redis_client)
@@ -436,7 +443,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         try:
             duration_ms = int((time.time() - start_time) * 1000)
             
-            await self.audit_logger.log_event({
+            await self.audit_logger.log_event({  # type: ignore[arg-type]
                 'event_type': AuditEventType.SECURITY_EVENT,
                 'level': AuditLevel.ERROR,
                 'timestamp': datetime.utcnow(),

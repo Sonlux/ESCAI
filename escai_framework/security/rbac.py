@@ -212,14 +212,14 @@ class RBACManager:
                 "created_at": role.created_at.isoformat()
             }
             
-            await self.redis.hset(
-                f"rbac:role:{role.name}",
-                mapping={k: json.dumps(list(v)) if isinstance(v, set) else 
+            mapping_data = {k: json.dumps(list(v)) if isinstance(v, set) else 
                            json.dumps(v) if isinstance(v, (list, bool)) else 
                            v.isoformat() if isinstance(v, datetime) else 
                            str(v) 
                          for k, v in role_data.items()}
-            )
+            hset_result = self.redis.hset(f"rbac:role:{role.name}", mapping=mapping_data)
+            if hasattr(hset_result, '__await__'):
+                await hset_result
             
             logger.info(f"Created role: {role.name}")
             return True
@@ -382,11 +382,13 @@ class RBACManager:
     async def _update_user_roles_in_redis(self, user_id: str):
         """Update user roles in Redis"""
         user_roles = list(self.user_roles.get(user_id, set()))
-        await self.redis.hset(
+        hset_result = self.redis.hset(
             f"rbac:user:{user_id}",
             "roles",
             json.dumps(user_roles)
         )
+        if hasattr(hset_result, '__await__'):
+            await hset_result
     
     async def get_user_permissions(self, user_id: str) -> List[str]:
         """Get all permissions for user"""

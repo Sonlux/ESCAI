@@ -309,11 +309,11 @@ class ConfigValidator:
         """
         is_valid, errors = self.validate_config(config_data)
         
-        report = {
+        from datetime import datetime
+        
+        report: Dict[str, Any] = {
             'valid': is_valid,
-            'timestamp': str(logger.handlers[0].formatter.formatTime(logger.makeRecord(
-                'config_validator', logging.INFO, '', 0, '', (), None
-            )) if logger.handlers else 'unknown'),
+            'timestamp': datetime.now().isoformat(),
             'total_errors': len(errors),
             'errors': errors,
             'warnings': [],

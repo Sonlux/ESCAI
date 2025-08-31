@@ -227,24 +227,40 @@ class AuditLogger:
             
             # Store in Redis with multiple keys for different access patterns
             event_key = f"audit:event:{event.event_id}"
-            await self.redis.hset(event_key, mapping=cast(Dict[str, Union[str, bytes]], encrypted_event))
-            await self.redis.expire(event_key, self.retention_days * 86400)
+            hset_result = self.redis.hset(event_key, mapping=cast(Dict[str, Union[str, bytes]], encrypted_event))
+            if hasattr(hset_result, '__await__'):
+                await hset_result
+            expire_result = self.redis.expire(event_key, self.retention_days * 86400)
+            if hasattr(expire_result, '__await__'):
+                await expire_result
             
             # Add to time-based index
             time_key = f"audit:time:{event.timestamp.strftime('%Y-%m-%d')}"
-            await self.redis.zadd(time_key, {event.event_id: event.timestamp.timestamp()})
-            await self.redis.expire(time_key, self.retention_days * 86400)
+            zadd_result = self.redis.zadd(time_key, {event.event_id: event.timestamp.timestamp()})
+            if hasattr(zadd_result, '__await__'):
+                await zadd_result
+            expire_result = self.redis.expire(time_key, self.retention_days * 86400)
+            if hasattr(expire_result, '__await__'):
+                await expire_result
             
             # Add to user-based index if user_id exists
             if event.user_id:
                 user_key = f"audit:user:{event.user_id}"
-                await self.redis.zadd(user_key, {event.event_id: event.timestamp.timestamp()})
-                await self.redis.expire(user_key, self.retention_days * 86400)
+                zadd_result = self.redis.zadd(user_key, {event.event_id: event.timestamp.timestamp()})
+                if hasattr(zadd_result, '__await__'):
+                    await zadd_result
+                expire_result = self.redis.expire(user_key, self.retention_days * 86400)
+                if hasattr(expire_result, '__await__'):
+                    await expire_result
             
             # Add to type-based index
             type_key = f"audit:type:{event.event_type.value}"
-            await self.redis.zadd(type_key, {event.event_id: event.timestamp.timestamp()})
-            await self.redis.expire(type_key, self.retention_days * 86400)
+            zadd_result = self.redis.zadd(type_key, {event.event_id: event.timestamp.timestamp()})
+            if hasattr(zadd_result, '__await__'):
+                await zadd_result
+            expire_result = self.redis.expire(type_key, self.retention_days * 86400)
+            if hasattr(expire_result, '__await__'):
+                await expire_result
             
             # Update last hash
             self.last_hash = chain_hash
@@ -261,7 +277,8 @@ class AuditLogger:
         """Retrieve and decrypt audit event"""
         try:
             event_key = f"audit:event:{event_id}"
-            encrypted_event = await self.redis.hgetall(event_key)
+            hgetall_result = self.redis.hgetall(event_key)
+            encrypted_event = await hgetall_result if hasattr(hgetall_result, '__await__') else hgetall_result
             
             if not encrypted_event:
                 return None
@@ -374,7 +391,8 @@ class AuditLogger:
             for event in events:
                 # Get encrypted event data
                 event_key = f"audit:event:{event.event_id}"
-                encrypted_event = await self.redis.hgetall(event_key)
+                hgetall_result = self.redis.hgetall(event_key)
+                encrypted_event = await hgetall_result if hasattr(hgetall_result, '__await__') else hgetall_result
                 encrypted_event = {k.decode(): v.decode() for k, v in encrypted_event.items()}
                 
                 # Verify chain hash

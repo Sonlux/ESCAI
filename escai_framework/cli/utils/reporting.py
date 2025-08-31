@@ -528,7 +528,7 @@ class ReportGenerator:
             return {"type": "analysis", "content": {"message": "No behavioral patterns identified"}}
         
         # Analyze pattern frequency and types
-        pattern_types = {}
+        pattern_types: Dict[str, int] = {}
         total_frequency = 0
         
         for pattern in patterns:
@@ -557,7 +557,7 @@ class ReportGenerator:
         
         # Analyze relationship strength and types
         strong_relationships = [r for r in relationships if r.get("strength", 0) > 0.7]
-        relationship_types = {}
+        relationship_types: Dict[str, int] = {}
         
         for rel in relationships:
             rel_type = rel.get("type", "unknown")
@@ -586,7 +586,7 @@ class ReportGenerator:
         avg_duration = total_duration / len(sessions)
         success_rate = len([s for s in sessions if s.get("status") == "completed"]) / len(sessions)
         
-        prediction_accuracy = 0
+        prediction_accuracy: float = 0
         if predictions:
             accurate_predictions = [p for p in predictions if p.get("accuracy", 0) > 0.8]
             prediction_accuracy = len(accurate_predictions) / len(predictions)
@@ -779,7 +779,7 @@ class ReportGenerator:
         sessions = data.get("sessions", [])
         
         # Group sessions by agent
-        agent_performance = {}
+        agent_performance: Dict[str, Any] = {}
         for session in sessions:
             agent_id = session.get("agent_id", "unknown")
             if agent_id not in agent_performance:
@@ -813,7 +813,7 @@ class ReportGenerator:
         patterns = data.get("patterns", [])
         
         # Group patterns by agent
-        agent_patterns = {}
+        agent_patterns: Dict[str, Any] = {}
         for pattern in patterns:
             agent_id = pattern.get("agent_id", "unknown")
             if agent_id not in agent_patterns:
@@ -823,7 +823,7 @@ class ReportGenerator:
         # Analyze differences
         behavioral_analysis = {}
         for agent_id, agent_pattern_list in agent_patterns.items():
-            pattern_types = {}
+            pattern_types: Dict[str, int] = {}
             for pattern in agent_pattern_list:
                 pattern_type = pattern.get("type", "unknown")
                 pattern_types[pattern_type] = pattern_types.get(pattern_type, 0) + 1
@@ -1098,7 +1098,7 @@ class ReportScheduler:
     def __init__(self, generator: ReportGenerator, console: Console):
         self.generator = generator
         self.console = console
-        self.scheduled_reports = []
+        self.scheduled_reports: List[Dict[str, Any]] = []
     
     def schedule_report(self, config: ReportConfig, schedule: str, email_recipients: List[str] = None):
         """Schedule a report to be generated automatically."""

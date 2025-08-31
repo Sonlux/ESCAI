@@ -14,8 +14,11 @@ from typing import Dict, Any, Optional, List, Callable, Union
 from pathlib import Path
 from datetime import datetime
 import logging
-from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from watchdog.observers import Observer
 
 from .config_schema import ConfigSchema, Environment
 from .config_validator import ConfigValidator, ConfigValidationError
@@ -33,9 +36,9 @@ class ConfigChangeHandler(FileSystemEventHandler):
     def __init__(self, config_manager: 'ConfigManager'):
         self.config_manager = config_manager
         self.debounce_delay = 1.0  # seconds
-        self.last_modified = {}
+        self.last_modified: Dict[str, float] = {}
     
-    def on_modified(self, event):
+    def on_modified(self, event: Any) -> None:
         """Handle file modification events."""
         if event.is_directory:
             return
@@ -82,8 +85,8 @@ class ConfigManager:
         
         # Initialize components
         self.validator = ConfigValidator()
-        self.encryption = None
-        self.versioning = None
+        self.encryption: Optional[Any] = None
+        self.versioning: Optional[Any] = None
         self.templates = ConfigTemplates()
         
         # Configuration state
@@ -93,7 +96,7 @@ class ConfigManager:
         self.change_callbacks: List[Callable[[ConfigSchema], None]] = []
         
         # Hot-reload components
-        self.observer: Optional[Observer] = None
+        self.observer: Optional[Any] = None
         self.reload_lock = threading.Lock()
         
         # Initialize encryption if enabled
@@ -102,12 +105,12 @@ class ConfigManager:
         
         # Initialize versioning if enabled
         if self.enable_versioning:
-            self.versioning = ConfigVersioning(self.config_dir / "versions")
+            self.versioning = ConfigVersioning(str(self.config_dir / "versions"))
         
         # Create config directory if it doesn't exist
         self.config_dir.mkdir(parents=True, exist_ok=True)
     
-    def _initialize_encryption(self):
+    def _initialize_encryption(self) -> None:
         """Initialize configuration encryption."""
         try:
             # Try to load existing master key
@@ -163,7 +166,8 @@ class ConfigManager:
             # Validate configuration
             is_valid, errors = self.validator.validate_config(self.config_data)
             if not is_valid:
-                raise ConfigValidationError("Configuration validation failed", errors)
+                error_dicts = [{"error": error} for error in errors]
+                raise ConfigValidationError("Configuration validation failed", error_dicts)
             
             # Create configuration object
             self.config = ConfigSchema(**self.config_data)
@@ -292,7 +296,8 @@ class ConfigManager:
             if validate:
                 is_valid, errors = self.validator.validate_config(self.config_data)
                 if not is_valid:
-                    raise ConfigValidationError("Updated configuration is invalid", errors)
+                    error_dicts = [{"error": error} for error in errors]
+                    raise ConfigValidationError("Updated configuration is invalid", error_dicts)
             
             # Create new configuration object
             old_config = self.config
@@ -356,7 +361,7 @@ class ConfigManager:
             validate: Whether to validate the updated configuration
         """
         keys = key_path.split('.')
-        updates = {}
+        updates: Dict[str, Any] = {}
         current = updates
         
         for key in keys[:-1]:
@@ -374,10 +379,11 @@ class ConfigManager:
         try:
             self.watched_files = config_files
             
-            if self.observer:
+            if self.observer is not None:
                 self.observer.stop()
                 self.observer.join()
             
+            from watchdog.observers import Observer
             self.observer = Observer()
             handler = ConfigChangeHandler(self)
             
@@ -540,7 +546,7 @@ class ConfigManager:
         """Convert SecretStr and other non-serializable objects to serializable format."""
         from pydantic import SecretStr
         
-        serialized_data = {}
+        serialized_data: Dict[str, Any] = {}
         
         for key, value in config_data.items():
             if isinstance(value, dict):
@@ -554,7 +560,7 @@ class ConfigManager:
     
     def _mask_sensitive_values(self, config_data: Dict[str, Any]) -> Dict[str, Any]:
         """Mask sensitive values in configuration data."""
-        masked_data = {}
+        masked_data: Dict[str, Any] = {}
         
         for key, value in config_data.items():
             if isinstance(value, dict):
@@ -568,7 +574,7 @@ class ConfigManager:
     
     def cleanup(self) -> None:
         """Clean up resources."""
-        if self.observer:
+        if self.observer is not None:
             self.observer.stop()
             self.observer.join()
             logger.info("Configuration hot-reload monitoring stopped")
@@ -577,6 +583,6 @@ class ConfigManager:
         """Context manager entry."""
         return self
     
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Context manager exit."""
         self.cleanup()

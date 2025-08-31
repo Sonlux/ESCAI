@@ -3,7 +3,7 @@ MongoDB manager for coordinating repositories and operations.
 """
 
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from .repositories.raw_log_repository import RawLogRepository
@@ -29,7 +29,7 @@ class MongoManager:
         self.configurations = ConfigurationRepository(db)
         self.analytics_results = AnalyticsResultRepository(db)
         
-        self._repositories = {
+        self._repositories: Dict[str, Union[RawLogRepository, ProcessedEventRepository, ExplanationRepository, ConfigurationRepository, AnalyticsResultRepository]] = {
             'raw_logs': self.raw_logs,
             'processed_events': self.processed_events,
             'explanations': self.explanations,
@@ -69,7 +69,7 @@ class MongoManager:
             db_stats = await self.db.command('dbStats')
             
             # Get collection stats
-            collection_stats = {}
+            collection_stats: Dict[str, Any] = {}
             for name, repo in self._repositories.items():
                 try:
                     stats = await self.db.command('collStats', repo.collection_name)
@@ -103,7 +103,7 @@ class MongoManager:
     
     async def health_check(self) -> Dict[str, Any]:
         """Perform health check on MongoDB and all repositories."""
-        health_status = {
+        health_status: Dict[str, Any] = {
             'mongodb': {'status': 'unknown'},
             'repositories': {}
         }
@@ -142,9 +142,9 @@ class MongoManager:
         processed_events_days: int = 90,
         explanations_days: int = 180,
         analytics_results_days: int = 365
-    ) -> Dict[str, int]:
+    ) -> Dict[str, Any]:
         """Cleanup old data from all collections."""
-        cleanup_results = {}
+        cleanup_results: Dict[str, Any] = {}
         
         try:
             # Cleanup raw logs
@@ -169,13 +169,14 @@ class MongoManager:
             
         except Exception as e:
             logger.error(f"Error during cleanup: {e}")
-            cleanup_results['error'] = str(e)
+            # Return error in a separate dict since cleanup_results expects int values
+            return {'error': str(e)}
         
         return cleanup_results
     
     async def optimize_collections(self) -> Dict[str, Any]:
         """Optimize all collections (rebuild indexes, compact, etc.)."""
-        optimization_results = {}
+        optimization_results: Dict[str, Any] = {}
         
         for name, repo in self._repositories.items():
             try:
@@ -200,7 +201,7 @@ class MongoManager:
     
     async def backup_collection_schemas(self) -> Dict[str, Any]:
         """Backup collection schemas and index definitions."""
-        schemas = {}
+        schemas: Dict[str, Any] = {}
         
         for name, repo in self._repositories.items():
             try:

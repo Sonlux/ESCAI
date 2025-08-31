@@ -166,13 +166,6 @@ class ESCAIAPIClient:
                 self.console.print(f"[error]API error {e.response.status_code}: {e.response.text}[/error]")
                 return []
     
-    def _get_headers(self) -> Dict[str, str]:
-        """Get request headers"""
-        headers = {"Content-Type": "application/json"}
-        if self.api_key:
-            headers["Authorization"] = f"Bearer {self.api_key}"
-        return headers   
- 
     async def get(self, endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Generic GET request to API endpoint"""
         async with httpx.AsyncClient() as client:

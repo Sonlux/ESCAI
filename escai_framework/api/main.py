@@ -6,7 +6,7 @@ import asyncio
 import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, AsyncGenerator
 
 from fastapi import FastAPI, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -33,7 +33,7 @@ logger = get_logger(__name__)
 limiter = Limiter(key_func=get_remote_address)
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> None:
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan manager."""
     logger.info("Starting ESCAI Framework API")
     
@@ -83,7 +83,7 @@ app.add_middleware(
 
 # Add rate limiting error handler
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)  # type: ignore[arg-type]
 
 # Include routers
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])

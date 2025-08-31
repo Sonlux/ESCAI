@@ -83,7 +83,7 @@ class EpistemicExtractor:
                 r"fact", r"true", r"certain", r"definitely", r"absolutely",
                 r"confirmed", r"verified", r"established"
             ],
-            BeliefType.PROBABILISTIC: [
+            BeliefType.PROCEDURAL: [
                 r"probably", r"likely", r"possibly", r"maybe", r"perhaps",
                 r"chance", r"probability", r"odds"
             ],
@@ -91,7 +91,7 @@ class EpistemicExtractor:
                 r"if", r"when", r"unless", r"provided", r"assuming",
                 r"given that", r"in case", r"depends on"
             ],
-            BeliefType.TEMPORAL: [
+            BeliefType.PREDICTIVE: [
                 r"will", r"going to", r"future", r"eventually", r"soon",
                 r"later", r"tomorrow", r"next", r"after"
             ]
@@ -172,7 +172,7 @@ class EpistemicExtractor:
     
     async def _extract_beliefs_from_event(self, event: AgentEvent) -> List[BeliefState]:
         """Extract beliefs from a single event."""
-        beliefs = []
+        beliefs: List[BeliefState] = []
         text_content = f"{event.message} {event.data.get('content', '')}"
         
         if not text_content.strip():
@@ -330,9 +330,6 @@ class EpistemicExtractor:
         
         return KnowledgeState(
             facts=list(set(facts)),  # Remove duplicates
-            rules=list(set(rules)),
-            concepts=concepts,
-            relationships=relationships,
             confidence_score=confidence_score
         )
     
@@ -483,15 +480,12 @@ class EpistemicExtractor:
                 # Update existing goal
                 goal = goal_tracker[description]
                 goal.status = status
-                goal.progress = progress
             else:
                 # Create new goal
                 goal = GoalState(
                     description=description,
                     status=status,
-                    priority=priority,
-                    progress=progress,
-                    created_at=event.timestamp
+                    priority=priority
                 )
                 goal_tracker[description] = goal
                 new_goals.append(goal)
@@ -605,44 +599,14 @@ class EpistemicExtractor:
         try:
             graph = nx.DiGraph()
             
-            # Add concepts as nodes
-            for concept, data in knowledge_state.concepts.items():
-                graph.add_node(concept, **data)
-            
-            # Add relationships as edges
-            for relationship in knowledge_state.relationships:
-                subject = relationship.get("subject", "")
-                obj = relationship.get("object", "")
-                predicate = relationship.get("predicate", "related_to")
-                
-                if subject and obj:
-                    graph.add_edge(subject, obj, relation=predicate)
-            
-            # Add facts as nodes connected to a central "facts" node
-            if knowledge_state.facts:
-                graph.add_node("FACTS", node_type="fact_collection")
-                for i, fact in enumerate(knowledge_state.facts):
-                    fact_node = f"fact_{i}"
-                    graph.add_node(fact_node, content=fact, node_type="fact")
-                    graph.add_edge("FACTS", fact_node, relation="contains")
-            
-            # Add rules as structured relationships
-            for i, rule in enumerate(knowledge_state.rules):
-                rule_node = f"rule_{i}"
-                graph.add_node(rule_node, content=rule, node_type="rule")
-                
-                # Try to parse rule structure (if -> then)
-                if " -> " in rule:
-                    condition, consequence = rule.split(" -> ", 1)
-                    condition_node = f"condition_{i}"
-                    consequence_node = f"consequence_{i}"
-                    
-                    graph.add_node(condition_node, content=condition.strip(), node_type="condition")
-                    graph.add_node(consequence_node, content=consequence.strip(), node_type="consequence")
-                    
-                    graph.add_edge(condition_node, consequence_node, relation="implies")
-                    graph.add_edge(rule_node, condition_node, relation="has_condition")
-                    graph.add_edge(rule_node, consequence_node, relation="has_consequence")
+            # Add facts as nodes
+            for i, fact in enumerate(knowledge_state.facts):
+                graph.add_node(f"fact_{i}", content=fact, node_type="fact")
+            # Simple graph structure for facts only
+            if len(knowledge_state.facts) > 1:
+                # Connect facts in sequence
+                for i in range(len(knowledge_state.facts) - 1):
+                    graph.add_edge(f"fact_{i}", f"fact_{i+1}", relation="follows")
             
             return graph
             
@@ -801,9 +765,6 @@ class EpistemicExtractor:
         overall_confidence = await self._calculate_overall_confidence(beliefs, knowledge)
         uncertainty_score = await self.quantify_uncertainty(beliefs)
         
-        # Extract decision context from recent events
-        decision_context = self._extract_decision_context(agent_logs)
-        
         return EpistemicState(
             agent_id=agent_id,
             timestamp=datetime.now(),
@@ -811,8 +772,7 @@ class EpistemicExtractor:
             knowledge_state=knowledge,
             goal_states=goals,
             confidence_level=overall_confidence,
-            uncertainty_score=uncertainty_score,
-            decision_context=decision_context
+            uncertainty_score=uncertainty_score
         )
     
     async def _calculate_overall_confidence(self, beliefs: List[BeliefState], 
@@ -835,7 +795,7 @@ class EpistemicExtractor:
     
     def _extract_decision_context(self, agent_logs: List[AgentEvent]) -> Dict[str, Any]:
         """Extract decision context from recent events."""
-        context = {
+        context: Dict[str, Any] = {
             "recent_decisions": [],
             "active_tools": [],
             "conversation_context": [],
@@ -923,9 +883,6 @@ class EpistemicExtractor:
         # Calculate uncertainty
         uncertainty_score = await self.quantify_uncertainty(belief_states)
         
-        # Extract decision context from recent events
-        decision_context = self._extract_decision_context(agent_logs[-10:])  # Last 10 events
-        
         return EpistemicState(
             agent_id=agent_id,
             timestamp=datetime.utcnow(),
@@ -933,40 +890,6 @@ class EpistemicExtractor:
             knowledge_state=knowledge_state,
             goal_states=goal_states,
             confidence_level=confidence_level,
-            uncertainty_score=uncertainty_score,
-            decision_context=decision_context
+            uncertainty_score=uncertainty_score
         )
     
-    def _extract_decision_context(self, agent_logs: List[AgentEvent]) -> Dict[str, Any]:
-        """Extract decision context from recent events."""
-        context = {
-            "recent_decisions": [],
-            "active_tools": [],
-            "conversation_context": [],
-            "error_history": []
-        }
-        
-        # Look at recent events (last 10)
-        recent_events = agent_logs[-10:] if len(agent_logs) > 10 else agent_logs
-        
-        for event in recent_events:
-            if event.event_type == EventType.DECISION_START:
-                context["recent_decisions"].append({
-                    "decision": event.message,
-                    "timestamp": event.timestamp.isoformat()
-                })
-            elif event.event_type == EventType.TOOL_CALL:
-                context["active_tools"].append(event.data.get("tool_name", "unknown"))
-            elif event.event_type in [EventType.MESSAGE_SEND, EventType.MESSAGE_RECEIVE]:
-                context["conversation_context"].append({
-                    "message": event.message,
-                    "type": event.event_type.value,
-                    "timestamp": event.timestamp.isoformat()
-                })
-            elif event.event_type == EventType.AGENT_ERROR:
-                context["error_history"].append({
-                    "error": event.message,
-                    "timestamp": event.timestamp.isoformat()
-                })
-        
-        return context

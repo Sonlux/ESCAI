@@ -70,7 +70,7 @@ class ExplanationRepository(MongoBaseRepository[ExplanationDocument]):
         limit: int = 100
     ) -> List[ExplanationDocument]:
         """Find explanations for a specific agent."""
-        filter_dict = {"agent_id": agent_id}
+        filter_dict: Dict[str, Any] = {"agent_id": agent_id}
         
         if explanation_type:
             filter_dict["explanation_type"] = explanation_type
@@ -91,7 +91,7 @@ class ExplanationRepository(MongoBaseRepository[ExplanationDocument]):
         limit: int = 100
     ) -> List[ExplanationDocument]:
         """Find explanations for a specific monitoring session."""
-        filter_dict = {"session_id": session_id}
+        filter_dict: Dict[str, Any] = {"session_id": session_id}
         
         if explanation_type:
             filter_dict["explanation_type"] = explanation_type
@@ -110,7 +110,7 @@ class ExplanationRepository(MongoBaseRepository[ExplanationDocument]):
         limit: int = 100
     ) -> List[ExplanationDocument]:
         """Find explanations by type."""
-        filter_dict = {"explanation_type": explanation_type}
+        filter_dict: Dict[str, Any] = {"explanation_type": explanation_type}
         
         if min_confidence is not None:
             filter_dict["confidence_score"] = {"$gte": min_confidence}
@@ -200,7 +200,7 @@ class ExplanationRepository(MongoBaseRepository[ExplanationDocument]):
         limit: int = 50
     ) -> List[ExplanationDocument]:
         """Search explanations using text search."""
-        filter_dict = {}
+        filter_dict: Dict[str, Any] = {}
         
         if agent_id:
             filter_dict["agent_id"] = agent_id
@@ -231,14 +231,14 @@ class ExplanationRepository(MongoBaseRepository[ExplanationDocument]):
         days_back: int = 7
     ) -> Dict[str, Any]:
         """Get explanation statistics."""
-        match_stage = {
+        match_stage: Dict[str, Any] = {
             "created_at": {"$gte": datetime.utcnow() - timedelta(days=days_back)}
         }
         
         if agent_id:
             match_stage["agent_id"] = agent_id
         
-        pipeline = [
+        pipeline: List[Dict[str, Any]] = [
             {"$match": match_stage},
             {
                 "$group": {
@@ -281,7 +281,7 @@ class ExplanationRepository(MongoBaseRepository[ExplanationDocument]):
         days_back: int = 7
     ) -> List[Dict[str, Any]]:
         """Get confidence score distribution."""
-        match_stage = {
+        match_stage: Dict[str, Any] = {
             "created_at": {"$gte": datetime.utcnow() - timedelta(days=days_back)}
         }
         
@@ -290,7 +290,7 @@ class ExplanationRepository(MongoBaseRepository[ExplanationDocument]):
         if explanation_type:
             match_stage["explanation_type"] = explanation_type
         
-        pipeline = [
+        pipeline: List[Dict[str, Any]] = [
             {"$match": match_stage},
             {
                 "$bucket": {

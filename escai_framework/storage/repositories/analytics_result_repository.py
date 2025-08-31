@@ -73,7 +73,7 @@ class AnalyticsResultRepository(MongoBaseRepository[AnalyticsResultDocument]):
         limit: int = 100
     ) -> List[AnalyticsResultDocument]:
         """Find results by analysis type."""
-        filter_dict = {"analysis_type": analysis_type}
+        filter_dict: Dict[str, Any] = {"analysis_type": analysis_type}
         
         if agent_id:
             filter_dict["agent_id"] = agent_id
@@ -235,7 +235,7 @@ class AnalyticsResultRepository(MongoBaseRepository[AnalyticsResultDocument]):
         if model_version:
             match_stage["model_version"] = model_version
         
-        pipeline = [
+        pipeline: List[Dict[str, Any]] = [
             {"$match": match_stage},
             {
                 "$group": {
@@ -270,7 +270,7 @@ class AnalyticsResultRepository(MongoBaseRepository[AnalyticsResultDocument]):
         ]
         
         result = await self.aggregate(pipeline)
-        return result
+        return result[0] if result else {}
     
     async def get_analysis_statistics(
         self,
@@ -278,14 +278,14 @@ class AnalyticsResultRepository(MongoBaseRepository[AnalyticsResultDocument]):
         days_back: int = 7
     ) -> Dict[str, Any]:
         """Get analysis statistics."""
-        match_stage = {
+        match_stage: Dict[str, Any] = {
             "created_at": {"$gte": datetime.utcnow() - timedelta(days=days_back)}
         }
         
         if analysis_type:
             match_stage["analysis_type"] = analysis_type
         
-        pipeline = [
+        pipeline: List[Dict[str, Any]] = [
             {"$match": match_stage},
             {
                 "$group": {
@@ -312,7 +312,8 @@ class AnalyticsResultRepository(MongoBaseRepository[AnalyticsResultDocument]):
             {"$sort": {"count": -1}}
         ]
         
-        return await self.aggregate(pipeline)
+        result = await self.aggregate(pipeline)
+        return result[0] if result else {}
     
     async def get_execution_time_trends(
         self,
@@ -330,7 +331,7 @@ class AnalyticsResultRepository(MongoBaseRepository[AnalyticsResultDocument]):
         if model_name:
             match_stage["model_name"] = model_name
         
-        pipeline = [
+        pipeline: List[Dict[str, Any]] = [
             {"$match": match_stage},
             {
                 "$group": {
@@ -352,7 +353,8 @@ class AnalyticsResultRepository(MongoBaseRepository[AnalyticsResultDocument]):
             {"$sort": {"_id.time_bucket": 1}}
         ]
         
-        return await self.aggregate(pipeline)
+        result = await self.aggregate(pipeline)
+        return result
     
     async def find_slow_analyses(
         self,
@@ -387,11 +389,11 @@ class AnalyticsResultRepository(MongoBaseRepository[AnalyticsResultDocument]):
         keep_latest: bool = True
     ) -> int:
         """Remove duplicate results based on input_data_hash."""
-        match_stage = {}
+        match_stage: Dict[str, Any] = {}
         if analysis_type:
             match_stage["analysis_type"] = analysis_type
         
-        pipeline = [
+        pipeline: List[Dict[str, Any]] = [
             {"$match": match_stage},
             {
                 "$group": {

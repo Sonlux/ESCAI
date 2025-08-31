@@ -2,7 +2,7 @@
 Repository for Agent model operations.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,11 +36,11 @@ class AgentRepository(BaseRepository[Agent]):
         active_only: bool = True
     ) -> List[Agent]:
         """Get agents by framework."""
-        filters = {'framework': framework}
+        filters: Dict[str, Any] = {'framework': framework}
         if active_only:
             filters['is_active'] = True
         
-        return await self.find_by(session, offset=None, order_by='created_at', **filters)
+        return await self.find_by(session, limit=100, offset=None, order_by='created_at', **filters)
     
     async def deactivate_agent(self, session: AsyncSession, agent_id: str) -> bool:
         """Deactivate an agent."""

@@ -5,20 +5,17 @@ This module provides advanced graph analysis algorithms including centrality mea
 pattern discovery, and graph visualization utilities for causal relationships.
 """
 
-import asyncio
 import logging
-from typing import Dict, List, Optional, Any, Tuple, Set
-from datetime import datetime, timedelta
-import json
+from typing import Dict, List, Optional, Any
+from datetime import datetime, timezone
 from dataclasses import dataclass
 from enum import Enum
 
 import networkx as nx
 import numpy as np
-from collections import defaultdict, Counter
 
 from .neo4j_manager import Neo4jManager
-from .neo4j_models import GraphAnalysisResult, NodeType, RelationshipType
+from .neo4j_models import GraphAnalysisResult, NodeType, GraphQuery
 
 
 logger = logging.getLogger(__name__)
@@ -114,7 +111,7 @@ class Neo4jAnalytics:
         
         try:
             results = await self.manager.execute_custom_query(
-                type('GraphQuery', (), {'query': query, 'parameters': {}})()
+                GraphQuery(query=query, parameters={})
             )
             
             # Normalize scores
@@ -207,7 +204,7 @@ class Neo4jAnalytics:
         
         try:
             results = await self.manager.execute_custom_query(
-                type('GraphQuery', (), {'query': query, 'parameters': {}})()
+                GraphQuery(query=query, parameters={})
             )
             
             # Create NetworkX graph
@@ -241,7 +238,7 @@ class Neo4jAnalytics:
             List of discovered patterns
         """
         agent_filter = "AND n.agent_id = $agent_id" if agent_id else ""
-        parameters = {'agent_id': agent_id} if agent_id else {}
+        parameters: Dict[str, Any] = {'agent_id': agent_id} if agent_id else {}
         
         # Find common causal sequences
         query = f"""
@@ -260,7 +257,7 @@ class Neo4jAnalytics:
         
         try:
             results = await self.manager.execute_custom_query(
-                type('GraphQuery', (), {'query': query, 'parameters': parameters})()
+                GraphQuery(query=query, parameters=parameters)
             )
             
             patterns = []
@@ -302,7 +299,7 @@ class Neo4jAnalytics:
         start_filter = "AND start.event_type = $start_type" if start_event_type else ""
         end_filter = "AND end.event_type = $end_type" if end_event_type else ""
         
-        parameters = {}
+        parameters: Dict[str, Any] = {}
         if start_event_type:
             parameters['start_type'] = start_event_type
         if end_event_type:
@@ -331,7 +328,7 @@ class Neo4jAnalytics:
         
         try:
             results = await self.manager.execute_custom_query(
-                type('GraphQuery', (), {'query': query, 'parameters': parameters})()
+                GraphQuery(query=query, parameters=parameters)
             )
             
             chains = []
@@ -340,11 +337,11 @@ class Neo4jAnalytics:
                     chain_id=f"chain_{i}",
                     nodes=result['node_ids'],
                     relationships=result['rel_ids'],
-                    total_strength=result['total_strength'],
-                    average_confidence=result['avg_confidence'],
-                    chain_length=result['chain_length'],
-                    start_event=result['start_event'],
-                    end_event=result['end_event']
+                    total_strength=float(result['total_strength']),
+                    average_confidence=float(result['avg_confidence']),
+                    chain_length=int(result['chain_length']),
+                    start_event=str(result['start_event']),
+                    end_event=str(result['end_event'])
                 )
                 chains.append(chain)
             
@@ -366,10 +363,10 @@ class Neo4jAnalytics:
         Returns:
             GraphAnalysisResult with temporal analysis
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         
         agent_filter = "AND n1.agent_id = $agent_id" if agent_id else ""
-        parameters = {'hours': time_window_hours}
+        parameters: Dict[str, Any] = {'hours': time_window_hours}
         if agent_id:
             parameters['agent_id'] = agent_id
         
@@ -392,21 +389,21 @@ class Neo4jAnalytics:
         
         try:
             results = await self.manager.execute_custom_query(
-                type('GraphQuery', (), {'query': query, 'parameters': parameters})()
+                GraphQuery(query=query, parameters=parameters)
             )
             
             temporal_patterns = []
             for result in results:
                 temporal_patterns.append({
-                    'hour_of_day': result['hour_of_day'],
-                    'causal_events': result['causal_events'],
-                    'avg_strength': result['avg_strength'],
-                    'avg_delay_ms': result['avg_delay_ms'],
+                    'hour_of_day': int(result['hour_of_day']),
+                    'causal_events': int(result['causal_events']),
+                    'avg_strength': float(result['avg_strength']),
+                    'avg_delay_ms': float(result['avg_delay_ms']),
                     'cause_types': result['cause_types'],
                     'effect_types': result['effect_types']
                 })
             
-            execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             
             return GraphAnalysisResult(
                 analysis_type="temporal_patterns",
@@ -417,7 +414,7 @@ class Neo4jAnalytics:
                 },
                 execution_time_ms=execution_time,
                 node_count=len(temporal_patterns),
-                relationship_count=sum(p['causal_events'] for p in temporal_patterns)
+                relationship_count=sum(int(p['causal_events']) for p in temporal_patterns)
             )
             
         except Exception as e:
@@ -425,7 +422,7 @@ class Neo4jAnalytics:
             return GraphAnalysisResult(
                 analysis_type="temporal_patterns",
                 results={'error': str(e)},
-                execution_time_ms=(datetime.utcnow() - start_time).total_seconds() * 1000,
+                execution_time_ms=(datetime.now(timezone.utc) - start_time).total_seconds() * 1000,
                 node_count=0,
                 relationship_count=0
             )
@@ -444,7 +441,7 @@ class Neo4jAnalytics:
             List of anomalous patterns
         """
         agent_filter = "AND n1.agent_id = $agent_id" if agent_id else ""
-        parameters = {'agent_id': agent_id} if agent_id else {}
+        parameters: Dict[str, Any] = {'agent_id': agent_id} if agent_id else {}
         
         # Get causal relationship statistics
         query = f"""
@@ -463,7 +460,7 @@ class Neo4jAnalytics:
         
         try:
             results = await self.manager.execute_custom_query(
-                type('GraphQuery', (), {'query': query, 'parameters': parameters})()
+                GraphQuery(query=query, parameters=parameters)
             )
             
             # Calculate statistics for anomaly detection
@@ -520,7 +517,7 @@ class Neo4jAnalytics:
             Dictionary with nodes and edges for visualization
         """
         agent_filter = "AND n.agent_id = $agent_id" if agent_id else ""
-        parameters = {'limit': max_nodes}
+        parameters: Dict[str, Any] = {'limit': max_nodes}
         if agent_id:
             parameters['agent_id'] = agent_id
         
@@ -548,7 +545,7 @@ class Neo4jAnalytics:
         try:
             # Get nodes
             nodes_results = await self.manager.execute_custom_query(
-                type('GraphQuery', (), {'query': nodes_query, 'parameters': parameters})()
+                GraphQuery(query=nodes_query, parameters=parameters)
             )
             
             if not nodes_results:
@@ -558,9 +555,9 @@ class Neo4jAnalytics:
             node_ids = [node['id'] for node in nodes_results]
             
             # Get relationships
-            rel_parameters = {'node_ids': node_ids}
+            rel_parameters: Dict[str, Any] = {'node_ids': node_ids}
             relationships_results = await self.manager.execute_custom_query(
-                type('GraphQuery', (), {'query': relationships_query, 'parameters': rel_parameters})()
+                GraphQuery(query=relationships_query, parameters=rel_parameters)
             )
             
             # Format for visualization

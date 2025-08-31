@@ -96,7 +96,7 @@ def validate(config_file: Optional[str], environment: Optional[str], detailed: b
         
         if config_file:
             is_valid, errors = validator.validate_config_file(config_file)
-            config_path = config_file
+            config_path = Path(config_file)
         else:
             # Auto-detect configuration file
             config_manager = ConfigManager(environment=environment)
@@ -553,7 +553,7 @@ def set(config_file: Optional[str], key: str, value: str):
             config_manager.load_config()
         
         # Parse value (try to detect type)
-        parsed_value = value
+        parsed_value: Any = value
         if value.lower() in ['true', 'false']:
             parsed_value = value.lower() == 'true'
         elif value.isdigit():

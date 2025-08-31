@@ -195,7 +195,7 @@ class DataFilter:
         for i, field in enumerate(fields, 1):
             console.print(f"  {i}. {field}")
         
-        conditions = []
+        conditions: List[FilterCondition] = []
         
         while True:
             console.print(f"\n[bold]Current conditions: {len(conditions)}[/bold]")
@@ -621,7 +621,7 @@ def _display_data_table(data: List[Dict[str, Any]]):
         return
     
     # Get all unique keys from all items
-    all_keys = set()
+    all_keys: set[str] = set()
     for item in data:
         all_keys.update(item.keys())
     

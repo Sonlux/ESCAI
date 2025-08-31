@@ -115,11 +115,13 @@ class TokenManager:
         
         # Store refresh token in Redis with expiration
         refresh_key = f"refresh_token:{session_id}"
-        await self.redis.setex(
+        setex_result = self.redis.setex(
             refresh_key,
             self.refresh_token_ttl,
             refresh_token
         )
+        if hasattr(setex_result, '__await__'):
+            await setex_result
         
         # Store session info
         session_key = f"session:{session_id}"
@@ -130,8 +132,12 @@ class TokenManager:
             "last_activity": now.isoformat(),
             "active": "true"
         }
-        await self.redis.hset(session_key, mapping=session_data)
-        await self.redis.expire(session_key, self.refresh_token_ttl)
+        hset_result = self.redis.hset(session_key, mapping=cast(Dict[str, Union[str, int, float, bytes]], session_data))
+        if hasattr(hset_result, '__await__'):
+            await hset_result
+        expire_result = self.redis.expire(session_key, self.refresh_token_ttl)
+        if hasattr(expire_result, '__await__'):
+            await expire_result
         
         return TokenPair(
             access_token=access_token,
@@ -153,16 +159,19 @@ class TokenManager:
             session_id = claims.get("session_id")
             if session_id:
                 session_key = f"session:{session_id}"
-                session_active = await self.redis.hget(session_key, "active")
+                hget_result = self.redis.hget(session_key, "active")
+                session_active = await hget_result if hasattr(hget_result, '__await__') else hget_result
                 if session_active != "true":
                     return None
                 
                 # Update last activity
-                await self.redis.hset(
+                hset_result = self.redis.hset(
                     session_key,
                     "last_activity",
                     datetime.utcnow().isoformat()
                 )
+                if hasattr(hset_result, '__await__'):
+                    await hset_result
             
             return claims
             
@@ -187,14 +196,16 @@ class TokenManager:
             
             # Check if refresh token exists in Redis
             refresh_key = f"refresh_token:{session_id}"
-            stored_token = await self.redis.get(refresh_key)
+            get_result = self.redis.get(refresh_key)
+            stored_token = await get_result if hasattr(get_result, '__await__') else get_result
             
-            if not stored_token or stored_token.decode() != refresh_token:
+            if not stored_token or (stored_token.decode() if hasattr(stored_token, 'decode') else str(stored_token)) != refresh_token:
                 return None
             
             # Get session info
             session_key = f"session:{session_id}"
-            session_data = await self.redis.hgetall(session_key)
+            hgetall_result = self.redis.hgetall(session_key)
+            session_data = await hgetall_result if hasattr(hgetall_result, '__await__') else hgetall_result
             
             if not session_data or session_data.get("active") != "true":
                 return None
@@ -239,7 +250,9 @@ class TokenManager:
             
             # Mark session as inactive
             session_key = f"session:{session_id}"
-            await self.redis.hset(session_key, "active", "false")
+            hset_result = self.redis.hset(session_key, "active", "false")
+            if hasattr(hset_result, '__await__'):
+                await hset_result
             
             # Remove refresh token
             refresh_key = f"refresh_token:{session_id}"
@@ -249,10 +262,13 @@ class TokenManager:
             jti = claims.get("jti", hashlib.sha256(token.encode()).hexdigest())
             blacklist_key = f"blacklist:{jti}"
             exp = claims.get("exp", datetime.utcnow().timestamp() + 3600)
-            ttl = max(int(exp - datetime.utcnow().timestamp()), 0)
+            exp_timestamp = exp if isinstance(exp, (int, float)) else exp.timestamp() if hasattr(exp, 'timestamp') else float(exp)
+            ttl = max(int(exp_timestamp - datetime.utcnow().timestamp()), 0)
             
             if ttl > 0:
-                await self.redis.setex(blacklist_key, ttl, "revoked")
+                setex_result = self.redis.setex(blacklist_key, ttl, "revoked")
+                if hasattr(setex_result, '__await__'):
+                    await setex_result
             
             return True
             
@@ -272,7 +288,9 @@ class TokenManager:
             jti = claims.get("jti", hashlib.sha256(token.encode()).hexdigest())
             blacklist_key = f"blacklist:{jti}"
             
-            return await self.redis.exists(blacklist_key) > 0
+            exists_result = self.redis.exists(blacklist_key)
+            exists_count = await exists_result if hasattr(exists_result, '__await__') else exists_result
+            return cast(int, exists_count) > 0
             
         except jwt.InvalidTokenError:
             return True  # Invalid tokens are considered blacklisted
@@ -284,14 +302,16 @@ class TokenManager:
             session_keys = await self.redis.keys("session:*")
             
             for key in session_keys:
-                ttl = await self.redis.ttl(key)
+                ttl_result = self.redis.ttl(key)
+                ttl = await ttl_result if hasattr(ttl_result, '__await__') else ttl_result
                 if ttl <= 0:  # Expired
                     await self.redis.delete(key)
             
             # Clean up expired blacklist entries
             blacklist_keys = await self.redis.keys("blacklist:*")
             for key in blacklist_keys:
-                ttl = await self.redis.ttl(key)
+                ttl_result = self.redis.ttl(key)
+                ttl = await ttl_result if hasattr(ttl_result, '__await__') else ttl_result
                 if ttl <= 0:
                     await self.redis.delete(key)
                     

@@ -64,7 +64,7 @@ class RawLogRepository(MongoBaseRepository[RawLogDocument]):
         limit: int = 1000
     ) -> List[RawLogDocument]:
         """Find logs for a specific agent."""
-        filter_dict = {"agent_id": agent_id}
+        filter_dict: Dict[str, Any] = {"agent_id": agent_id}
         
         if start_time or end_time:
             time_filter = {}
@@ -90,7 +90,7 @@ class RawLogRepository(MongoBaseRepository[RawLogDocument]):
         limit: int = 1000
     ) -> List[RawLogDocument]:
         """Find logs for a specific monitoring session."""
-        filter_dict = {"session_id": session_id}
+        filter_dict: Dict[str, Any] = {"session_id": session_id}
         
         if log_level:
             filter_dict["log_level"] = log_level.upper()
@@ -109,7 +109,7 @@ class RawLogRepository(MongoBaseRepository[RawLogDocument]):
         limit: int = 1000
     ) -> List[RawLogDocument]:
         """Find logs for a specific framework."""
-        filter_dict = {"framework": framework.lower()}
+        filter_dict: Dict[str, Any] = {"framework": framework.lower()}
         
         if start_time or end_time:
             time_filter = {}
@@ -159,7 +159,7 @@ class RawLogRepository(MongoBaseRepository[RawLogDocument]):
         limit: int = 100
     ) -> List[RawLogDocument]:
         """Search logs using text search."""
-        filter_dict = {}
+        filter_dict: Dict[str, Any] = {}
         
         if agent_id:
             filter_dict["agent_id"] = agent_id
@@ -179,7 +179,7 @@ class RawLogRepository(MongoBaseRepository[RawLogDocument]):
         hours_back: int = 24
     ) -> Dict[str, Any]:
         """Get log statistics for analysis."""
-        match_stage = {
+        match_stage: Dict[str, Any] = {
             "timestamp": {"$gte": datetime.utcnow() - timedelta(hours=hours_back)}
         }
         

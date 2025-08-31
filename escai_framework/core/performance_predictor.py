@@ -41,8 +41,8 @@ except ImportError as e:
     classification_report = None
     xgb = None
     torch = None
-    nn = None  # type: ignore[assignment]
-    optim = None  # type: ignore[assignment]
+    nn = None
+    optim = None
     DataLoader = None
     TensorDataset = None
 
@@ -265,7 +265,7 @@ class PerformancePredictor:
                 'urgency': RiskLevel.HIGH
             },
             'strategy_change': {
-                'type': InterventionType.STRATEGY_CHANGE,
+                'type': InterventionType.PROCESS_MODIFICATION,
                 'name': 'Strategy Modification',
                 'description': 'Change agent strategy or approach',
                 'expected_impact': 0.7,
@@ -273,7 +273,7 @@ class PerformancePredictor:
                 'urgency': RiskLevel.HIGH
             },
             'early_termination': {
-                'type': InterventionType.EARLY_TERMINATION,
+                'type': InterventionType.MONITORING_ENHANCEMENT,
                 'name': 'Early Task Termination',
                 'description': 'Terminate task early to prevent failure',
                 'expected_impact': 0.4,
@@ -281,7 +281,7 @@ class PerformancePredictor:
                 'urgency': RiskLevel.CRITICAL
             },
             'human_oversight': {
-                'type': InterventionType.HUMAN_INTERVENTION,
+                'type': InterventionType.PARAMETER_ADJUSTMENT,
                 'name': 'Human Oversight',
                 'description': 'Add human supervision and guidance',
                 'expected_impact': 0.8,
@@ -321,25 +321,34 @@ class PerformancePredictor:
             )
             
             # Identify risk factors
-            risk_factors = await self._identify_risk_factors(current_state, features)
+            risk_factors = await self.identify_risk_factors(AgentState(
+                agent_id=current_state.agent_id,
+                current_task="",
+                execution_history=[],
+                epistemic_state=current_state,
+                resource_usage={},
+                performance_metrics={}
+            ))
             
             # Generate interventions
-            interventions = await self._recommend_interventions(risk_factors, success_prob)
+            interventions = await self.recommend_interventions(PredictionResult(
+                agent_id=current_state.agent_id,
+                prediction_type=PredictionType.SUCCESS_PROBABILITY.value,
+                predicted_value=success_prob,
+                confidence=0.5,
+                risk_factor_objects=risk_factors
+            ))
             
             # Create prediction result
             prediction = PredictionResult(
-                prediction_id=str(uuid.uuid4()),
                 agent_id=current_state.agent_id,
-                prediction_type=PredictionType.SUCCESS_PROBABILITY,
+                prediction_type=PredictionType.SUCCESS_PROBABILITY.value,
                 predicted_value=success_prob,
-                confidence_score=self._calculate_prediction_confidence(features),
+                confidence=self._calculate_prediction_confidence(features),
                 confidence_interval=confidence_interval,
-                risk_factors=risk_factors,
-                recommended_interventions=interventions,
-                model_name="EnsembleSuccessPredictor",
-                model_version="1.0",
-                features_used=list(features.keys()),
-                prediction_horizon_ms=300000  # 5 minutes ahead
+                risk_factor_objects=risk_factors,
+                interventions=interventions,
+                model_used="EnsembleSuccessPredictor"
             )
             
             return prediction
@@ -445,7 +454,7 @@ class PerformancePredictor:
                     risk_factors.append(risk_factor)
             
             # Sort by risk score (impact * probability)
-            risk_factors.sort(key=lambda rf: rf.calculate_risk_score(), reverse=True)
+            risk_factors.sort(key=lambda rf: rf.impact_score * rf.probability, reverse=True)
             
             return risk_factors
             
@@ -473,16 +482,16 @@ class PerformancePredictor:
             # Recommend based on success probability
             if success_prob < 0.3:
                 # High failure risk - aggressive interventions
-                interventions.extend(await self._get_high_risk_interventions(risk_factors))
+                interventions.extend(await self._get_high_risk_interventions(prediction.risk_factor_objects))
             elif success_prob < 0.6:
                 # Medium risk - moderate interventions
-                interventions.extend(await self._get_medium_risk_interventions(risk_factors))
+                interventions.extend(await self._get_medium_risk_interventions(prediction.risk_factor_objects))
             else:
                 # Low risk - optimization interventions
-                interventions.extend(await self._get_optimization_interventions(risk_factors))
+                interventions.extend(await self._get_optimization_interventions(prediction.risk_factor_objects))
             
-            # Sort by benefit-cost ratio
-            interventions.sort(key=lambda i: i.calculate_benefit_cost_ratio(), reverse=True)
+            # Sort by benefit-cost ratio (expected_impact / implementation_cost)
+            interventions.sort(key=lambda i: i.expected_impact / max(i.implementation_cost, 0.1), reverse=True)
             
             return interventions[:5]  # Return top 5 interventions
             
@@ -504,7 +513,8 @@ class PerformancePredictor:
             # Belief features
             if state.belief_states:
                 belief_confidences = [b.confidence for b in state.belief_states]
-                features['avg_belief_confidence'] = np.mean(belief_confidences) if np else sum(belief_confidences) / len(belief_confidences)
+                avg_confidence = np.mean(belief_confidences) if np else sum(belief_confidences) / len(belief_confidences)
+                features['avg_belief_confidence'] = float(avg_confidence)
                 features['min_belief_confidence'] = min(belief_confidences)
                 features['max_belief_confidence'] = max(belief_confidences)
                 
@@ -515,8 +525,10 @@ class PerformancePredictor:
             
             # Goal features
             if state.goal_states:
-                goal_progress = [g.progress for g in state.goal_states]
-                features['avg_goal_progress'] = np.mean(goal_progress) if np else sum(goal_progress) / len(goal_progress)
+                # Use completion status as progress indicator
+                goal_progress = [len(g.completion_status) / max(len(g.primary_goals) + len(g.secondary_goals), 1) for g in state.goal_states]
+                avg_progress = np.mean(goal_progress) if np else sum(goal_progress) / len(goal_progress)
+                features['avg_goal_progress'] = float(avg_progress)
                 features['min_goal_progress'] = min(goal_progress)
                 features['max_goal_progress'] = max(goal_progress)
                 
@@ -527,18 +539,20 @@ class PerformancePredictor:
                 
                 # Goal priority features
                 goal_priorities = [g.priority for g in state.goal_states]
-                features['avg_goal_priority'] = np.mean(goal_priorities) if np else sum(goal_priorities) / len(goal_priorities)
+                avg_priority = np.mean(goal_priorities) if np else sum(goal_priorities) / len(goal_priorities)
+                features['avg_goal_priority'] = float(avg_priority)
             
             # Knowledge features
-            knowledge = state.knowledge_state
-            features['knowledge_confidence'] = knowledge.confidence_score
-            features['fact_count'] = len(knowledge.facts)
-            features['rule_count'] = len(knowledge.rules)
-            features['concept_count'] = len(knowledge.concepts)
-            features['relationship_count'] = len(knowledge.relationships)
+            if state.knowledge_state:
+                knowledge = state.knowledge_state
+                features['knowledge_confidence'] = knowledge.confidence_score
+                features['fact_count'] = len(knowledge.facts)
+            else:
+                features['knowledge_confidence'] = 0.0
+                features['fact_count'] = 0
             
-            # Context features
-            features['context_size'] = len(state.decision_context)
+            # Context features (simplified)
+            features['context_size'] = len(state.belief_states) + len(state.goal_states)
             
             return features
             
@@ -577,7 +591,8 @@ class PerformancePredictor:
             
             # Ensemble average
             if predictions:
-                return np.mean(predictions) if np else sum(predictions) / len(predictions)
+                avg_pred = np.mean(predictions) if np else sum(predictions) / len(predictions)
+                return float(avg_pred)
             else:
                 return 0.5
                 
@@ -689,6 +704,135 @@ class PerformancePredictor:
         except Exception as e:
             self.logger.error(f"Error in heuristic prediction: {e}")
             return 0.5
+    
+    def _calculate_prediction_confidence(self, features: Dict[str, float]) -> float:
+        """Calculate confidence in the prediction based on features."""
+        if not features:
+            return 0.5
+        
+        # Simple confidence calculation based on feature completeness
+        expected_features = ['confidence_level', 'uncertainty_score', 'avg_belief_confidence']
+        present_features = sum(1 for feat in expected_features if feat in features)
+        return min(0.9, 0.5 + (present_features / len(expected_features)) * 0.4)
+    
+    def _calculate_risk_probability(self, risk_score: float) -> float:
+        """Calculate risk probability from risk score."""
+        return min(1.0, max(0.0, risk_score))
+    
+    async def _get_high_risk_interventions(self, risk_factors: List[RiskFactor]) -> List[Intervention]:
+        """Get interventions for high risk scenarios."""
+        interventions = []
+        for i, rf in enumerate(risk_factors[:3]):  # Top 3 risk factors
+            intervention = Intervention(
+                intervention_id=f"high_risk_{i}",
+                intervention_type=InterventionType.RESOURCE_ALLOCATION,
+                name=f"Address {rf.name}",
+                description=f"High priority intervention for {rf.description}",
+                expected_impact=0.8,
+                implementation_cost=0.7,
+                urgency=RiskLevel.HIGH
+            )
+            interventions.append(intervention)
+        return interventions
+    
+    async def _get_medium_risk_interventions(self, risk_factors: List[RiskFactor]) -> List[Intervention]:
+        """Get interventions for medium risk scenarios."""
+        interventions = []
+        for i, rf in enumerate(risk_factors[:2]):  # Top 2 risk factors
+            intervention = Intervention(
+                intervention_id=f"medium_risk_{i}",
+                intervention_type=InterventionType.PARAMETER_ADJUSTMENT,
+                name=f"Optimize {rf.name}",
+                description=f"Medium priority intervention for {rf.description}",
+                expected_impact=0.6,
+                implementation_cost=0.4,
+                urgency=RiskLevel.MEDIUM
+            )
+            interventions.append(intervention)
+        return interventions
+    
+    async def _get_optimization_interventions(self, risk_factors: List[RiskFactor]) -> List[Intervention]:
+        """Get interventions for optimization scenarios."""
+        interventions = []
+        if risk_factors:
+            rf = risk_factors[0]  # Top risk factor
+            intervention = Intervention(
+                intervention_id="optimization_0",
+                intervention_type=InterventionType.MONITORING_ENHANCEMENT,
+                name=f"Monitor {rf.name}",
+                description=f"Optimization intervention for {rf.description}",
+                expected_impact=0.3,
+                implementation_cost=0.2,
+                urgency=RiskLevel.LOW
+            )
+            interventions.append(intervention)
+        return interventions
+    
+    async def _calculate_risk_score(self, risk_id: str, risk_def: Dict[str, Any], 
+                                  features: Dict[str, float], agent_state: Any) -> float:
+        """Calculate risk score for a specific risk factor."""
+        try:
+            if risk_id == 'low_confidence':
+                confidence = features.get('confidence_level', 0.5)
+                return max(0.0, risk_def['threshold'] - confidence)
+            elif risk_id == 'high_uncertainty':
+                uncertainty = features.get('uncertainty_score', 0.5)
+                return max(0.0, uncertainty - risk_def['threshold'])
+            elif risk_id == 'slow_execution':
+                # Simplified - would need actual timing data
+                return 0.2  # Default low risk
+            elif risk_id == 'resource_exhaustion':
+                # Simplified - would need actual resource data
+                return 0.1  # Default low risk
+            elif risk_id == 'goal_drift':
+                # Simplified - would need goal change tracking
+                return 0.15  # Default low risk
+            else:
+                return 0.0
+        except Exception as e:
+            self.logger.error(f"Error calculating risk score for {risk_id}: {e}")
+            return 0.0
+    
+    async def _extract_comprehensive_features(self, agent_state: Any) -> Dict[str, float]:
+        """Extract comprehensive features from agent state."""
+        try:
+            features = await self._extract_features_from_state(agent_state.epistemic_state)
+            
+            # Add performance metrics if available
+            if hasattr(agent_state, 'performance_metrics'):
+                features.update(agent_state.performance_metrics)
+            
+            # Add resource usage if available
+            if hasattr(agent_state, 'resource_usage'):
+                for key, value in agent_state.resource_usage.items():
+                    features[f'resource_{key}'] = float(value)
+            
+            return features
+        except Exception as e:
+            self.logger.error(f"Error extracting comprehensive features: {e}")
+            return {}
+    
+    def _create_default_prediction(self, agent_id: str, prediction_type: PredictionType, 
+                                 value: float, message: str) -> PredictionResult:
+        """Create a default prediction result."""
+        return PredictionResult(
+            agent_id=agent_id,
+            prediction_type=prediction_type.value,
+            predicted_value=value,
+            confidence=0.5,
+            model_used="default"
+        )
+    
+    def _create_error_prediction(self, agent_id: str, prediction_type: PredictionType, 
+                               error_msg: str) -> PredictionResult:
+        """Create an error prediction result."""
+        return PredictionResult(
+            agent_id=agent_id,
+            prediction_type=prediction_type.value,
+            predicted_value=0.0,
+            confidence=0.0,
+            model_used="error"
+        )
     
     def _generate_synthetic_data(self, prediction_type: str, 
                                n_samples: int) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
@@ -845,347 +989,4 @@ class PerformancePredictor:
                 upper_bound=min(1.0, prediction + 0.2),
                 confidence_level=0.5
             )
-    
-    def _calculate_prediction_confidence(self, features: Dict[str, float]) -> float:
-        """Calculate confidence in the prediction itself."""
-        try:
-            # Base confidence on feature quality and completeness
-            feature_count = len(features)
-            expected_features = 15  # Expected number of features
-            
-            completeness_score = min(feature_count / expected_features, 1.0)
-            
-            # Adjust based on uncertainty indicators
-            uncertainty = features.get('uncertainty_score', 0.5)
-            confidence_adjustment = 1.0 - (uncertainty * 0.3)
-            
-            overall_confidence = completeness_score * confidence_adjustment
-            return max(0.1, min(1.0, overall_confidence))
-            
-        except Exception as e:
-            self.logger.error(f"Error calculating prediction confidence: {e}")
-            return 0.5
-    
-    async def _identify_risk_factors(self, state: EpistemicState, 
-                                   features: Dict[str, float]) -> List[RiskFactor]:
-        """Identify risk factors from state and features."""
-        try:
-            risk_factors = []
-            
-            # Low confidence risk
-            if features.get('confidence_level', 1.0) < 0.3:
-                risk_factors.append(RiskFactor(
-                    factor_id='low_confidence',
-                    name='Low Confidence Levels',
-                    description='Agent shows consistently low confidence in decisions',
-                    impact_score=0.7,
-                    probability=0.8,
-                    category='epistemic',
-                    mitigation_strategies=[
-                        'Provide additional training data',
-                        'Implement confidence boosting techniques'
-                    ]
-                ))
-            
-            # High uncertainty risk
-            if features.get('uncertainty_score', 0.0) > 0.7:
-                risk_factors.append(RiskFactor(
-                    factor_id='high_uncertainty',
-                    name='High Uncertainty',
-                    description='Agent exhibits high uncertainty in belief states',
-                    impact_score=0.6,
-                    probability=0.7,
-                    category='epistemic',
-                    mitigation_strategies=[
-                        'Improve knowledge base',
-                        'Add uncertainty quantification methods'
-                    ]
-                ))
-            
-            # Goal progress risk
-            if features.get('avg_goal_progress', 1.0) < 0.2:
-                risk_factors.append(RiskFactor(
-                    factor_id='slow_progress',
-                    name='Slow Goal Progress',
-                    description='Agent is making slow progress toward goals',
-                    impact_score=0.5,
-                    probability=0.6,
-                    category='behavioral',
-                    mitigation_strategies=[
-                        'Adjust goal complexity',
-                        'Provide additional resources'
-                    ]
-                ))
-            
-            return risk_factors
-            
-        except Exception as e:
-            self.logger.error(f"Error identifying risk factors: {e}")
-            return []
-    
-    async def _recommend_interventions(self, risk_factors: List[RiskFactor], 
-                                     success_prob: float) -> List[Intervention]:
-        """Recommend interventions based on risk factors and success probability."""
-        try:
-            interventions = []
-            
-            # High-risk interventions for low success probability
-            if success_prob < 0.3:
-                interventions.append(Intervention(
-                    intervention_id=str(uuid.uuid4()),
-                    intervention_type=InterventionType.HUMAN_INTERVENTION,
-                    name='Emergency Human Oversight',
-                    description='Immediate human intervention required',
-                    expected_impact=0.8,
-                    implementation_cost=0.9,
-                    urgency=RiskLevel.CRITICAL
-                ))
-            
-            # Risk-specific interventions
-            for risk_factor in risk_factors:
-                if risk_factor.factor_id == 'low_confidence':
-                    interventions.append(Intervention(
-                        intervention_id=str(uuid.uuid4()),
-                        intervention_type=InterventionType.PARAMETER_ADJUSTMENT,
-                        name='Confidence Boosting',
-                        description='Adjust parameters to boost agent confidence',
-                        expected_impact=0.4,
-                        implementation_cost=0.2,
-                        urgency=RiskLevel.MEDIUM
-                    ))
-                
-                elif risk_factor.factor_id == 'high_uncertainty':
-                    interventions.append(Intervention(
-                        intervention_id=str(uuid.uuid4()),
-                        intervention_type=InterventionType.STRATEGY_CHANGE,
-                        name='Uncertainty Reduction',
-                        description='Implement uncertainty reduction strategies',
-                        expected_impact=0.5,
-                        implementation_cost=0.4,
-                        urgency=RiskLevel.HIGH
-                    ))
-            
-            return interventions
-            
-        except Exception as e:
-            self.logger.error(f"Error recommending interventions: {e}")
-            return []
-    
-    def _create_default_prediction(self, agent_id: str, prediction_type: PredictionType,
-                                 value: float, reason: str) -> PredictionResult:
-        """Create a default prediction result."""
-        return PredictionResult(
-            prediction_id=str(uuid.uuid4()),
-            agent_id=agent_id,
-            prediction_type=prediction_type,
-            predicted_value=value,
-            confidence_score=0.5,
-            model_name="DefaultPredictor",
-            model_version="1.0",
-            features_used=[],
-            prediction_horizon_ms=300000
-        )
-    
-    def _create_error_prediction(self, agent_id: str, prediction_type: PredictionType,
-                               error_msg: str) -> PredictionResult:
-        """Create an error prediction result."""
-        return PredictionResult(
-            prediction_id=str(uuid.uuid4()),
-            agent_id=agent_id,
-            prediction_type=prediction_type,
-            predicted_value=0.0,
-            confidence_score=0.0,
-            model_name="ErrorPredictor",
-            model_version="1.0",
-            features_used=[],
-            prediction_horizon_ms=0
-        )
-    
-    # Additional helper methods for comprehensive functionality
-    
-    async def _extract_comprehensive_features(self, agent_state: AgentState) -> Dict[str, float]:
-        """Extract comprehensive features from agent state."""
-        features = {}
-        
-        # Epistemic features
-        epistemic_features = await self._extract_features_from_state(agent_state.epistemic_state)
-        features.update(epistemic_features)
-        
-        # Execution history features
-        if agent_state.execution_history:
-            durations = [step.duration_ms for step in agent_state.execution_history]
-            success_rates = [step.success for step in agent_state.execution_history]
-            
-            features['avg_duration'] = np.mean(durations) if np else sum(durations) / len(durations)
-            features['success_rate'] = np.mean(success_rates) if np else sum(success_rates) / len(success_rates)
-            features['execution_count'] = len(agent_state.execution_history)
-        
-        # Resource features
-        for resource, usage in agent_state.resource_usage.items():
-            features[f'resource_{resource}'] = usage
-        
-        # Performance features
-        for metric, value in agent_state.performance_metrics.items():
-            features[f'performance_{metric}'] = value
-        
-        return features
-    
-    async def _calculate_risk_score(self, risk_id: str, risk_def: Dict[str, Any],
-                                  features: Dict[str, float], agent_state: AgentState) -> float:
-        """Calculate risk score for a specific risk factor."""
-        try:
-            category = risk_def['category']
-            threshold = risk_def['threshold']
-            
-            if category == 'epistemic':
-                if risk_id == 'low_confidence':
-                    confidence = features.get('confidence_level', 1.0)
-                    return max(0.0, (threshold - confidence) / threshold)
-                elif risk_id == 'high_uncertainty':
-                    uncertainty = features.get('uncertainty_score', 0.0)
-                    if threshold >= 1.0:
-                        return 1.0 if uncertainty >= threshold else 0.0
-                    return max(0.0, (uncertainty - threshold) / (1.0 - threshold))
-            
-            elif category == 'performance':
-                if risk_id == 'slow_execution':
-                    avg_duration = features.get('avg_duration', 1000.0)
-                    baseline_duration = 1000.0  # 1 second baseline
-                    duration_ratio = avg_duration / baseline_duration
-                    return max(0.0, (duration_ratio - threshold) / threshold)
-            
-            elif category == 'resource':
-                if risk_id == 'resource_exhaustion':
-                    max_usage = max(agent_state.resource_usage.values()) if agent_state.resource_usage else 0.0
-                    return max(0.0, (max_usage - threshold) / (1.0 - threshold))
-            
-            elif category == 'behavioral':
-                if risk_id == 'goal_drift':
-                    # Simplified goal drift calculation
-                    goal_count = features.get('goal_count', 1.0)
-                    if goal_count > 5:  # Too many goals might indicate drift
-                        return min(1.0, (goal_count - 5) / 10.0)
-            
-            return 0.0
-            
-        except Exception as e:
-            self.logger.error(f"Error calculating risk score for {risk_id}: {e}")
-            return 0.0
-    
-    def _calculate_risk_probability(self, risk_score: float) -> float:
-        """Calculate probability of risk occurrence from risk score."""
-        # Simple mapping: higher risk score = higher probability
-        return min(1.0, risk_score * 1.2)
-    
-    async def _get_high_risk_interventions(self, risk_factors: List[RiskFactor]) -> List[Intervention]:
-        """Get interventions for high-risk situations."""
-        interventions = []
-        
-        # Always recommend human intervention for high risk
-        interventions.append(Intervention(
-            intervention_id=str(uuid.uuid4()),
-            intervention_type=InterventionType.HUMAN_INTERVENTION,
-            name='Critical Human Oversight',
-            description='Immediate human supervision required',
-            expected_impact=0.9,
-            implementation_cost=1.0,
-            urgency=RiskLevel.CRITICAL
-        ))
-        
-        # Consider early termination
-        interventions.append(Intervention(
-            intervention_id=str(uuid.uuid4()),
-            intervention_type=InterventionType.EARLY_TERMINATION,
-            name='Task Termination',
-            description='Terminate task to prevent failure',
-            expected_impact=0.6,
-            implementation_cost=0.1,
-            urgency=RiskLevel.CRITICAL
-        ))
-        
-        return interventions
-    
-    async def _get_medium_risk_interventions(self, risk_factors: List[RiskFactor]) -> List[Intervention]:
-        """Get interventions for medium-risk situations."""
-        interventions = []
-        
-        # Strategy adjustments
-        interventions.append(Intervention(
-            intervention_id=str(uuid.uuid4()),
-            intervention_type=InterventionType.STRATEGY_CHANGE,
-            name='Strategy Optimization',
-            description='Adjust agent strategy for better performance',
-            expected_impact=0.6,
-            implementation_cost=0.5,
-            urgency=RiskLevel.HIGH
-        ))
-        
-        # Resource scaling
-        interventions.append(Intervention(
-            intervention_id=str(uuid.uuid4()),
-            intervention_type=InterventionType.RESOURCE_ALLOCATION,
-            name='Resource Boost',
-            description='Increase available resources',
-            expected_impact=0.5,
-            implementation_cost=0.6,
-            urgency=RiskLevel.MEDIUM
-        ))
-        
-        return interventions
-    
-    async def get_current_prediction(self, agent_id: str) -> Optional[PredictionResult]:
-        """Get current performance prediction for an agent."""
-        try:
-            # In a real implementation, this would query the database
-            # For now, return None to indicate no prediction found
-            return None
-        except Exception as e:
-            self.logger.error(f"Failed to get current prediction for agent {agent_id}: {e}")
-            return None
-    
-    async def predict_performance(
-        self,
-        agent_id: str,
-        current_state: Optional[Dict] = None,
-        prediction_horizon: int = 60,
-        include_risk_factors: bool = True,
-        include_interventions: bool = True
-    ) -> PredictionResult:
-        """Generate performance prediction for an agent."""
-        try:
-            # In a real implementation, this would use the current state
-            # and call the existing prediction methods
-            # For now, return a dummy prediction
-            from ..models.prediction_result import PredictionResult, PredictionType
-            
-            return PredictionResult(
-                prediction_id=f"pred-{agent_id}-{datetime.utcnow().timestamp()}",
-                agent_id=agent_id,
-                prediction_type=PredictionType.SUCCESS_PROBABILITY,
-                predicted_value=0.75,
-                confidence_score=0.8,
-                prediction_horizon=prediction_horizon,
-                created_at=datetime.utcnow(),
-                features_used=[],
-                model_version="1.0.0"
-            )
-        except Exception as e:
-            self.logger.error(f"Failed to predict performance for agent {agent_id}: {e}")
-            raise
 
-    async def _get_optimization_interventions(self, risk_factors: List[RiskFactor]) -> List[Intervention]:
-        """Get interventions for optimization in low-risk situations."""
-        interventions = []
-        
-        # Parameter tuning
-        interventions.append(Intervention(
-            intervention_id=str(uuid.uuid4()),
-            intervention_type=InterventionType.PARAMETER_ADJUSTMENT,
-            name='Performance Tuning',
-            description='Fine-tune parameters for optimal performance',
-            expected_impact=0.3,
-            implementation_cost=0.2,
-            urgency=RiskLevel.LOW
-        ))
-        
-        return interventions

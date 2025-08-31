@@ -7,6 +7,7 @@ import math
 import random
 import statistics
 from datetime import datetime, timedelta
+from typing import Dict, List, Any
 from rich.prompt import Prompt, Confirm, IntPrompt
 from rich.panel import Panel
 from rich.table import Table
@@ -40,7 +41,7 @@ def analyze_group():
 @analyze_group.command()
 @click.option('--agent-id', help='Filter by specific agent ID')
 @click.option('--timeframe', default='24h', help='Analysis timeframe (1h, 24h, 7d, 30d)')
-@click.option('--min-frequency', default=5, help='Minimum pattern frequency')
+@click.option('--min-frequency', default=5, type=int, help='Minimum pattern frequency')
 @click.option('--interactive', is_flag=True, help='Interactive pattern exploration')
 def patterns(agent_id: str, timeframe: str, min_frequency: int, interactive: bool):
     """Analyze behavioral patterns"""
@@ -48,7 +49,7 @@ def patterns(agent_id: str, timeframe: str, min_frequency: int, interactive: boo
     console.print(f"[info]Analyzing behavioral patterns (timeframe: {timeframe})[/info]")
     
     # Mock pattern data
-    patterns_data = [
+    patterns_data: List[Dict[str, Any]] = [
         {
             'pattern_name': 'Sequential Data Processing',
             'frequency': 45,
@@ -73,7 +74,7 @@ def patterns(agent_id: str, timeframe: str, min_frequency: int, interactive: boo
     ]
     
     # Filter by frequency
-    filtered_patterns = [p for p in patterns_data if p['frequency'] >= min_frequency]
+    filtered_patterns = [p for p in patterns_data if int(p['frequency']) >= min_frequency]
     
     table = format_behavioral_patterns(filtered_patterns)
     console.print(table)
@@ -82,7 +83,7 @@ def patterns(agent_id: str, timeframe: str, min_frequency: int, interactive: boo
         console.print("\n[cyan]Interactive Pattern Explorer[/cyan]")
         
         while True:
-            pattern_names = [p['pattern_name'] for p in filtered_patterns]
+            pattern_names = [str(p['pattern_name']) for p in filtered_patterns]
             pattern_names.append("Exit")
             
             choice = Prompt.ask(
@@ -118,7 +119,7 @@ def patterns(agent_id: str, timeframe: str, min_frequency: int, interactive: boo
 
 @analyze_group.command()
 @click.option('--agent-id', help='Filter by specific agent ID')
-@click.option('--min-strength', default=0.5, help='Minimum causal strength threshold')
+@click.option('--min-strength', default=0.5, type=float, help='Minimum causal strength threshold')
 @click.option('--interactive', is_flag=True, help='Interactive causal exploration')
 def causal(agent_id: str, min_strength: float, interactive: bool):
     """Explore causal relationships"""
@@ -126,7 +127,7 @@ def causal(agent_id: str, min_strength: float, interactive: bool):
     console.print("[info]Analyzing causal relationships...[/info]")
     
     # Mock causal relationship data
-    relationships = [
+    relationships: List[Dict[str, Any]] = [
         {
             'cause_event': 'Data Validation Error',
             'effect_event': 'Retry Mechanism Triggered',
@@ -158,7 +159,7 @@ def causal(agent_id: str, min_strength: float, interactive: bool):
     ]
     
     # Filter by strength
-    filtered_relationships = [r for r in relationships if r['strength'] >= min_strength]
+    filtered_relationships = [r for r in relationships if float(r['strength']) >= min_strength]
     
     tree = format_causal_tree(filtered_relationships)
     console.print(tree)
@@ -167,7 +168,7 @@ def causal(agent_id: str, min_strength: float, interactive: bool):
         console.print("\n[cyan]Interactive Causal Explorer[/cyan]")
         
         while True:
-            causes = list(set(r['cause_event'] for r in filtered_relationships))
+            causes = list(set(str(r['cause_event']) for r in filtered_relationships))
             causes.append("Exit")
             
             choice = Prompt.ask(
@@ -306,19 +307,19 @@ def visualize(agent_id: str, chart_type: str, metric: str):
     config = ChartConfig(width=60, height=12, title=title)
     
     if chart_type == 'bar':
-        chart = ASCIIBarChart(config)
-        result = chart.create(data, labels)
+        bar_chart = ASCIIBarChart(config)
+        result = bar_chart.create(data, labels)
     elif chart_type == 'line':
-        chart = ASCIILineChart(config)
-        result = chart.create(data)
+        line_chart = ASCIILineChart(config)
+        result = line_chart.create(data)
     elif chart_type == 'histogram':
-        chart = ASCIIHistogram(config)
-        result = chart.create(data)
+        hist_chart = ASCIIHistogram(config)
+        result = hist_chart.create(data)
     elif chart_type == 'scatter':
         # Create scatter plot with data vs index
-        x_data = list(range(len(data)))
-        chart = ASCIIScatterPlot(config)
-        result = chart.create(x_data, data)
+        x_data = [float(i) for i in range(len(data))]
+        scatter_chart = ASCIIScatterPlot(config)
+        result = scatter_chart.create(x_data, data)
     elif chart_type == 'heatmap':
         # Create 2D heatmap from 1D data
         rows = 3
@@ -330,8 +331,8 @@ def visualize(agent_id: str, chart_type: str, metric: str):
                 row.extend([0] * (cols - len(row)))
             heatmap_data.append(row)
         
-        chart = ASCIIHeatmap(config)
-        result = chart.create(heatmap_data)
+        heatmap_chart = ASCIIHeatmap(config)
+        result = heatmap_chart.create(heatmap_data)
     
     console.print(result)
 
@@ -344,7 +345,7 @@ def epistemic(agent_id: str):
     console.print("[info]Analyzing epistemic state data...[/info]")
     
     # Mock epistemic state data
-    epistemic_data = {
+    epistemic_data: Dict[str, Any] = {
         'beliefs': [
             {'content': 'Data quality is high', 'confidence': 0.89},
             {'content': 'Processing will succeed', 'confidence': 0.76},
@@ -374,7 +375,7 @@ def epistemic(agent_id: str):
     confidences = [b['confidence'] for b in epistemic_data['beliefs']]
     config = ChartConfig(width=50, height=8, title="Belief Confidence Histogram")
     hist_chart = ASCIIHistogram(config)
-    hist_result = hist_chart.create(confidences, bins=5)
+    hist_result = hist_chart.create(confidences)
     console.print(hist_result)
     
     console.print("\n[bold cyan]Goal Progress Overview:[/bold cyan]")
@@ -415,14 +416,14 @@ def heatmap(timeframe: str):
 
 
 @analyze_group.command()
-@click.option('--min-strength', default=0.3, help='Minimum causal strength')
+@click.option('--min-strength', default=0.3, type=float, help='Minimum causal strength')
 def causal_scatter(min_strength: float):
     """Visualize causal relationships as scatter plot"""
     
     console.print("[info]Creating causal relationship scatter plot...[/info]")
     
     # Mock causal relationship data
-    causal_data = [
+    causal_data: List[Dict[str, Any]] = [
         {'strength': 0.87, 'confidence': 0.92, 'cause': 'Data Error', 'effect': 'Retry'},
         {'strength': 0.94, 'confidence': 0.89, 'cause': 'Large Dataset', 'effect': 'Batch Process'},
         {'strength': 0.78, 'confidence': 0.85, 'cause': 'High Memory', 'effect': 'GC Trigger'},
@@ -434,7 +435,7 @@ def causal_scatter(min_strength: float):
     ]
     
     # Filter by minimum strength
-    filtered_data = [c for c in causal_data if c['strength'] >= min_strength]
+    filtered_data = [c for c in causal_data if float(c['strength']) >= min_strength]
     
     result = create_causal_strength_scatter(filtered_data)
     console.print(result)
@@ -449,8 +450,8 @@ def causal_scatter(min_strength: float):
     
     for rel in filtered_data:
         table.add_row(
-            rel['cause'],
-            rel['effect'],
+            str(rel['cause']),
+            str(rel['effect']),
             f"{rel['strength']:.2f}",
             f"{rel['confidence']:.2f}"
         )
@@ -614,7 +615,7 @@ def progress(metric: str):
     progress_bar = ASCIIProgressBar(width=50)
     
     # Mock progress data
-    metrics = {
+    metrics: Dict[str, Dict[str, Any]] = {
         'data_processing': {'progress': 0.75, 'status': 'Processing batch 3/4', 'eta': timedelta(minutes=2, seconds=30), 'rate': 125.5},
         'model_training': {'progress': 0.42, 'status': 'Epoch 42/100', 'eta': timedelta(hours=1, minutes=15), 'rate': 2.3},
         'validation': {'progress': 0.89, 'status': 'Validating results', 'eta': timedelta(seconds=45), 'rate': 89.2},
@@ -626,10 +627,10 @@ def progress(metric: str):
         for name, data in metrics.items():
             console.print(f"\n[bold cyan]{name.replace('_', ' ').title()}:[/bold cyan]")
             progress_str = progress_bar.create(
-                data['progress'], 
-                data['status'], 
+                float(data['progress']), 
+                str(data['status']), 
                 data['eta'], 
-                data['rate']
+                float(data['rate'])
             )
             console.print(progress_str)
     else:
@@ -637,10 +638,10 @@ def progress(metric: str):
             data = metrics[metric]
             console.print(f"\n[bold cyan]{metric.replace('_', ' ').title()}:[/bold cyan]")
             progress_str = progress_bar.create(
-                data['progress'], 
-                data['status'], 
+                float(data['progress']), 
+                str(data['status']), 
                 data['eta'], 
-                data['rate']
+                float(data['rate'])
             )
             console.print(progress_str)
         else:
@@ -1066,11 +1067,9 @@ def report(template: str, output_format: str, output: str, timeframe: str):
     from datetime import datetime, timedelta
     
     # Mock API client for demo
-    class MockAPIClient:
-        async def get(self, endpoint):
-            return {"data": "mock_data"}
+    from ..services.api_client import ESCAIAPIClient
     
-    api_client = MockAPIClient()
+    api_client = ESCAIAPIClient()
     
     # Create report generator
     report_gen = ReportGenerator(api_client, console)
@@ -1409,7 +1408,7 @@ def pattern_analysis(agent_id: str, pattern_type: str, display: str):
     console.print("[info]Performing advanced pattern analysis...[/info]")
     
     # Mock pattern analysis data
-    patterns = [
+    patterns: List[Dict[str, Any]] = [
         {
             'id': 'pattern_001',
             'name': 'Sequential Data Processing',
@@ -1476,18 +1475,18 @@ def pattern_analysis(agent_id: str, pattern_type: str, display: str):
         table.add_column("Sub-Patterns", justify="right", style="magenta", width=12)
         
         for pattern in patterns:
-            success_rate = pattern['success_rate']
+            success_rate = float(pattern['success_rate'])
             success_color = "green" if success_rate > 0.8 else "yellow" if success_rate > 0.6 else "red"
             
-            complexity = pattern['complexity_score']
+            complexity = float(pattern['complexity_score'])
             complexity_bar = "█" * int(complexity * 5) + "░" * (5 - int(complexity * 5))
             
             table.add_row(
-                pattern['name'],
-                pattern['type'].title(),
+                str(pattern['name']),
+                str(pattern['type']).title(),
                 str(pattern['frequency']),
                 f"[{success_color}]{success_rate:.1%}[/{success_color}]",
-                f"{pattern['avg_duration']:.1f}s",
+                f"{float(pattern['avg_duration']):.1f}s",
                 complexity_bar,
                 str(len(pattern['sub_patterns']))
             )
@@ -1499,11 +1498,11 @@ def pattern_analysis(agent_id: str, pattern_type: str, display: str):
             console.print(f"\n[bold cyan]Pattern Details: {pattern['name']}[/bold cyan]")
             
             # Triggers
-            triggers_text = ", ".join(pattern['triggers'])
+            triggers_text = ", ".join(str(t) for t in pattern['triggers'])
             console.print(f"[bold]Triggers:[/bold] {triggers_text}")
             
             # Outcomes
-            outcomes_text = ", ".join(pattern['outcomes'])
+            outcomes_text = ", ".join(str(o) for o in pattern['outcomes'])
             console.print(f"[bold]Outcomes:[/bold] {outcomes_text}")
             
             # Sub-patterns table
@@ -1526,7 +1525,7 @@ def pattern_analysis(agent_id: str, pattern_type: str, display: str):
         # Tree display using ASCII tree visualization
         from ..utils.ascii_viz import ASCIITreeView
         
-        tree_data = {
+        tree_data: Dict[str, Any] = {
             'name': 'Behavioral Patterns',
             'children': []
         }
@@ -1541,8 +1540,8 @@ def pattern_analysis(agent_id: str, pattern_type: str, display: str):
             # Add sub-patterns as children
             for sub_pattern in pattern['sub_patterns']:
                 pattern_node['children'].append({
-                    'name': sub_pattern['name'],
-                    'value': f"{sub_pattern['success_rate']:.1%} success"
+                    'name': str(sub_pattern['name']),
+                    'value': f"{float(sub_pattern['success_rate']):.1%} success"
                 })
             
             tree_data['children'].append(pattern_node)
@@ -1581,7 +1580,7 @@ def pattern_analysis(agent_id: str, pattern_type: str, display: str):
 
 
 @analyze_group.command()
-@click.option('--min-strength', default=0.3, help='Minimum causal strength')
+@click.option('--min-strength', default=0.3, type=float, help='Minimum causal strength')
 @click.option('--layout', type=click.Choice(['network', 'hierarchy', 'circular']), 
               default='network', help='Visualization layout')
 def causal_network(min_strength: float, layout: str):
@@ -1590,7 +1589,7 @@ def causal_network(min_strength: float, layout: str):
     console.print(f"[info]Creating causal network diagram ({layout} layout)[/info]")
     
     # Mock causal relationship data
-    relationships = [
+    relationships: List[Dict[str, Any]] = [
         {'cause': 'Data Error', 'effect': 'Retry Trigger', 'strength': 0.87, 'confidence': 0.92},
         {'cause': 'Large Dataset', 'effect': 'Batch Mode', 'strength': 0.94, 'confidence': 0.89},
         {'cause': 'Memory High', 'effect': 'GC Trigger', 'strength': 0.78, 'confidence': 0.85},
@@ -1602,7 +1601,7 @@ def causal_network(min_strength: float, layout: str):
     ]
     
     # Filter by strength
-    filtered_rels = [r for r in relationships if r['strength'] >= min_strength]
+    filtered_rels = [r for r in relationships if float(r['strength']) >= min_strength]
     
     if layout == 'network':
         console.print("\n[bold cyan]Causal Network Diagram:[/bold cyan]")
@@ -1698,10 +1697,10 @@ def causal_network(min_strength: float, layout: str):
     strength_table.add_column("Visual", style="white")
     
     for rel in filtered_rels:
-        strength_bar = "█" * int(rel['strength'] * 10) + "░" * (10 - int(rel['strength'] * 10))
+        strength_bar = "█" * int(float(rel['strength']) * 10) + "░" * (10 - int(float(rel['strength']) * 10))
         strength_table.add_row(
-            rel['cause'],
-            rel['effect'],
+            str(rel['cause']),
+            str(rel['effect']),
             f"{rel['strength']:.2f}",
             f"{rel['confidence']:.2f}",
             strength_bar
@@ -1725,7 +1724,7 @@ def prediction_trends(agent_id: str, metric: str, horizon: str):
     
     # Generate mock prediction data
     time_points = 20
-    predictions = {
+    predictions: Dict[str, List[float]] = {
         'success_rate': [],
         'confidence': [],
         'performance': []
@@ -1988,118 +1987,6 @@ def health():
     console.print("  • [cyan]escai session list[/cyan] - View active sessions")
 
 
-@analyze_group.command()
-def tree_explorer():
-    """Launch interactive tree explorer for causal relationships"""
-    
-    console.print("[info]Launching interactive tree explorer...[/info]")
-    from ..utils.interactive import create_interactive_tree
-    
-    # Mock hierarchical causal data
-    tree_data = {
-        'name': 'Agent Behavior Analysis',
-        'value': 'Root',
-        'children': [
-            {
-                'name': 'Input Processing',
-                'value': '35%',
-                'children': [
-                    {
-                        'name': 'Data Validation',
-                        'value': '15%',
-                        'children': [
-                            {'name': 'Schema Validation', 'value': '5%'},
-                            {'name': 'Type Checking', 'value': '6%'},
-                            {'name': 'Range Validation', 'value': '4%'}
-                        ]
-                    },
-                    {
-                        'name': 'Data Preprocessing',
-                        'value': '20%',
-                        'children': [
-                            {'name': 'Cleaning', 'value': '8%'},
-                            {'name': 'Normalization', 'value': '7%'},
-                            {'name': 'Feature Extraction', 'value': '5%'}
-                        ]
-                    }
-                ]
-            },
-            {
-                'name': 'Decision Making',
-                'value': '40%',
-                'children': [
-                    {
-                        'name': 'Strategy Selection',
-                        'value': '20%',
-                        'children': [
-                            {'name': 'Performance Analysis', 'value': '8%'},
-                            {'name': 'Resource Assessment', 'value': '7%'},
-                            {'name': 'Risk Evaluation', 'value': '5%'}
-                        ]
-                    },
-                    {
-                        'name': 'Parameter Optimization',
-                        'value': '20%',
-                        'children': [
-                            {'name': 'Hyperparameter Tuning', 'value': '12%'},
-                            {'name': 'Threshold Adjustment', 'value': '8%'}
-                        ]
-                    }
-                ]
-            },
-            {
-                'name': 'Output Generation',
-                'value': '25%',
-                'children': [
-                    {
-                        'name': 'Result Formatting',
-                        'value': '15%',
-                        'children': [
-                            {'name': 'Data Serialization', 'value': '8%'},
-                            {'name': 'Response Structuring', 'value': '7%'}
-                        ]
-                    },
-                    {
-                        'name': 'Quality Assurance',
-                        'value': '10%',
-                        'children': [
-                            {'name': 'Output Validation', 'value': '6%'},
-                            {'name': 'Consistency Check', 'value': '4%'}
-                        ]
-                    }
-                ]
-            }
-        ]
-    }
-    
-    console.print("\n[bold cyan]Interactive Tree Explorer[/bold cyan]")
-    console.print("Use jk to navigate, hl to expand/collapse, Enter to toggle, Space to select")
-    console.print("Press e to expand all, c to collapse all, F1 for help, q to quit\n")
-    
-    try:
-        selected_node = create_interactive_tree(tree_data)
-        
-        if selected_node:
-            console.print(f"\n[bold green]Selected Node:[/bold green] {selected_node['name']}")
-            
-            # Show node details
-            detail_panel = Panel(
-                f"[bold]Name:[/bold] {selected_node['name']}\n"
-                f"[bold]Value:[/bold] {selected_node.get('value', 'N/A')}\n"
-                f"[bold]Children:[/bold] {len(selected_node.get('children', []))}\n"
-                f"[bold]Type:[/bold] {'Branch' if selected_node.get('children') else 'Leaf'}",
-                title="Node Details",
-                border_style="green"
-            )
-            console.print(detail_panel)
-        else:
-            console.print("[yellow]No node selected[/yellow]")
-            
-    except KeyboardInterrupt:
-        console.print("\n[yellow]Interactive session cancelled[/yellow]")
-    except Exception as e:
-        console.print(f"\n[red]Error in interactive mode: {str(e)}[/red]")
-
 
 @analyze_group.command()
 @click.option('--data-file', help='JSON file containing data to analyze')
@@ -2161,15 +2048,20 @@ def query(data_file: str, interactive: bool):
                 value = Prompt.ask("Value")
                 
                 # Try to convert to appropriate type
+                parsed_value: Any = value
                 try:
                     if value.isdigit():
-                        value = int(value)
+                        parsed_value = int(value)
                     elif value.replace('.', '').isdigit():
-                        value = float(value)
+                        parsed_value = float(value)
                     elif value.lower() in ['true', 'false']:
-                        value = value.lower() == 'true'
+                        parsed_value = value.lower() == 'true'
+                    else:
+                        parsed_value = value
                 except:
-                    pass  # Keep as string
+                    parsed_value = value  # Keep as string
+                
+                value = parsed_value
                 
                 case_sensitive = Confirm.ask("Case sensitive?", default=True)
                 builder.add_condition(field, operator, value, case_sensitive)
@@ -2482,74 +2374,6 @@ def timeseries(time_field: str, value_field: str, data_file: str):
 
 # Reporting Commands
 
-@analyze_group.command()
-@click.option('--template', type=click.Choice(['executive_summary', 'detailed_analysis', 'trend_analysis', 'comparative_analysis']),
-              default='executive_summary', help='Report template to use')
-@click.option('--format', 'output_format', type=click.Choice(['json', 'csv', 'markdown', 'html', 'txt']),
-              default='html', help='Output format')
-@click.option('--days-back', default=7, help='Number of days back to analyze')
-@click.option('--output', help='Output file path (optional)')
-@click.option('--compress', is_flag=True, help='Compress output file')
-@click.option('--include-raw-data', is_flag=True, help='Include raw data in report')
-@click.option('--agent-id', help='Filter by specific agent ID')
-def report(template: str, output_format: str, days_back: int, output: str, 
-           compress: bool, include_raw_data: bool, agent_id: str):
-    """Generate comprehensive analysis reports"""
-    
-    console.print(f"[info]Generating {template} report ({output_format} format)[/info]")
-    
-    try:
-        # Create API client (mock for now)
-        api_client = ESCAIAPIClient("http://localhost:8000")
-        
-        # Create report generator
-        generator = create_report_generator(api_client, console)
-        
-        # Get template
-        report_template = generator.get_template(template)
-        if not report_template:
-            console.print(f"[red]Template '{template}' not found[/red]")
-            return
-        
-        # Create configuration
-        from datetime import datetime, timedelta
-        from pathlib import Path
-        from ..utils.reporting import ReportConfig, ReportFormat
-        
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=days_back)
-        
-        config = ReportConfig(
-            template=report_template,
-            output_format=ReportFormat(output_format),
-            output_path=Path(output) if output else None,
-            date_range=(start_date, end_date),
-            filters={"agent_id": agent_id} if agent_id else {},
-            include_charts=True,
-            include_raw_data=include_raw_data,
-            compress_output=compress
-        )
-        
-        # Generate report
-        import asyncio
-        output_path = asyncio.run(generator.generate_report(config))
-        
-        console.print(f"[green]✓[/green] Report generated successfully!")
-        console.print(f"[blue]Output:[/blue] {output_path}")
-        
-        # Show report summary
-        if output_path.suffix == '.json':
-            import json
-            with open(output_path, 'r') as f:
-                report_data = json.load(f)
-            
-            console.print(f"\n[bold]Report Summary:[/bold]")
-            console.print(f"Title: {report_data['metadata']['title']}")
-            console.print(f"Sections: {len(report_data['sections'])}")
-            console.print(f"Date Range: {report_data['metadata']['date_range']['start']} to {report_data['metadata']['date_range']['end']}")
-        
-    except Exception as e:
-        console.print(f"[red]Error generating report: {str(e)}[/red]")
 
 
 @analyze_group.command()
@@ -2773,142 +2597,3 @@ def scheduled(list_scheduled: bool, disable: int, enable: int, run_now: bool):
             
     except Exception as e:
         console.print(f"[red]Error managing scheduled reports: {str(e)}[/red]")
-
-
-@analyze_group.command()
-@click.option('--format', 'export_format', type=click.Choice(['json', 'csv', 'markdown']),
-              default='json', help='Export format')
-@click.option('--output', help='Output file path')
-@click.option('--agent-id', help='Filter by specific agent ID')
-@click.option('--days-back', default=7, help='Number of days back to export')
-@click.option('--data-type', type=click.Choice(['all', 'agents', 'sessions', 'patterns', 'causal', 'predictions']),
-              default='all', help='Type of data to export')
-def export(export_format: str, output: str, agent_id: str, days_back: int, data_type: str):
-    """Export analysis data in various formats"""
-    
-    console.print(f"[info]Exporting {data_type} data ({export_format} format)[/info]")
-    
-    try:
-        # Create API client (mock for now)
-        api_client = ESCAIAPIClient("http://localhost:8000")
-        
-        # Mock data collection (in real implementation, this would use the API client)
-        from datetime import datetime, timedelta
-        import json
-        from pathlib import Path
-        
-        # Mock data
-        export_data = {
-            "metadata": {
-                "exported_at": datetime.now().isoformat(),
-                "date_range": {
-                    "start": (datetime.now() - timedelta(days=days_back)).isoformat(),
-                    "end": datetime.now().isoformat()
-                },
-                "filters": {"agent_id": agent_id} if agent_id else {},
-                "data_type": data_type
-            },
-            "data": {
-                "agents": [
-                    {"id": "agent1", "name": "Test Agent 1", "status": "active"},
-                    {"id": "agent2", "name": "Test Agent 2", "status": "inactive"}
-                ],
-                "sessions": [
-                    {"id": "session1", "agent_id": "agent1", "status": "completed", "duration": 120},
-                    {"id": "session2", "agent_id": "agent1", "status": "failed", "duration": 60}
-                ],
-                "patterns": [
-                    {"id": "pattern1", "type": "sequential", "frequency": 5, "name": "Task Completion"},
-                    {"id": "pattern2", "type": "parallel", "frequency": 2, "name": "Multi-task"}
-                ],
-                "causal_relationships": [
-                    {"cause": "high_confidence", "effect": "task_success", "strength": 0.85},
-                    {"cause": "low_resources", "effect": "task_failure", "strength": 0.72}
-                ],
-                "predictions": [
-                    {"agent_id": "agent1", "prediction": "success", "confidence": 0.9},
-                    {"agent_id": "agent2", "prediction": "failure", "confidence": 0.7}
-                ]
-            }
-        }
-        
-        # Filter data by type
-        if data_type != 'all':
-            filtered_data = {
-                "metadata": export_data["metadata"],
-                "data": {data_type: export_data["data"].get(data_type, [])}
-            }
-        else:
-            filtered_data = export_data
-        
-        # Determine output path
-        if not output:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output = f"escai_export_{data_type}_{timestamp}.{export_format}"
-        
-        output_path = Path(output)
-        
-        # Export data
-        if export_format == 'json':
-            with open(output_path, 'w') as f:
-                json.dump(filtered_data, f, indent=2, default=str)
-                
-        elif export_format == 'csv':
-            import csv
-            with open(output_path, 'w', newline='') as f:
-                writer = csv.writer(f)
-                
-                # Write metadata
-                writer.writerow(['Export Metadata'])
-                writer.writerow(['Exported At', filtered_data['metadata']['exported_at']])
-                writer.writerow(['Data Type', filtered_data['metadata']['data_type']])
-                writer.writerow([])
-                
-                # Write data
-                for data_key, data_list in filtered_data['data'].items():
-                    writer.writerow([f'{data_key.title()} Data'])
-                    if data_list:
-                        # Write headers
-                        headers = list(data_list[0].keys())
-                        writer.writerow(headers)
-                        
-                        # Write rows
-                        for item in data_list:
-                            writer.writerow([item.get(h, '') for h in headers])
-                    writer.writerow([])
-                    
-        elif export_format == 'markdown':
-            with open(output_path, 'w') as f:
-                f.write(f"# ESCAI Data Export\n\n")
-                f.write(f"**Exported:** {filtered_data['metadata']['exported_at']}  \n")
-                f.write(f"**Data Type:** {filtered_data['metadata']['data_type']}  \n")
-                f.write(f"**Date Range:** {filtered_data['metadata']['date_range']['start']} to {filtered_data['metadata']['date_range']['end']}  \n\n")
-                
-                for data_key, data_list in filtered_data['data'].items():
-                    f.write(f"## {data_key.replace('_', ' ').title()}\n\n")
-                    
-                    if data_list:
-                        # Create markdown table
-                        headers = list(data_list[0].keys())
-                        f.write("| " + " | ".join(headers) + " |\n")
-                        f.write("| " + " | ".join(["---"] * len(headers)) + " |\n")
-                        
-                        for item in data_list:
-                            row = [str(item.get(h, '')) for h in headers]
-                            f.write("| " + " | ".join(row) + " |\n")
-                    else:
-                        f.write("No data available.\n")
-                    
-                    f.write("\n")
-        
-        console.print(f"[green]✓[/green] Data exported successfully!")
-        console.print(f"[blue]Output:[/blue] {output_path}")
-        console.print(f"[blue]Format:[/blue] {export_format.upper()}")
-        console.print(f"[blue]Data Type:[/blue] {data_type}")
-        
-        # Show export summary
-        total_items = sum(len(data_list) for data_list in filtered_data['data'].values())
-        console.print(f"[blue]Total Items:[/blue] {total_items}")
-        
-    except Exception as e:
-        console.print(f"[red]Error exporting data: {str(e)}[/red]")

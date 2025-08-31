@@ -65,7 +65,7 @@ class ProcessedEventRepository(MongoBaseRepository[ProcessedEventDocument]):
         limit: int = 1000
     ) -> List[ProcessedEventDocument]:
         """Find events for a specific agent."""
-        filter_dict = {"agent_id": agent_id}
+        filter_dict: Dict[str, Any] = {"agent_id": agent_id}
         
         if event_type:
             filter_dict["event_type"] = event_type
@@ -91,7 +91,7 @@ class ProcessedEventRepository(MongoBaseRepository[ProcessedEventDocument]):
         limit: int = 1000
     ) -> List[ProcessedEventDocument]:
         """Find events for a specific monitoring session."""
-        filter_dict = {"session_id": session_id}
+        filter_dict: Dict[str, Any] = {"session_id": session_id}
         
         if event_type:
             filter_dict["event_type"] = event_type
@@ -110,7 +110,7 @@ class ProcessedEventRepository(MongoBaseRepository[ProcessedEventDocument]):
         limit: int = 1000
     ) -> List[ProcessedEventDocument]:
         """Find events by type."""
-        filter_dict = {"event_type": event_type}
+        filter_dict: Dict[str, Any] = {"event_type": event_type}
         
         if start_time or end_time:
             time_filter = {}
@@ -151,7 +151,7 @@ class ProcessedEventRepository(MongoBaseRepository[ProcessedEventDocument]):
         limit: int = 100
     ) -> List[ProcessedEventDocument]:
         """Find tool usage events for an agent."""
-        filter_dict = {
+        filter_dict: Dict[str, Any] = {
             "agent_id": agent_id,
             "event_type": "tool_used"
         }
@@ -228,7 +228,7 @@ class ProcessedEventRepository(MongoBaseRepository[ProcessedEventDocument]):
         hours_back: int = 24
     ) -> Dict[str, Any]:
         """Get event statistics for analysis."""
-        match_stage = {
+        match_stage: Dict[str, Any] = {
             "timestamp": {"$gte": datetime.utcnow() - timedelta(hours=hours_back)}
         }
         
@@ -237,7 +237,7 @@ class ProcessedEventRepository(MongoBaseRepository[ProcessedEventDocument]):
         if session_id:
             match_stage["session_id"] = session_id
         
-        pipeline = [
+        pipeline: List[Dict[str, Any]] = [
             {"$match": match_stage},
             {
                 "$group": {
@@ -276,7 +276,7 @@ class ProcessedEventRepository(MongoBaseRepository[ProcessedEventDocument]):
         bucket_size_minutes: int = 5
     ) -> List[Dict[str, Any]]:
         """Get event timeline with time buckets."""
-        pipeline = [
+        pipeline: List[Dict[str, Any]] = [
             {
                 "$match": {
                     "agent_id": agent_id,

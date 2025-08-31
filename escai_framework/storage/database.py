@@ -80,7 +80,7 @@ class DatabaseManager:
             )
         
         # Create synchronous engine
-        sync_engine_kwargs = {
+        sync_engine_kwargs: Dict[str, Any] = {
             'echo': os.getenv('ESCAI_DB_ECHO', 'false').lower() == 'true'
         }
         
@@ -97,7 +97,7 @@ class DatabaseManager:
         self._sync_engine = create_engine(database_url, **sync_engine_kwargs)
         
         # Create asynchronous engine
-        async_engine_kwargs = {
+        async_engine_kwargs: Dict[str, Any] = {
             'echo': os.getenv('ESCAI_DB_ECHO', 'false').lower() == 'true'
         }
         
@@ -227,6 +227,8 @@ class DatabaseManager:
         """Get an async database session with automatic cleanup."""
         if not self._initialized:
             raise RuntimeError("Database manager not initialized")
+        if not self._async_session_factory:
+            raise RuntimeError("Async session factory not initialized")
         
         async with self._async_session_factory() as session:
             try:
@@ -242,6 +244,8 @@ class DatabaseManager:
         """Get a sync database session."""
         if not self._initialized:
             raise RuntimeError("Database manager not initialized")
+        if not self._sync_session_factory:
+            raise RuntimeError("Sync session factory not initialized")
         return self._sync_session_factory()
     
     @property
@@ -265,7 +269,10 @@ class DatabaseManager:
     @property
     def mongo_available(self) -> bool:
         """Check if MongoDB is available."""
-        return self._mongo_db is not None and self._async_mongo_db is not None
+        return (self._mongo_db is not None and 
+                self._async_mongo_db is not None and
+                self._mongo_client is not None and
+                self._async_mongo_client is not None)
     
     @property
     def mongo_manager(self) -> MongoManager:
@@ -294,6 +301,8 @@ class DatabaseManager:
         """Create all database tables."""
         if not self._initialized:
             raise RuntimeError("Database manager not initialized")
+        if not self._async_engine:
+            raise RuntimeError("Async engine not initialized")
         
         async with self._async_engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
@@ -308,6 +317,8 @@ class DatabaseManager:
         """Drop all database tables."""
         if not self._initialized:
             raise RuntimeError("Database manager not initialized")
+        if not self._async_engine:
+            raise RuntimeError("Async engine not initialized")
         
         async with self._async_engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all)
@@ -325,11 +336,11 @@ class DatabaseManager:
         try:
             # Check PostgreSQL
             if self._async_engine:
-                health_status["postgresql"] = await self.test_postgresql_connection()
+                health_status["postgresql"] = await self.test_mongo_connection()
             
             # Check MongoDB
             if self._mongo_manager:
-                health_status["mongodb"] = await self.test_mongodb_connection()
+                health_status["mongodb"] = await self.test_mongo_connection()
             
             # Check Redis
             if self._redis_manager:

@@ -2,7 +2,7 @@
 Repository for MonitoringSession model operations.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Dict
 from datetime import datetime, timedelta
 from uuid import UUID
 
@@ -202,7 +202,9 @@ class MonitoringSessionRepository(BaseRepository[MonitoringSession]):
             .group_by(MonitoringSession.status)
         )
 
-        status_counts = {row.status: int(row.count) for row in result}
+        status_counts: Dict[str, int] = {}
+        for row in result.fetchall():
+            status_counts[row.status] = int(row[1])  # Access by index since count is the second column
 
         # Ensure all statuses are represented
         for status in ['active', 'completed', 'failed']:

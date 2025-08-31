@@ -224,12 +224,16 @@ class AuthManager:
             return True
         return False
     
-    def has_permission(self, user_roles: List[str], required_roles: List[UserRole]) -> bool:
+    def has_permission(self, user_roles: List[Union[str, UserRole]], required_roles: List[UserRole]) -> bool:
         """Check if user has required permissions."""
-        if UserRole.ADMIN in user_roles:
+        # Convert user_roles to strings for comparison
+        user_role_strings = [role.value if isinstance(role, UserRole) else role for role in user_roles]
+        required_role_strings = [role.value for role in required_roles]
+        
+        if UserRole.ADMIN.value in user_role_strings:
             return True
         
-        return any(role in user_roles for role in required_roles)
+        return any(role in user_role_strings for role in required_role_strings)
 
 # Global auth manager instance
 auth_manager = AuthManager()
@@ -263,7 +267,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 def require_roles(required_roles: List[UserRole]):
     """Decorator to require specific roles."""
     def role_checker(current_user: User = Depends(get_current_user)) -> User:
-        if not auth_manager.has_permission(current_user.roles, required_roles):
+        # Cast to compatible type for has_permission method
+        if not auth_manager.has_permission(list(current_user.roles), required_roles):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient permissions"

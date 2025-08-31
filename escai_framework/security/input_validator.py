@@ -455,7 +455,8 @@ class InputValidator:
     
     def _validate_type(self, value: Any, expected_type: str) -> bool:
         """Validate value type"""
-        type_map = {
+        from typing import Union, Type, Tuple
+        type_map: Dict[str, Union[Type, Tuple[Type, ...]]] = {
             'string': str,
             'integer': int,
             'number': (int, float),

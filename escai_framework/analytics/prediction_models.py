@@ -133,7 +133,7 @@ class EnsemblePredictor:
         self.config = config or ModelConfig()
         
         # Initialize models
-        self.lstm_model = None
+        self.lstm_model: Optional[LSTMPredictor] = None
         self.rf_classifier = RandomForestClassifier(
             n_estimators=self.config.rf_n_estimators,
             max_depth=self.config.rf_max_depth,
@@ -168,14 +168,14 @@ class EnsemblePredictor:
         self.label_encoder = LabelEncoder()
         
         # Model weights (learned during training)
-        self.model_weights = {
+        self.model_weights: Dict[str, float] = {
             'lstm': 0.4,
             'rf': 0.3,
             'xgb': 0.3
         }
         
         # Training history
-        self.training_history = {
+        self.training_history: Dict[str, List[float]] = {
             'lstm_losses': [],
             'rf_scores': [],
             'xgb_scores': []
@@ -183,7 +183,7 @@ class EnsemblePredictor:
     
     async def train(self, sequences: List[ExecutionSequence], 
                    epistemic_states: List[EpistemicState],
-                   outcomes: List[bool], completion_times: List[float]) -> Dict[str, float]:
+                   outcomes: List[bool], completion_times: List[float]) -> Dict[str, Any]:
         """
         Train all models in the ensemble.
         
@@ -267,11 +267,9 @@ class EnsemblePredictor:
                 agent_id=epistemic_states[i].agent_id,
                 prediction_type="task_outcome",
                 predicted_value=success_prob,
-                confidence_score=confidence,
-                prediction_horizon=completion_time,
+                confidence=confidence,
                 risk_factors=risk_factors,
-                model_version="ensemble_v1.0",
-                features_used=list(range(X_static.shape[1])),
+                model_used="ensemble_v1.0",
                 timestamp=epistemic_states[i].timestamp
             )
             results.append(result)
@@ -332,12 +330,12 @@ class EnsemblePredictor:
         """Extract static features from sequence and epistemic state."""
         features = [
             len(sequence.steps),
-            sequence.total_duration,
+            float(sequence.total_duration_ms),
             sequence.success_rate,
             state.confidence_level,
             state.uncertainty_score,
             len(state.belief_states),
-            len(state.goal_state.active_goals) if state.goal_state else 0,
+            len(state.goal_states[0].primary_goals) if state.goal_states else 0,
             len(state.knowledge_state.facts) if state.knowledge_state else 0
         ]
         
@@ -348,13 +346,14 @@ class EnsemblePredictor:
         """Train LSTM model."""
         # Initialize model
         input_size = X_seq.shape[2]
-        self.lstm_model = LSTMPredictor(
+        lstm_model = LSTMPredictor(
             input_size=input_size,
             hidden_size=self.config.lstm_hidden_size,
             num_layers=self.config.lstm_num_layers,
             output_size=2,  # success probability + completion time
             dropout=self.config.lstm_dropout
         )
+        self.lstm_model = lstm_model
         
         # Prepare targets (combine classification and regression)
         y_combined = np.column_stack([y_class, y_reg])
@@ -365,7 +364,7 @@ class EnsemblePredictor:
         
         # Training setup
         criterion = nn.MSELoss()
-        optimizer = optim.Adam(self.lstm_model.parameters(), lr=self.config.lstm_learning_rate)
+        optimizer = optim.Adam(lstm_model.parameters(), lr=self.config.lstm_learning_rate)
         
         # Training loop
         losses = []
@@ -373,7 +372,7 @@ class EnsemblePredictor:
             epoch_loss = 0.0
             for batch_X, batch_y in dataloader:
                 optimizer.zero_grad()
-                outputs = self.lstm_model(batch_X)
+                outputs = lstm_model(batch_X)
                 loss = criterion(outputs, batch_y)
                 loss.backward()
                 optimizer.step()
@@ -504,8 +503,8 @@ class EnsemblePredictor:
         std_pred = np.std(predictions)
         
         # Higher agreement (lower std) = higher confidence
-        confidence = max(0.0, 1.0 - (std_pred * 2))  # Scale factor of 2
-        return min(1.0, confidence)
+        confidence_val = max(0.0, 1.0 - (float(std_pred) * 2))  # Scale factor of 2
+        return min(1.0, confidence_val)
     
     def _identify_risk_factors(self, sequence: ExecutionSequence, 
                               state: EpistemicState) -> List[str]:

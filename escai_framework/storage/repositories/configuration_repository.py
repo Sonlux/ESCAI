@@ -285,7 +285,7 @@ class ConfigurationRepository(MongoBaseRepository[ConfigurationDocument]):
     
     async def get_configuration_statistics(self) -> Dict[str, Any]:
         """Get configuration statistics."""
-        pipeline = [
+        pipeline: List[Dict[str, Any]] = [
             {
                 "$group": {
                     "_id": {
@@ -342,11 +342,11 @@ class ConfigurationRepository(MongoBaseRepository[ConfigurationDocument]):
         config_type: Optional[str] = None
     ) -> int:
         """Cleanup old configuration versions, keeping only the latest N versions."""
-        match_stage = {"is_active": False}
+        match_stage: Dict[str, Any] = {"is_active": False}
         if config_type:
             match_stage["config_type"] = config_type
         
-        pipeline = [
+        pipeline: List[Dict[str, Any]] = [
             {"$match": match_stage},
             {
                 "$group": {
