@@ -22,13 +22,13 @@ try:
 except ImportError as e:
     # Graceful degradation if optional dependencies are not available
     logging.warning(f"Optional dependency not available: {e}")
-    nx = None
-    np_module = None
-    pipeline = None
-    AutoTokenizer = None
-    AutoModel = None
-    torch = None
-    SentenceTransformer = None
+    nx = None  # type: ignore
+    np_module = None  # type: ignore
+    pipeline = None  # type: ignore
+    AutoTokenizer = None  # type: ignore
+    AutoModel = None  # type: ignore
+    torch = None  # type: ignore
+    SentenceTransformer = None  # type: ignore
 
 from ..models.epistemic_state import (
     EpistemicState, BeliefState, KnowledgeState, GoalState,

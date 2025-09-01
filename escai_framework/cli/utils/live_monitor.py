@@ -100,17 +100,17 @@ class AgentStatus:
 class LiveDataSource:
     """Simulates real-time data source"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.agents: Dict[str, AgentStatus] = {}
         self.metrics: Dict[str, MonitoringMetric] = {}
         self.running = False
         self.update_thread = None
-        self.data_queue = queue.Queue()
+        self.data_queue: queue.Queue[Dict[str, Any]] = queue.Queue()
         
         # Initialize sample agents
         self._initialize_sample_data()
     
-    def _initialize_sample_data(self):
+    def _initialize_sample_data(self) -> None:
         """Initialize sample agents and metrics"""
         frameworks = ["LangChain", "AutoGen", "CrewAI", "OpenAI"]
         statuses = ["active", "idle", "processing", "error"]

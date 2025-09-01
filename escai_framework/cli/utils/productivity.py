@@ -75,7 +75,7 @@ class AutoCompleter:
         self.command_history = CommandHistory()
         self._setup_default_rules()
     
-    def _setup_default_rules(self):
+    def _setup_default_rules(self) -> None:
         """Setup default auto-completion rules"""
         # Command suggestions
         self.add_rule("escai", [
@@ -190,7 +190,7 @@ class ThemeManager:
         self.current_theme = "default"
         self._setup_default_themes()
     
-    def _setup_default_themes(self):
+    def _setup_default_themes(self) -> None:
         """Setup default themes"""
         # Default theme
         self.themes["default"] = ThemeConfig(
@@ -313,7 +313,7 @@ class ProfileManager:
         self.current_profile = "default"
         self._setup_default_profiles()
     
-    def _setup_default_profiles(self):
+    def _setup_default_profiles(self) -> None:
         """Setup default configuration profiles"""
         # Development profile
         self.profiles["development"] = ConfigProfile(
@@ -450,7 +450,7 @@ class MacroSystem:
         self.current_recording: Optional[Macro] = None
         self.recorded_commands: List[MacroStep] = []
     
-    def start_recording(self, name: str, description: str = ""):
+    def start_recording(self, name: str, description: str = "") -> bool:
         """Start recording a macro"""
         if not self.recording:
             self.recording = True
@@ -472,7 +472,7 @@ class MacroSystem:
             return macro
         return None
     
-    def record_command(self, command: str, args: List[str], description: str = ""):
+    def record_command(self, command: str, args: List[str], description: str = "") -> None:
         """Record a command during macro recording"""
         if self.recording:
             step = MacroStep(command, args, 0.0, description)
@@ -510,7 +510,7 @@ class WorkspaceManager:
         self.current_workspace = "default"
         self._setup_default_workspace()
     
-    def _setup_default_workspace(self):
+    def _setup_default_workspace(self) -> None:
         """Setup default workspace"""
         self.workspaces["default"] = {
             "name": "Default",

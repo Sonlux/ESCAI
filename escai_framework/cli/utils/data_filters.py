@@ -62,7 +62,7 @@ class SearchQuery:
 class DataFilter:
     """Advanced data filtering and search engine"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.saved_queries: Dict[str, SearchQuery] = {}
         self.filter_history: List[SearchQuery] = []
     

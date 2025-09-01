@@ -721,7 +721,7 @@ class TimeSeriesAnalyzer:
         # Check for repeating patterns (very basic)
         # Look for correlation with lagged versions
         best_lag = 0
-        best_correlation = 0
+        best_correlation = 0.0
         
         for lag in range(2, min(len(values) // 2, 24)):
             if len(values) - lag < 2:
@@ -748,7 +748,7 @@ class TimeSeriesAnalyzer:
             "confidence": "high" if best_correlation > 0.7 else "medium" if best_correlation > 0.5 else "low"
         }
     
-    def _calculate_volatility(self, values: List[float]) -> Dict[str, float]:
+    def _calculate_volatility(self, values: List[float]) -> Dict[str, Any]:
         """Calculate volatility measures"""
         if len(values) < 2:
             return {"error": "Insufficient data"}
@@ -776,7 +776,7 @@ class TimeSeriesAnalyzer:
             return 0
         
         peak = values[0]
-        max_drawdown = 0
+        max_drawdown = 0.0
         
         for value in values:
             if value > peak:

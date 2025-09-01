@@ -28,23 +28,23 @@ try:
     from torch.utils.data import DataLoader, TensorDataset
 except ImportError as e:
     logging.warning(f"Optional dependency not available: {e}")
-    np = None
-    pd = None
-    RandomForestRegressor = None
-    RandomForestClassifier = None
-    train_test_split = None
-    cross_val_score = None
-    StandardScaler = None
-    LabelEncoder = None
-    mean_squared_error = None
-    accuracy_score = None
-    classification_report = None
-    xgb = None
-    torch = None
-    nn = None
-    optim = None
-    DataLoader = None
-    TensorDataset = None
+    np = None  # type: ignore
+    pd = None  # type: ignore
+    RandomForestRegressor = None  # type: ignore
+    RandomForestClassifier = None  # type: ignore
+    train_test_split = None  # type: ignore
+    cross_val_score = None  # type: ignore
+    StandardScaler = None  # type: ignore
+    LabelEncoder = None  # type: ignore
+    mean_squared_error = None  # type: ignore
+    accuracy_score = None  # type: ignore
+    classification_report = None  # type: ignore
+    xgb = None  # type: ignore
+    torch = None  # type: ignore
+    nn = None  # type: ignore
+    optim = None  # type: ignore
+    DataLoader = None  # type: ignore
+    TensorDataset = None  # type: ignore
 
 from ..models.epistemic_state import EpistemicState
 from ..models.prediction_result import (

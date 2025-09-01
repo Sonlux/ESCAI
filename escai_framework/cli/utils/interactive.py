@@ -687,7 +687,7 @@ class InteractivePagination:
 class BookmarkManager:
     """Manage bookmarks for frequently accessed items"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.bookmarks: Dict[str, Dict[str, Any]] = {}
     
     def add_bookmark(self, name: str, data: Dict[str, Any]) -> bool:

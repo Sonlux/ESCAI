@@ -34,7 +34,7 @@ class DatabaseConfig(BaseModel):
     postgres_port: int = Field(default=5432, ge=1, le=65535, description="PostgreSQL port")
     postgres_database: str = Field(default="escai", description="PostgreSQL database name")
     postgres_username: str = Field(default="escai_user", description="PostgreSQL username")
-    postgres_password: SecretStr = Field(description="PostgreSQL password")
+    postgres_password: SecretStr = Field(default=SecretStr(""), description="PostgreSQL password")
     postgres_pool_size: int = Field(default=10, ge=1, le=100, description="Connection pool size")
     postgres_max_overflow: int = Field(default=20, ge=0, le=100, description="Max pool overflow")
     
@@ -64,7 +64,7 @@ class DatabaseConfig(BaseModel):
     # Neo4j Configuration
     neo4j_uri: str = Field(default="bolt://localhost:7687", description="Neo4j connection URI")
     neo4j_username: str = Field(default="neo4j", description="Neo4j username")
-    neo4j_password: SecretStr = Field(description="Neo4j password")
+    neo4j_password: SecretStr = Field(default=SecretStr(""), description="Neo4j password")
     neo4j_database: str = Field(default="neo4j", description="Neo4j database name")
     neo4j_pool_size: int = Field(default=10, ge=1, le=100, description="Neo4j connection pool size")
 
