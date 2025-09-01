@@ -4,7 +4,7 @@ Authentication and authorization for ESCAI Framework API.
 
 import secrets
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Any
 from enum import Enum
 
 import jwt
@@ -79,7 +79,7 @@ class AuthManager:
         # Create default admin user
         self._create_default_users()
     
-    def _create_default_users(self):
+    def _create_default_users(self) -> None:
         """Create default users for development."""
         admin_user = {
             "user_id": "admin-001",
@@ -186,6 +186,8 @@ class AuthManager:
             return None
         
         # Get user data
+        if token_data.username is None:
+            return None
         user = self.users_db.get(token_data.username)
         if not user or not user["is_active"]:
             return None
@@ -247,7 +249,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     )
     
     token_data = auth_manager.verify_token(credentials.credentials)
-    if token_data is None:
+    if token_data is None or token_data.username is None:
         raise credentials_exception
     
     user_dict = auth_manager.users_db.get(token_data.username)
@@ -264,7 +266,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         last_login=user_dict.get("last_login")
     )
 
-def require_roles(required_roles: List[UserRole]):
+def require_roles(required_roles: List[UserRole]) -> Any:
     """Decorator to require specific roles."""
     def role_checker(current_user: User = Depends(get_current_user)) -> User:
         # Cast to compatible type for has_permission method
@@ -278,14 +280,14 @@ def require_roles(required_roles: List[UserRole]):
     return role_checker
 
 # Convenience functions for common role requirements
-def require_admin():
+def require_admin() -> Any:
     return require_roles([UserRole.ADMIN])
 
-def require_researcher():
+def require_researcher() -> Any:
     return require_roles([UserRole.RESEARCHER, UserRole.ADMIN])
 
-def require_developer():
+def require_developer() -> Any:
     return require_roles([UserRole.DEVELOPER, UserRole.ADMIN])
 
-def require_viewer():
+def require_viewer() -> Any:
     return require_roles([UserRole.VIEWER, UserRole.DEVELOPER, UserRole.RESEARCHER, UserRole.ADMIN])

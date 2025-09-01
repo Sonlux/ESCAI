@@ -3,7 +3,7 @@ Monitoring endpoints for ESCAI Framework API.
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, status, Depends, Request
@@ -32,7 +32,7 @@ class StartMonitoringRequest(BaseModel):
     agent_id: str = Field(..., description="Unique identifier for the agent")
     framework: str = Field(..., description="Agent framework (langchain, autogen, crewai, openai)")
     config: Dict = Field(default_factory=dict, description="Framework-specific configuration")
-    monitoring_config: Optional[Dict] = Field(default_factory=dict, description="Monitoring configuration")
+    monitoring_config: Optional[Dict] = Field(default=None, description="Monitoring configuration")
 
 class StartMonitoringResponse(BaseModel):
     """Response model for starting monitoring."""
@@ -68,9 +68,9 @@ class StopMonitoringResponse(BaseModel):
 active_sessions: Dict[str, Dict] = {}
 
 # Framework instrumentors (lazy initialization)
-instrumentors = {}
+instrumentors: Dict[str, Any] = {}
 
-def get_instrumentor(framework: str) -> Optional[object]:
+def get_instrumentor(framework: str) -> Any:
     """Get instrumentor for framework with lazy initialization."""
     if framework not in instrumentors:
         try:
@@ -127,14 +127,15 @@ async def start_monitoring(
         # Instrumentor already obtained above
         
         # Create monitoring configuration
+        monitoring_config_dict = monitoring_request.monitoring_config or {}
         config = MonitoringConfig(
             agent_id=monitoring_request.agent_id,
             framework=monitoring_request.framework,
-            capture_epistemic_states=monitoring_request.monitoring_config.get("capture_epistemic_states", True),
-            capture_behavioral_patterns=monitoring_request.monitoring_config.get("capture_behavioral_patterns", True),
-            capture_performance_metrics=monitoring_request.monitoring_config.get("capture_performance_metrics", True),
-            max_events_per_second=monitoring_request.monitoring_config.get("max_events_per_second", 100),
-            buffer_size=monitoring_request.monitoring_config.get("buffer_size", 1000)
+            capture_epistemic_states=monitoring_config_dict.get("capture_epistemic_states", True),
+            capture_behavioral_patterns=monitoring_config_dict.get("capture_behavioral_patterns", True),
+            capture_performance_metrics=monitoring_config_dict.get("capture_performance_metrics", True),
+            max_events_per_second=monitoring_config_dict.get("max_events_per_second", 100),
+            buffer_size=monitoring_config_dict.get("buffer_size", 1000)
         )
         
         # Start monitoring
@@ -159,13 +160,12 @@ async def start_monitoring(
         
         logger.info(f"Started monitoring session {session_id} for agent {monitoring_request.agent_id}")
         
-        started_at_value: datetime = session_info["started_at"]
         return StartMonitoringResponse(
             session_id=session_id,
             agent_id=monitoring_request.agent_id,
             framework=monitoring_request.framework,
             status="active",
-            started_at=started_at_value,
+            started_at=session_info["started_at"],
             message="Monitoring started successfully"
         )
         

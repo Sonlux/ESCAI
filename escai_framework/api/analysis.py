@@ -137,7 +137,7 @@ async def search_epistemic_states(
     """Search epistemic states with filtering and pagination."""
     try:
         # Build search filters
-        filters = {}
+        filters: Dict[str, Any] = {}
         if query.agent_id:
             filters["agent_id"] = query.agent_id
         if query.start_time:
@@ -186,7 +186,7 @@ async def analyze_behavioral_patterns(
     """Analyze behavioral patterns with filtering."""
     try:
         # Build analysis filters
-        filters = {}
+        filters: Dict[str, Any] = {}
         if query.agent_id:
             filters["agent_id"] = query.agent_id
         if query.pattern_type:
@@ -261,8 +261,18 @@ async def get_current_predictions(
 ) -> PredictionResult:
     """Get current performance predictions for an agent."""
     try:
-        # Get current predictions
-        prediction = await performance_predictor.get_current_prediction(agent_id)
+        # Get current predictions - using predict_success with a mock state
+        from ..models.epistemic_state import EpistemicState
+        mock_state = EpistemicState(
+            agent_id=agent_id,
+            timestamp=datetime.utcnow(),
+            belief_states=[],
+            knowledge_state=None,
+            goal_states=[],
+            confidence_level=0.5,
+            uncertainty_score=0.5
+        )
+        prediction = await performance_predictor.predict_success(mock_state)
         
         if not prediction:
             raise HTTPException(
@@ -290,14 +300,19 @@ async def generate_prediction(
 ) -> PredictionResult:
     """Generate performance prediction for an agent."""
     try:
-        # Generate prediction
-        prediction = await performance_predictor.predict_performance(
+        # Generate prediction - using predict_success with constructed state
+        from ..models.epistemic_state import EpistemicState
+        current_state_dict = prediction_request.current_state or {}
+        epistemic_state = EpistemicState(
             agent_id=prediction_request.agent_id,
-            current_state=prediction_request.current_state,
-            prediction_horizon=prediction_request.prediction_horizon,
-            include_risk_factors=prediction_request.include_risk_factors,
-            include_interventions=prediction_request.include_interventions
+            timestamp=datetime.utcnow(),
+            belief_states=current_state_dict.get("belief_states", []),
+            knowledge_state=current_state_dict.get("knowledge_state"),
+            goal_states=current_state_dict.get("goal_states", []),
+            confidence_level=current_state_dict.get("confidence_level", 0.5),
+            uncertainty_score=current_state_dict.get("uncertainty_score", 0.5)
         )
+        prediction = await performance_predictor.predict_success(epistemic_state)
         
         return prediction
         
@@ -376,8 +391,17 @@ async def _generate_agent_summary(agent_id: str, start_time: datetime, end_time:
         }
         patterns = await behavioral_analyzer.analyze_patterns(pattern_filters, page=1, size=10)
         
-        # Get recent predictions
-        current_prediction = await performance_predictor.get_current_prediction(agent_id)
+        # Get recent predictions - using predict_success with mock state
+        mock_state = EpistemicState(
+            agent_id=agent_id,
+            timestamp=datetime.utcnow(),
+            belief_states=[],
+            knowledge_state=None,
+            goal_states=[],
+            confidence_level=0.5,
+            uncertainty_score=0.5
+        )
+        current_prediction = await performance_predictor.predict_success(mock_state)
         
         # Get causal relationships
         relationships = await causal_engine.discover_relationships(
@@ -403,12 +427,12 @@ async def _generate_agent_summary(agent_id: str, start_time: datetime, end_time:
                 "end_time": end_time.isoformat(),
                 "days": (end_time - start_time).days
             },
-            "current_state": current_state.dict() if current_state else None,
+            "current_state": current_state.to_dict() if current_state else None,
             "behavioral_patterns": {
                 "total_patterns": patterns["total"],
                 "top_patterns": patterns["items"][:5]
             },
-            "current_prediction": current_prediction.dict() if current_prediction else None,
+            "current_prediction": current_prediction.to_dict() if current_prediction else None,
             "causal_relationships": {
                 "total_relationships": len(relationships),
                 "top_relationships": relationships[:10]
