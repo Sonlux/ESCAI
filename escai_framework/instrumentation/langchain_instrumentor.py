@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Set, Union
 from datetime import datetime
 import threading
 import weakref
+from uuid import UUID
 
 from .base_instrumentor import BaseInstrumentor, InstrumentationError, EventProcessingError, MonitoringSummary as BaseMonitoringSummary
 from .events import AgentEvent, EventType, EventSeverity, MonitoringSummary
@@ -67,20 +68,22 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         # Thread safety
         self._lock = threading.RLock()
     
-    def on_chain_start(self, serialized: Dict[str, Any], inputs: Dict[str, Any], 
-                      run_id: Optional[str] = None, parent_run_id: Optional[str] = None,
-                      **kwargs: Any) -> None:
+    def on_chain_start(self, serialized: Dict[str, Any], inputs: Dict[str, Any], *,
+                      run_id: UUID, parent_run_id: Optional[UUID] = None,
+                      tags: Optional[List[str]] = None, metadata: Optional[Dict[str, Any]] = None,
+                      **kwargs: Any) -> Any:
         """Called when a chain starts running."""
         try:
             with self._lock:
                 start_time = time.time()
-                self._chain_start_times[run_id or "unknown"] = start_time
+                run_id_str = str(run_id) if run_id else "unknown"
+                self._chain_start_times[run_id_str] = start_time
                 
                 # Create execution context
                 context = {
                     "type": "chain",
-                    "run_id": run_id,
-                    "parent_run_id": parent_run_id,
+                    "run_id": str(run_id) if run_id else None,
+                    "parent_run_id": str(parent_run_id) if parent_run_id else None,
                     "start_time": start_time,
                     "chain_type": serialized.get("name", "unknown"),
                     "inputs": inputs
@@ -97,11 +100,13 @@ class LangChainCallbackHandler(BaseCallbackHandler):
                         "chain_type": serialized.get("name", "unknown"),
                         "inputs": inputs,
                         "serialized": serialized,
-                        "run_id": run_id,
-                        "parent_run_id": parent_run_id
+                        "run_id": str(run_id) if run_id else None,
+                        "parent_run_id": str(parent_run_id) if parent_run_id else None,
+                        "tags": tags,
+                        "metadata": metadata
                     },
-                    correlation_id=run_id,
-                    parent_event_id=parent_run_id
+                    correlation_id=str(run_id) if run_id else None,
+                    parent_event_id=str(parent_run_id) if parent_run_id else None
                 )
                 
                 self._queue_event_safe(event)
@@ -109,13 +114,14 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         except Exception as e:
             self.logger.error(f"Error in on_chain_start: {str(e)}")
     
-    def on_chain_end(self, outputs: Dict[str, Any], run_id: Optional[str] = None,
-                    parent_run_id: Optional[str] = None, **kwargs: Any) -> None:
+    def on_chain_end(self, outputs: Dict[str, Any], *, run_id: UUID,
+                    parent_run_id: Optional[UUID] = None, **kwargs: Any) -> Any:
         """Called when a chain finishes running."""
         try:
             with self._lock:
                 end_time = time.time()
-                start_time = self._chain_start_times.pop(run_id or "unknown", end_time)
+                run_id_str = str(run_id) if run_id else "unknown"
+                start_time = self._chain_start_times.pop(run_id_str, end_time)
                 duration_ms = int((end_time - start_time) * 1000)
                 
                 # Pop execution context
@@ -133,12 +139,12 @@ class LangChainCallbackHandler(BaseCallbackHandler):
                     data={
                         "chain_type": context.get("chain_type", "unknown"),
                         "outputs": outputs,
-                        "run_id": run_id,
-                        "parent_run_id": parent_run_id
+                        "run_id": str(run_id) if run_id else None,
+                        "parent_run_id": str(parent_run_id) if parent_run_id else None
                     },
                     duration_ms=duration_ms,
-                    correlation_id=run_id,
-                    parent_event_id=parent_run_id
+                    correlation_id=str(run_id) if run_id else None,
+                    parent_event_id=str(parent_run_id) if parent_run_id else None
                 )
                 
                 self._queue_event_safe(event)
@@ -146,14 +152,14 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         except Exception as e:
             self.logger.error(f"Error in on_chain_end: {str(e)}")
     
-    def on_chain_error(self, error: Union[Exception, KeyboardInterrupt], 
-                      run_id: Optional[str] = None, parent_run_id: Optional[str] = None,
-                      **kwargs: Any) -> None:
+    def on_chain_error(self, error: BaseException, *, run_id: UUID,
+                      parent_run_id: Optional[UUID] = None, **kwargs: Any) -> Any:
         """Called when a chain encounters an error."""
         try:
             with self._lock:
                 end_time = time.time()
-                start_time = self._chain_start_times.pop(run_id or "unknown", end_time)
+                run_id_str = str(run_id) if run_id else "unknown"
+                start_time = self._chain_start_times.pop(run_id_str, end_time)
                 duration_ms = int((end_time - start_time) * 1000)
                 
                 # Pop execution context
@@ -171,12 +177,12 @@ class LangChainCallbackHandler(BaseCallbackHandler):
                     severity=EventSeverity.ERROR,
                     data={
                         "chain_type": context.get("chain_type", "unknown"),
-                        "run_id": run_id,
-                        "parent_run_id": parent_run_id
+                        "run_id": str(run_id) if run_id else None,
+                        "parent_run_id": str(parent_run_id) if parent_run_id else None
                     },
                     duration_ms=duration_ms,
-                    correlation_id=run_id,
-                    parent_event_id=parent_run_id
+                    correlation_id=str(run_id) if run_id else None,
+                    parent_event_id=str(parent_run_id) if parent_run_id else None
                 )
                 
                 # Set error information
@@ -191,14 +197,16 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         except Exception as e:
             self.logger.error(f"Error in on_chain_error: {str(e)}")
     
-    def on_llm_start(self, serialized: Dict[str, Any], prompts: List[str],
-                    run_id: Optional[str] = None, parent_run_id: Optional[str] = None,
-                    **kwargs: Any) -> None:
+    def on_llm_start(self, serialized: Dict[str, Any], prompts: List[str], *,
+                    run_id: UUID, parent_run_id: Optional[UUID] = None,
+                    tags: Optional[List[str]] = None, metadata: Optional[Dict[str, Any]] = None,
+                    **kwargs: Any) -> Any:
         """Called when an LLM starts generating."""
         try:
             with self._lock:
                 start_time = time.time()
-                self._llm_start_times[run_id or "unknown"] = start_time
+                run_id_str = str(run_id) if run_id else "unknown"
+                self._llm_start_times[run_id_str] = start_time
                 
                 # Create event
                 event = self._create_event(
@@ -211,11 +219,13 @@ class LangChainCallbackHandler(BaseCallbackHandler):
                         "prompts": prompts,
                         "prompt_count": len(prompts),
                         "serialized": serialized,
-                        "run_id": run_id,
-                        "parent_run_id": parent_run_id
+                        "run_id": str(run_id) if run_id else None,
+                        "parent_run_id": str(parent_run_id) if parent_run_id else None,
+                        "tags": tags,
+                        "metadata": metadata
                     },
-                    correlation_id=run_id,
-                    parent_event_id=parent_run_id
+                    correlation_id=str(run_id) if run_id else None,
+                    parent_event_id=str(parent_run_id) if parent_run_id else None
                 )
                 
                 self._queue_event_safe(event)
@@ -223,13 +233,14 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         except Exception as e:
             self.logger.error(f"Error in on_llm_start: {str(e)}")
     
-    def on_llm_end(self, response: LLMResult, run_id: Optional[str] = None,
-                  parent_run_id: Optional[str] = None, **kwargs: Any) -> None:
+    def on_llm_end(self, response: LLMResult, *, run_id: UUID,
+                  parent_run_id: Optional[UUID] = None, **kwargs: Any) -> Any:
         """Called when an LLM finishes generating."""
         try:
             with self._lock:
                 end_time = time.time()
-                start_time = self._llm_start_times.pop(run_id or "unknown", end_time)
+                run_id_str = str(run_id) if run_id else "unknown"
+                start_time = self._llm_start_times.pop(run_id_str, end_time)
                 duration_ms = int((end_time - start_time) * 1000)
                 
                 # Extract response information
@@ -246,12 +257,12 @@ class LangChainCallbackHandler(BaseCallbackHandler):
                         "generations_count": len(generations),
                         "llm_output": llm_output,
                         "token_usage": llm_output.get("token_usage", {}),
-                        "run_id": run_id,
-                        "parent_run_id": parent_run_id
+                        "run_id": str(run_id) if run_id else None,
+                        "parent_run_id": str(parent_run_id) if parent_run_id else None
                     },
                     duration_ms=duration_ms,
-                    correlation_id=run_id,
-                    parent_event_id=parent_run_id
+                    correlation_id=str(run_id) if run_id else None,
+                    parent_event_id=str(parent_run_id) if parent_run_id else None
                 )
                 
                 # Add token usage as performance metrics
@@ -264,14 +275,14 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         except Exception as e:
             self.logger.error(f"Error in on_llm_end: {str(e)}")
     
-    def on_llm_error(self, error: Union[Exception, KeyboardInterrupt],
-                    run_id: Optional[str] = None, parent_run_id: Optional[str] = None,
-                    **kwargs: Any) -> None:
+    def on_llm_error(self, error: BaseException, *, run_id: UUID,
+                    parent_run_id: Optional[UUID] = None, **kwargs: Any) -> Any:
         """Called when an LLM encounters an error."""
         try:
             with self._lock:
                 end_time = time.time()
-                start_time = self._llm_start_times.pop(run_id or "unknown", end_time)
+                run_id_str = str(run_id) if run_id else "unknown"
+                start_time = self._llm_start_times.pop(run_id_str, end_time)
                 duration_ms = int((end_time - start_time) * 1000)
                 
                 # Create error event
@@ -282,12 +293,12 @@ class LangChainCallbackHandler(BaseCallbackHandler):
                     operation="error",
                     severity=EventSeverity.ERROR,
                     data={
-                        "run_id": run_id,
-                        "parent_run_id": parent_run_id
+                        "run_id": str(run_id) if run_id else None,
+                        "parent_run_id": str(parent_run_id) if parent_run_id else None
                     },
                     duration_ms=duration_ms,
-                    correlation_id=run_id,
-                    parent_event_id=parent_run_id
+                    correlation_id=str(run_id) if run_id else None,
+                    parent_event_id=str(parent_run_id) if parent_run_id else None
                 )
                 
                 # Set error information
@@ -302,14 +313,16 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         except Exception as e:
             self.logger.error(f"Error in on_llm_error: {str(e)}")
     
-    def on_tool_start(self, serialized: Dict[str, Any], input_str: str,
-                     run_id: Optional[str] = None, parent_run_id: Optional[str] = None,
-                     **kwargs: Any) -> None:
+    def on_tool_start(self, serialized: Dict[str, Any], input_str: str, *,
+                     run_id: UUID, parent_run_id: Optional[UUID] = None,
+                     tags: Optional[List[str]] = None, metadata: Optional[Dict[str, Any]] = None,
+                     inputs: Optional[Dict[str, Any]] = None, **kwargs: Any) -> Any:
         """Called when a tool starts running."""
         try:
             with self._lock:
                 start_time = time.time()
-                self._tool_start_times[run_id or "unknown"] = start_time
+                run_id_str = str(run_id) if run_id else "unknown"
+                self._tool_start_times[run_id_str] = start_time
                 
                 # Create event
                 event = self._create_event(
@@ -321,11 +334,14 @@ class LangChainCallbackHandler(BaseCallbackHandler):
                         "tool_name": serialized.get("name", "unknown"),
                         "input": input_str,
                         "serialized": serialized,
-                        "run_id": run_id,
-                        "parent_run_id": parent_run_id
+                        "run_id": str(run_id) if run_id else None,
+                        "parent_run_id": str(parent_run_id) if parent_run_id else None,
+                        "tags": tags,
+                        "metadata": metadata,
+                        "inputs": inputs
                     },
-                    correlation_id=run_id,
-                    parent_event_id=parent_run_id
+                    correlation_id=str(run_id) if run_id else None,
+                    parent_event_id=str(parent_run_id) if parent_run_id else None
                 )
                 
                 self._queue_event_safe(event)
@@ -333,13 +349,14 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         except Exception as e:
             self.logger.error(f"Error in on_tool_start: {str(e)}")
     
-    def on_tool_end(self, output: str, run_id: Optional[str] = None,
-                   parent_run_id: Optional[str] = None, **kwargs: Any) -> None:
+    def on_tool_end(self, output: Any, *, run_id: UUID,
+                   parent_run_id: Optional[UUID] = None, **kwargs: Any) -> Any:
         """Called when a tool finishes running."""
         try:
             with self._lock:
                 end_time = time.time()
-                start_time = self._tool_start_times.pop(run_id or "unknown", end_time)
+                run_id_str = str(run_id) if run_id else "unknown"
+                start_time = self._tool_start_times.pop(run_id_str, end_time)
                 duration_ms = int((end_time - start_time) * 1000)
                 
                 # Create event
@@ -350,13 +367,13 @@ class LangChainCallbackHandler(BaseCallbackHandler):
                     operation="complete",
                     data={
                         "output": output,
-                        "output_length": len(output) if output else 0,
-                        "run_id": run_id,
-                        "parent_run_id": parent_run_id
+                        "output_length": len(str(output)) if output else 0,
+                        "run_id": str(run_id) if run_id else None,
+                        "parent_run_id": str(parent_run_id) if parent_run_id else None
                     },
                     duration_ms=duration_ms,
-                    correlation_id=run_id,
-                    parent_event_id=parent_run_id
+                    correlation_id=str(run_id) if run_id else None,
+                    parent_event_id=str(parent_run_id) if parent_run_id else None
                 )
                 
                 self._queue_event_safe(event)
@@ -364,14 +381,14 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         except Exception as e:
             self.logger.error(f"Error in on_tool_end: {str(e)}")
     
-    def on_tool_error(self, error: Union[Exception, KeyboardInterrupt],
-                     run_id: Optional[str] = None, parent_run_id: Optional[str] = None,
-                     **kwargs: Any) -> None:
+    def on_tool_error(self, error: BaseException, *, run_id: UUID,
+                     parent_run_id: Optional[UUID] = None, **kwargs: Any) -> Any:
         """Called when a tool encounters an error."""
         try:
             with self._lock:
                 end_time = time.time()
-                start_time = self._tool_start_times.pop(run_id or "unknown", end_time)
+                run_id_str = str(run_id) if run_id else "unknown"
+                start_time = self._tool_start_times.pop(run_id_str, end_time)
                 duration_ms = int((end_time - start_time) * 1000)
                 
                 # Create error event
@@ -382,12 +399,12 @@ class LangChainCallbackHandler(BaseCallbackHandler):
                     operation="error",
                     severity=EventSeverity.ERROR,
                     data={
-                        "run_id": run_id,
-                        "parent_run_id": parent_run_id
+                        "run_id": str(run_id) if run_id else None,
+                        "parent_run_id": str(parent_run_id) if parent_run_id else None
                     },
                     duration_ms=duration_ms,
-                    correlation_id=run_id,
-                    parent_event_id=parent_run_id
+                    correlation_id=str(run_id) if run_id else None,
+                    parent_event_id=str(parent_run_id) if parent_run_id else None
                 )
                 
                 # Set error information
@@ -402,8 +419,8 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         except Exception as e:
             self.logger.error(f"Error in on_tool_error: {str(e)}")
     
-    def on_agent_action(self, action: AgentAction, run_id: Optional[str] = None,
-                       parent_run_id: Optional[str] = None, **kwargs: Any) -> None:
+    def on_agent_action(self, action: AgentAction, *, run_id: UUID,
+                       parent_run_id: Optional[UUID] = None, **kwargs: Any) -> Any:
         """Called when an agent takes an action."""
         try:
             # Create event
@@ -416,11 +433,11 @@ class LangChainCallbackHandler(BaseCallbackHandler):
                     "tool": getattr(action, 'tool', 'unknown'),
                     "tool_input": getattr(action, 'tool_input', {}),
                     "log": getattr(action, 'log', ''),
-                    "run_id": run_id,
-                    "parent_run_id": parent_run_id
+                    "run_id": str(run_id) if run_id else None,
+                    "parent_run_id": str(parent_run_id) if parent_run_id else None
                 },
-                correlation_id=run_id,
-                parent_event_id=parent_run_id
+                correlation_id=str(run_id) if run_id else None,
+                parent_event_id=str(parent_run_id) if parent_run_id else None
             )
             
             # Extract reasoning from log if available
@@ -433,8 +450,8 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         except Exception as e:
             self.logger.error(f"Error in on_agent_action: {str(e)}")
     
-    def on_agent_finish(self, finish: AgentFinish, run_id: Optional[str] = None,
-                       parent_run_id: Optional[str] = None, **kwargs: Any) -> None:
+    def on_agent_finish(self, finish: AgentFinish, *, run_id: UUID,
+                       parent_run_id: Optional[UUID] = None, **kwargs: Any) -> Any:
         """Called when an agent finishes."""
         try:
             # Create event
@@ -446,11 +463,11 @@ class LangChainCallbackHandler(BaseCallbackHandler):
                 data={
                     "return_values": getattr(finish, 'return_values', {}),
                     "log": getattr(finish, 'log', ''),
-                    "run_id": run_id,
-                    "parent_run_id": parent_run_id
+                    "run_id": str(run_id) if run_id else None,
+                    "parent_run_id": str(parent_run_id) if parent_run_id else None
                 },
-                correlation_id=run_id,
-                parent_event_id=parent_run_id
+                correlation_id=str(run_id) if run_id else None,
+                parent_event_id=str(parent_run_id) if parent_run_id else None
             )
             
             # Extract reasoning from log if available
@@ -463,8 +480,8 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         except Exception as e:
             self.logger.error(f"Error in on_agent_finish: {str(e)}")
     
-    def on_text(self, text: str, run_id: Optional[str] = None,
-               parent_run_id: Optional[str] = None, **kwargs: Any) -> None:
+    def on_text(self, text: str, *, run_id: UUID,
+               parent_run_id: Optional[UUID] = None, **kwargs: Any) -> Any:
         """Called when arbitrary text is logged."""
         try:
             # Create event for text output (often contains reasoning)
@@ -476,11 +493,11 @@ class LangChainCallbackHandler(BaseCallbackHandler):
                 data={
                     "text": text,
                     "text_length": len(text),
-                    "run_id": run_id,
-                    "parent_run_id": parent_run_id
+                    "run_id": str(run_id) if run_id else None,
+                    "parent_run_id": str(parent_run_id) if parent_run_id else None
                 },
-                correlation_id=run_id,
-                parent_event_id=parent_run_id
+                correlation_id=str(run_id) if run_id else None,
+                parent_event_id=str(parent_run_id) if parent_run_id else None
             )
             
             # Check if text contains reasoning patterns
