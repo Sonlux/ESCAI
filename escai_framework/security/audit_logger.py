@@ -227,7 +227,10 @@ class AuditLogger:
             
             # Store in Redis with multiple keys for different access patterns
             event_key = f"audit:event:{event.event_id}"
-            hset_result = self.redis.hset(event_key, mapping=cast(Dict[str, Union[str, bytes]], encrypted_event))
+            # Cast to dict for Redis hset compatibility
+            from typing import Any
+            redis_mapping = cast(Dict[Any, Any], encrypted_event)
+            hset_result = self.redis.hset(event_key, mapping=redis_mapping)
             if hasattr(hset_result, '__await__'):
                 await hset_result
             expire_result = self.redis.expire(event_key, self.retention_days * 86400)
@@ -277,8 +280,12 @@ class AuditLogger:
         """Retrieve and decrypt audit event"""
         try:
             event_key = f"audit:event:{event_id}"
+            # Handle both sync and async Redis clients
             hgetall_result = self.redis.hgetall(event_key)
-            encrypted_event = await hgetall_result if hasattr(hgetall_result, '__await__') else hgetall_result
+            if hasattr(hgetall_result, '__await__'):
+                encrypted_event = await hgetall_result
+            else:
+                encrypted_event = hgetall_result
             
             if not encrypted_event:
                 return None
@@ -391,9 +398,13 @@ class AuditLogger:
             for event in events:
                 # Get encrypted event data
                 event_key = f"audit:event:{event.event_id}"
+                # Handle both sync and async Redis clients
                 hgetall_result = self.redis.hgetall(event_key)
-                encrypted_event = await hgetall_result if hasattr(hgetall_result, '__await__') else hgetall_result
-                encrypted_event = {k.decode(): v.decode() for k, v in encrypted_event.items()}
+                if hasattr(hgetall_result, '__await__'):
+                    encrypted_event_raw = await hgetall_result
+                else:
+                    encrypted_event_raw = hgetall_result
+                encrypted_event = {k.decode(): v.decode() for k, v in encrypted_event_raw.items()}
                 
                 # Verify chain hash
                 stored_previous_hash = encrypted_event.get('previous_hash')

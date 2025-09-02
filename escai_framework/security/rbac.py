@@ -217,7 +217,10 @@ class RBACManager:
                            v.isoformat() if isinstance(v, datetime) else 
                            str(v) 
                          for k, v in role_data.items()}
-            hset_result = self.redis.hset(f"rbac:role:{role.name}", mapping=mapping_data)
+            # Cast to dict for Redis hset compatibility
+            from typing import cast, Any
+            redis_mapping = cast(Dict[Any, Any], mapping_data)
+            hset_result = self.redis.hset(f"rbac:role:{role.name}", mapping=redis_mapping)
             if hasattr(hset_result, '__await__'):
                 await hset_result
             

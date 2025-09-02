@@ -359,9 +359,12 @@ class CausalEngine:
                 y = data[target_variable].values
                 
                 # Remove NaN values
-                mask = ~(np.isnan(X).any(axis=1) | np.isnan(y))
-                X_clean = X[mask]
-                y_clean = y[mask]
+                # Convert to numpy arrays to ensure compatibility with np.isnan
+                X_array = np.asarray(X)
+                y_array = np.asarray(y)
+                mask = ~(np.isnan(X_array).any(axis=1) | np.isnan(y_array))
+                X_clean = X_array[mask]
+                y_clean = y_array[mask]
                 
                 if len(X_clean) < 10:  # Need minimum observations
                     return InterventionEffect(

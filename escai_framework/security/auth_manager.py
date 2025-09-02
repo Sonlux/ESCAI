@@ -132,7 +132,10 @@ class TokenManager:
             "last_activity": now.isoformat(),
             "active": "true"
         }
-        hset_result = self.redis.hset(session_key, mapping=cast(Dict[str, Union[str, int, float, bytes]], session_data))
+        # Cast to dict for Redis hset compatibility
+        from typing import Any
+        redis_mapping = cast(Dict[Any, Any], session_data)
+        hset_result = self.redis.hset(session_key, mapping=redis_mapping)
         if hasattr(hset_result, '__await__'):
             await hset_result
         expire_result = self.redis.expire(session_key, self.refresh_token_ttl)
@@ -204,8 +207,12 @@ class TokenManager:
             
             # Get session info
             session_key = f"session:{session_id}"
+            # Handle both sync and async Redis clients
             hgetall_result = self.redis.hgetall(session_key)
-            session_data = await hgetall_result if hasattr(hgetall_result, '__await__') else hgetall_result
+            if hasattr(hgetall_result, '__await__'):
+                session_data = await hgetall_result
+            else:
+                session_data = hgetall_result
             
             if not session_data or session_data.get("active") != "true":
                 return None
