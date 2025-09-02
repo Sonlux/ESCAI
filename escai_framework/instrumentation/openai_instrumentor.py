@@ -27,12 +27,12 @@ try:
     OPENAI_AVAILABLE = True
 except ImportError:
     # Create mock classes for type hints when OpenAI is not available
-    openai = None  # type: ignore[assignment]
-    OpenAI = None  # type: ignore[assignment]
-    Assistant = None  # type: ignore[assignment]
-    Thread = None  # type: ignore[assignment]
-    Run = None  # type: ignore[assignment]
-    Message = None  # type: ignore[assignment]
+    openai = None  # type: ignore[misc]
+    OpenAI = None  # type: ignore[misc]
+    Assistant = None  # type: ignore[misc]
+    Thread = None  # type: ignore[misc]
+    Run = None  # type: ignore[misc]
+    Message = None  # type: ignore[misc]
     OPENAI_AVAILABLE = False
 
 

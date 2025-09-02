@@ -26,12 +26,12 @@ try:
     LANGCHAIN_AVAILABLE = True
 except ImportError:
     # Create mock classes for type hints when LangChain is not available
-    BaseCallbackHandler = None  # type: ignore[assignment]
-    BaseMessage = None  # type: ignore[assignment]
-    AgentAction = None  # type: ignore[assignment]
-    AgentFinish = None  # type: ignore[assignment]
-    LLMResult = None  # type: ignore[assignment]
-    Document = None  # type: ignore[assignment]
+    BaseCallbackHandler = None  # type: ignore[misc]
+    BaseMessage = None  # type: ignore[misc]
+    AgentAction = None  # type: ignore[misc]
+    AgentFinish = None  # type: ignore[misc]
+    LLMResult = None  # type: ignore[misc]
+    Document = None  # type: ignore[misc]
     LANGCHAIN_AVAILABLE = False
 
 
