@@ -285,7 +285,7 @@ class AuditLogger:
             if hasattr(hgetall_result, '__await__'):
                 encrypted_event = await hgetall_result
             else:
-                encrypted_event = hgetall_result
+                encrypted_event = await hgetall_result
             
             if not encrypted_event:
                 return None
@@ -404,7 +404,7 @@ class AuditLogger:
                 if hasattr(hgetall_result, '__await__'):
                     encrypted_event_raw = await hgetall_result
                 else:
-                    encrypted_event_raw = hgetall_result
+                    encrypted_event_raw = await hgetall_result
                 
                 if not encrypted_event_raw:
                     logger.error(f"Event {event.event_id} not found in storage")
