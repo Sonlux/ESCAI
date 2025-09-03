@@ -290,8 +290,9 @@ class AuditLogger:
             if not encrypted_event:
                 return None
             
-            # Convert bytes to strings
-            encrypted_event = {k.decode(): v.decode() for k, v in encrypted_event.items()}
+            # Convert bytes to strings if needed
+            if encrypted_event and isinstance(next(iter(encrypted_event.keys()), None), bytes):
+                encrypted_event = {k.decode(): v.decode() for k, v in encrypted_event.items()}
             
             # Decrypt event
             event_data = self.integrity_manager.decrypt_event(encrypted_event)
@@ -404,7 +405,16 @@ class AuditLogger:
                     encrypted_event_raw = await hgetall_result
                 else:
                     encrypted_event_raw = hgetall_result
-                encrypted_event = {k.decode(): v.decode() for k, v in encrypted_event_raw.items()}
+                
+                if not encrypted_event_raw:
+                    logger.error(f"Event {event.event_id} not found in storage")
+                    return False
+                
+                # Convert bytes to strings if needed
+                if isinstance(next(iter(encrypted_event_raw.keys()), None), bytes):
+                    encrypted_event = {k.decode(): v.decode() for k, v in encrypted_event_raw.items()}
+                else:
+                    encrypted_event = encrypted_event_raw
                 
                 # Verify chain hash
                 stored_previous_hash = encrypted_event.get('previous_hash')
