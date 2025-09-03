@@ -212,7 +212,7 @@ class TokenManager:
             if hasattr(hgetall_result, '__await__'):
                 session_data = await hgetall_result
             else:
-                session_data = hgetall_result
+                session_data = await hgetall_result
             
             if not session_data or session_data.get("active") != "true":
                 return None
