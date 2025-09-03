@@ -73,7 +73,7 @@ class RetryManager:
             delay = self.config.base_delay * (2 ** (attempt - 1))
         elif self.config.backoff_strategy == BackoffStrategy.EXPONENTIAL_JITTER:
             base_delay = self.config.base_delay * (2 ** (attempt - 1))
-            jitter = base_delay * self.config.jitter_range * (2 * random.random() - 1)
+            jitter = base_delay * self.config.jitter_range * (2 * random.random() - 1)  # nosec B311
             delay = base_delay + jitter
         else:
             delay = self.config.base_delay

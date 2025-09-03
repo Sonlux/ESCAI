@@ -6,7 +6,7 @@ hyperparameter tuning and online learning capabilities.
 """
 
 import asyncio
-import pickle
+
 from typing import List, Dict, Tuple, Optional, Any, Union
 from dataclasses import dataclass
 import numpy as np

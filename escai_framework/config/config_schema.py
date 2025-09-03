@@ -72,7 +72,7 @@ class DatabaseConfig(BaseModel):
 class APIConfig(BaseModel):
     """API configuration schema."""
     
-    host: str = Field(default="0.0.0.0", description="API host address")
+    host: str = Field(default="127.0.0.1", description="API host address")
     port: int = Field(default=8000, ge=1, le=65535, description="API port")
     workers: int = Field(default=4, ge=1, le=32, description="Number of worker processes")
     reload: bool = Field(default=False, description="Enable auto-reload in development")

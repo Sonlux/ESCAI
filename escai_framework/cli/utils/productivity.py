@@ -4,7 +4,8 @@ User experience and productivity features for ESCAI CLI
 
 import os
 import json
-import pickle
+import logging
+
 from typing import Dict, List, Any, Optional, Callable, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -650,6 +651,7 @@ def load_user_data(filename: str) -> Optional[Dict[str, Any]]:
             with open(filepath, 'r') as f:
                 return json.load(f)
         except Exception:
+            logging.warning(f"Could not load user data from {filepath}.", exc_info=True)
             pass
     
     return None

@@ -63,7 +63,7 @@ class InfluxDBManager:
     def __init__(
         self,
         url: str = "http://localhost:8086",
-        token: str = "",
+        token: str = "",  # nosec B107
         org: str = "escai",
         bucket: str = "metrics",
         timeout: int = 10000,

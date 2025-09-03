@@ -3,6 +3,7 @@ Configuration management commands for ESCAI CLI
 """
 
 import json
+import logging
 import os
 from pathlib import Path
 from typing import Dict, Any, Union
@@ -160,7 +161,9 @@ def set(section: str, key: str, value: str):
             converted_value = int(value)
         elif '.' in value and value.replace('.', '').isdigit():
             converted_value = float(value)
-    except:
+    except ValueError:
+        # If conversion fails, keep the value as a string.
+        logging.debug(f"Could not convert \"{value}\" to a specific type. Keeping as string.")
         pass  # Keep as string
     
     config[section][key] = converted_value

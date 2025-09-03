@@ -196,7 +196,7 @@ async def metrics(request: Request) -> Dict[str, Any]:
 if __name__ == "__main__":
     uvicorn.run(
         "escai_framework.api.main:app",
-        host="0.0.0.0",
+        host="127.0.0.1",
         port=8000,
         reload=True,
         log_level="info"

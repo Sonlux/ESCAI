@@ -6,7 +6,6 @@ data models to and from various formats (JSON, dict, etc.).
 """
 
 import json
-import pickle
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
 from collections.abc import Callable as CallableType
@@ -212,51 +211,13 @@ def from_dict(data: Dict[str, Any], model_class: Type[T]) -> T:
         raise SerializationError(f"Failed to create {model_class.__name__} from dict: {e}")
 
 
-def to_pickle(obj: Any) -> bytes:
-    """
-    Serialize object to pickle bytes.
-    
-    Args:
-        obj: Object to serialize
-    
-    Returns:
-        Pickled bytes
-    
-    Raises:
-        SerializationError: If serialization fails
-    """
-    try:
-        return pickle.dumps(obj)
-    except Exception as e:
-        raise SerializationError(f"Failed to pickle object: {e}")
-
-
-def from_pickle(data: bytes) -> Any:
-    """
-    Deserialize object from pickle bytes.
-    
-    Args:
-        data: Pickled bytes
-    
-    Returns:
-        Deserialized object
-    
-    Raises:
-        SerializationError: If deserialization fails
-    """
-    try:
-        return pickle.loads(data)
-    except Exception as e:
-        raise SerializationError(f"Failed to unpickle data: {e}")
-
-
 def serialize_batch(objects: List[Any], format: str = 'json') -> Union[str, bytes]:
     """
     Serialize a batch of objects.
     
     Args:
         objects: List of objects to serialize
-        format: Serialization format ('json' or 'pickle')
+        format: Serialization format ('json')
     
     Returns:
         Serialized data
@@ -266,8 +227,6 @@ def serialize_batch(objects: List[Any], format: str = 'json') -> Union[str, byte
     """
     if format == 'json':
         return to_json(objects)
-    elif format == 'pickle':
-        return to_pickle(objects)
     else:
         raise SerializationError(f"Unsupported format: {format}")
 
@@ -278,7 +237,7 @@ def deserialize_batch(data: Union[str, bytes], format: str = 'json') -> List[Any
     
     Args:
         data: Serialized data
-        format: Serialization format ('json' or 'pickle')
+        format: Serialization format ('json')
     
     Returns:
         List of deserialized objects
@@ -292,13 +251,6 @@ def deserialize_batch(data: Union[str, bytes], format: str = 'json') -> List[Any
         result = from_json(data)
         if not isinstance(result, list):
             raise SerializationError("Expected list from JSON deserialization")
-        return result
-    elif format == 'pickle':
-        if isinstance(data, str):
-            data = data.encode('utf-8')
-        result = from_pickle(data)
-        if not isinstance(result, list):
-            raise SerializationError("Expected list from pickle deserialization")
         return result
     else:
         raise SerializationError(f"Unsupported format: {format}")
@@ -363,15 +315,13 @@ def safe_serialize(obj: Any, format: str = 'json', fallback_to_str: bool = True)
         Serialized data
     """
     # Check format first - invalid formats should always raise an error
-    if format not in ['json', 'pickle']:
+    if format not in ['json']:
         raise SerializationError(f"Unsupported format: {format}")
     
     try:
         if format == 'json':
             return to_json(obj)
-        elif format == 'pickle':
-            return to_pickle(obj)
     except SerializationError:
         if fallback_to_str:
-            return str(obj) if format == 'json' else to_pickle(str(obj))
+            return str(obj)
         raise

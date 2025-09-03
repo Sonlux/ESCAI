@@ -30,7 +30,7 @@ class PIIType(Enum):
     DRIVER_LICENSE = "driver_license"
     BANK_ACCOUNT = "bank_account"
     API_KEY = "api_key"
-    PASSWORD = "password"
+    PASSWORD = "password"  # nosec B105
     CUSTOM = "custom"
 
 

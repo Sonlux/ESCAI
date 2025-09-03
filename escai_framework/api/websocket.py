@@ -213,7 +213,7 @@ class ConnectionManager:
             try:
                 await conn_info.websocket.close()
             except Exception:
-                pass  # Connection already closed
+                logger.info(f"Connection {connection_id} was already closed.")
             await self.disconnect(connection_id)
     
     async def send_personal_message(self, message: str, connection_id: str) -> bool:

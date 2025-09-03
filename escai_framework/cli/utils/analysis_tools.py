@@ -4,6 +4,7 @@ Advanced analysis and exploration tools for ESCAI CLI
 
 import re
 import json
+import logging
 import statistics
 from typing import Dict, List, Any, Optional, Tuple, Callable, Union
 from dataclasses import dataclass, field
@@ -738,7 +739,8 @@ class TimeSeriesAnalyzer:
                     if correlation > best_correlation:
                         best_correlation = correlation
                         best_lag = lag
-                except:
+                except Exception:
+                    logging.debug(f"Could not calculate correlation for lag {lag}", exc_info=True)
                     continue
         
         return {

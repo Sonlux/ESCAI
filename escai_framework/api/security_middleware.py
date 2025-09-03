@@ -151,7 +151,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
                         if isinstance(json_data, dict):
                             request_data.update(json_data)
                 except Exception:
-                    pass  # Invalid JSON will be handled by FastAPI
+                    logger.warning("Could not parse request body as JSON.", exc_info=True)
             
             # Validate input
             if request_data:

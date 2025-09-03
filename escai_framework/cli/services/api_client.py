@@ -4,6 +4,7 @@ API client for ESCAI CLI
 
 import asyncio
 import json
+import logging
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 
@@ -27,7 +28,7 @@ class ESCAIAPIClient:
                     api_config = config.get('api', {})
                     self.base_url = f"http://{api_config.get('host', 'localhost')}:{api_config.get('port', 8000)}"
             except Exception:
-                pass
+                logging.warning(f"Could not load API configuration from {config_file}. Using default URL.", exc_info=True)
     
     async def start_monitoring(self, agent_id: str, framework: str, config: Dict[str, Any]) -> Dict[str, Any]:
         """Start monitoring an agent"""

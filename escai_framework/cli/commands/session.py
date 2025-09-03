@@ -3,6 +3,7 @@ Session management commands for ESCAI CLI
 """
 
 import json
+import logging
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -36,6 +37,7 @@ def get_sessions() -> List[Dict[str, Any]]:
                 session = json.load(f)
                 sessions.append(session)
         except Exception:
+            logging.warning(f"Could not load session file {session_file}", exc_info=True)
             continue
     
     return sorted(sessions, key=lambda x: x.get('start_time', ''), reverse=True)

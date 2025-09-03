@@ -441,6 +441,7 @@ class ConfigVersioning:
                 month_key = timestamp.strftime('%Y-%m')
                 by_month[month_key] = by_month.get(month_key, 0) + 1
             except Exception:
+                logger.warning(f"Could not parse timestamp for version {version.get('id')}", exc_info=True)
                 continue
         
         return by_month

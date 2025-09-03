@@ -9,6 +9,7 @@ import asyncio
 import logging
 import psutil
 import time
+import random
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
@@ -165,6 +166,7 @@ class SystemMonitor:
                 network_io = (bytes_sent_diff + bytes_recv_diff) / self.monitoring_interval
             self._last_net_io = net_io
         except Exception:
+            logger.debug("Could not collect network I/O metrics.", exc_info=True)
             pass
         
         return SystemMetrics(
@@ -313,8 +315,7 @@ class LoadShedder:
         max_shed_percentage = max(rule.shed_percentage for rule in applicable_rules)
         
         # Simple probabilistic shedding
-        import random
-        should_shed = random.random() < max_shed_percentage
+        should_shed = random.random() < max_shed_percentage  # nosec B311
         
         if should_shed:
             with self._lock:

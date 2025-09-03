@@ -119,12 +119,12 @@ class LiveDataSource:
             agent_id = f"agent_{i+1:03d}"
             self.agents[agent_id] = AgentStatus(
                 agent_id=agent_id,
-                status=random.choice(statuses),
-                framework=random.choice(frameworks),
-                uptime=timedelta(hours=random.randint(0, 24), minutes=random.randint(0, 59)),
-                events_processed=random.randint(100, 5000),
-                success_rate=random.uniform(0.7, 0.98),
-                current_task=f"Task {random.randint(1, 100)}"
+                status=random.choice(statuses),  # nosec B311
+                framework=random.choice(frameworks),  # nosec B311
+                uptime=timedelta(hours=random.randint(0, 24), minutes=random.randint(0, 59)),  # nosec B311
+                events_processed=random.randint(100, 5000),  # nosec B311
+                success_rate=random.uniform(0.7, 0.98),  # nosec B311
+                current_task=f"Task {random.randint(1, 100)}"  # nosec B311
             )
         
         # Initialize metrics
@@ -155,23 +155,23 @@ class LiveDataSource:
         while self.running:
             try:
                 # Update metrics with simulated data
-                self.metrics["cpu_usage"].add_value(random.uniform(10, 95))
-                self.metrics["memory_usage"].add_value(random.uniform(30, 90))
+                self.metrics["cpu_usage"].add_value(random.uniform(10, 95))  # nosec B311
+                self.metrics["memory_usage"].add_value(random.uniform(30, 90))  # nosec B311
                 self.metrics["active_agents"].add_value(len([a for a in self.agents.values() if a.status == "active"]))
-                self.metrics["events_per_second"].add_value(random.uniform(50, 200))
-                self.metrics["success_rate"].add_value(random.uniform(85, 98))
-                self.metrics["response_time"].add_value(random.uniform(100, 800))
+                self.metrics["events_per_second"].add_value(random.uniform(50, 200))  # nosec B311
+                self.metrics["success_rate"].add_value(random.uniform(85, 98))  # nosec B311
+                self.metrics["response_time"].add_value(random.uniform(100, 800))  # nosec B311
                 
                 # Update agent statuses
                 for agent in self.agents.values():
-                    if random.random() < 0.1:  # 10% chance to change status
-                        agent.status = random.choice(["active", "idle", "processing"])
+                    if random.random() < 0.1:  # 10% chance to change status  # nosec B311
+                        agent.status = random.choice(["active", "idle", "processing"])  # nosec B311
                     
-                    if random.random() < 0.3:  # 30% chance to process event
+                    if random.random() < 0.3:  # 30% chance to process event  # nosec B311
                         agent.increment_events()
-                        agent.success_rate = random.uniform(0.8, 0.99)
+                        agent.success_rate = random.uniform(0.8, 0.99)  # nosec B311
                     
-                    if random.random() < 0.05:  # 5% chance of error
+                    if random.random() < 0.05:  # 5% chance of error  # nosec B311
                         agent.add_error()
                         agent.status = "error"
                 
@@ -492,9 +492,9 @@ class StreamingLogViewer:
             
             while self.running:
                 timestamp = datetime.now().strftime("%H:%M:%S.%f")[:-3]
-                level = random.choice(log_levels)
-                component = random.choice(components)
-                message = random.choice(messages)
+                level = random.choice(log_levels)  # nosec B311
+                component = random.choice(components)  # nosec B311
+                message = random.choice(messages)  # nosec B311
                 
                 log_entry = f"[{timestamp}] {level:5} {component:8} - {message}"
                 
@@ -506,7 +506,7 @@ class StreamingLogViewer:
                     if len(self.log_buffer) > self.max_lines:
                         self.log_buffer.pop(0)
                 
-                time.sleep(random.uniform(0.1, 0.5))
+                time.sleep(random.uniform(0.1, 0.5))  # nosec B311
         
         log_thread = Thread(target=generate_logs, daemon=True)
         log_thread.start()

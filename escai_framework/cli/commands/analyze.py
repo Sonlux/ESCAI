@@ -1335,9 +1335,9 @@ def timeline(agent_id: str, width: int, hours: int):
         timestamps.append(base_time + timedelta(minutes=15 * i))
         
         # Simulate realistic epistemic state evolution
-        confidence = 0.7 + 0.2 * math.sin(i * 0.1) + random.uniform(-0.1, 0.1)
-        uncertainty = 0.3 + 0.15 * math.cos(i * 0.08) + random.uniform(-0.05, 0.05)
-        belief_count = 50 + 20 * math.sin(i * 0.05) + random.uniform(-5, 5)
+        confidence = 0.7 + 0.2 * math.sin(i * 0.1) + random.uniform(-0.1, 0.1)  # nosec B311
+        uncertainty = 0.3 + 0.15 * math.cos(i * 0.08) + random.uniform(-0.05, 0.05)  # nosec B311
+        belief_count = 50 + 20 * math.sin(i * 0.05) + random.uniform(-5, 5)  # nosec B311
         
         confidence_data.append(max(0, min(1, confidence)))
         uncertainty_data.append(max(0, min(1, uncertainty)))
@@ -1732,9 +1732,9 @@ def prediction_trends(agent_id: str, metric: str, horizon: str):
     
     for i in range(time_points):
         # Simulate prediction trends
-        success_trend = 0.8 + 0.1 * math.sin(i * 0.2) + random.uniform(-0.05, 0.05)
-        confidence_trend = 0.75 + 0.15 * math.cos(i * 0.15) + random.uniform(-0.03, 0.03)
-        performance_trend = 2.0 + 0.5 * math.sin(i * 0.1) + random.uniform(-0.1, 0.1)
+        success_trend = 0.8 + 0.1 * math.sin(i * 0.2) + random.uniform(-0.05, 0.05)  # nosec B311
+        confidence_trend = 0.75 + 0.15 * math.cos(i * 0.15) + random.uniform(-0.03, 0.03)  # nosec B311
+        performance_trend = 2.0 + 0.5 * math.sin(i * 0.1) + random.uniform(-0.1, 0.1)  # nosec B311
         
         predictions['success_rate'].append(max(0, min(1, success_trend)))
         predictions['confidence'].append(max(0, min(1, confidence_trend)))

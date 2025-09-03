@@ -153,7 +153,7 @@ class AuthManager:
         
         return refresh_token
     
-    def verify_token(self, token: str, token_type: str = "access") -> Optional[TokenData]:
+    def verify_token(self, token: str, token_type: str = "access") -> Optional[TokenData]:  # nosec B107
         """Verify JWT token."""
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
