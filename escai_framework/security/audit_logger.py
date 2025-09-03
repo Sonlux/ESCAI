@@ -411,14 +411,15 @@ class AuditLogger:
                     return False
                 
                 # Convert bytes to strings if needed
+                encrypted_event: Dict[str, Any]
                 try:
                     if encrypted_event_raw and isinstance(next(iter(encrypted_event_raw.keys()), None), bytes):
                         encrypted_event = {k.decode(): v.decode() for k, v in encrypted_event_raw.items()}
                     else:
-                        encrypted_event = encrypted_event_raw
+                        encrypted_event = dict(encrypted_event_raw)
                 except (StopIteration, AttributeError):
                     # Handle empty dict or other edge cases
-                    encrypted_event = encrypted_event_raw
+                    encrypted_event = dict(encrypted_event_raw) if encrypted_event_raw else {}
                 
                 # Verify chain hash
                 stored_previous_hash = encrypted_event.get('previous_hash')
