@@ -144,6 +144,7 @@ jobs:
         run: |
           until pg_isready -h localhost -U postgres; do sleep 1; done
           psql -h localhost -U postgres -d test_db -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'root') THEN CREATE ROLE root WITH LOGIN SUPERUSER PASSWORD 'postgres'; END IF; END \$\$;"
+          psql -h localhost -U postgres -d test_db -c "\du"
 
       - name: Run unit tests
         env:
