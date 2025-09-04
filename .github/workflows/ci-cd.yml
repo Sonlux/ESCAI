@@ -140,13 +140,17 @@ jobs:
         run: |
           bandit -r escai_framework
 
+      - name: Create root user in PostgreSQL
+        run: |
+          until pg_isready -h localhost -U postgres; do sleep 1; done
+          psql -h localhost -U postgres -d test_db -c "CREATE ROLE root WITH LOGIN SUPERUSER PASSWORD 'postgres';"
+
       - name: Run unit tests
         env:
           DATABASE_URL: postgresql://root:postgres@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379/0
           MONGODB_URL: mongodb://admin:password@localhost:27017/test_db?authSource=admin
         run: |
-          psql -h localhost -U postgres -d test_db -c "CREATE ROLE root WITH LOGIN SUPERUSER PASSWORD 'postgres';"
           pytest tests/unit/ -v --cov=escai_framework --cov-report=xml --cov-report=html
 
       - name: Run integration tests
