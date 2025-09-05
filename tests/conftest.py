@@ -13,10 +13,17 @@ import numpy as np
 from datetime import datetime, timedelta
 
 # Import ESCAI models and components
-from escai_framework.models.epistemic_state import EpistemicState, BeliefState, KnowledgeState, GoalState
-from escai_framework.models.behavioral_pattern import BehavioralPattern, ExecutionSequence
-from escai_framework.models.causal_relationship import CausalRelationship
-from escai_framework.models.prediction_result import PredictionResult
+try:
+    from escai_framework.models.epistemic_state import EpistemicState, BeliefState, KnowledgeState, GoalState
+    from escai_framework.models.behavioral_pattern import BehavioralPattern, ExecutionSequence
+    from escai_framework.models.causal_relationship import CausalRelationship
+    from escai_framework.models.prediction_result import PredictionResult
+except ModuleNotFoundError:
+    # fallback if models/ isn’t a subpackage
+    from escai_framework.epistemic_state import EpistemicState, BeliefState, KnowledgeState, GoalState
+    from escai_framework.behavioral_pattern import BehavioralPattern, ExecutionSequence
+    from escai_framework.causal_relationship import CausalRelationship
+    from escai_framework.prediction_result import PredictionResult
 from escai_framework.instrumentation.events import AgentEvent, EventType
 
 
