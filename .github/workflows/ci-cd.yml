@@ -139,13 +139,18 @@ jobs:
 
       
 
+      - name: Install package
+        run: |
+          pip install -e .
+          pip list | grep escai
+      - name: Debug structure
+        run: ls -R .
       - name: Run unit tests
         env:
           DATABASE_URL: postgresql://root:postgres@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379/0
           MONGODB_URL: mongodb://admin:password@localhost:27017/test_db?authSource=admin
         run: |
-          export PYTHONPATH=$PYTHONPATH:$(pwd)
           pytest tests/unit/ -v --cov=escai_framework --cov-report=xml --cov-report=html
 
       - name: Run integration tests
