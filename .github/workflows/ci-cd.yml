@@ -140,11 +140,7 @@ jobs:
         run: |
           bandit -r escai_framework
 
-      - name: Create root user in PostgreSQL
-        run: |
-          until pg_isready -h localhost -U postgres; do sleep 1; done
-          psql -h localhost -U postgres -d test_db -c "DO \$\$ BEGIN IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'root') THEN CREATE ROLE root WITH LOGIN SUPERUSER PASSWORD 'postgres'; END IF; END \$\$;"
-          psql -h localhost -U postgres -d test_db -c "\du"
+      
 
       - name: Run unit tests
         env:
@@ -272,6 +268,27 @@ jobs:
       - name: Extract metadata for scan
         id: meta
         uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.version }}
+          format: "sarif"
+          output: "trivy-results.sarif"
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: "trivy-results.sarif"
+cker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
