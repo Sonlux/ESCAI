@@ -79,7 +79,7 @@ class ConfigValidator:
         
         # Validate API host
         try:
-            if config.api.host not in ['0.0.0.0', 'localhost', '127.0.0.1']:
+            if config.api.host not in ['localhost', '127.0.0.1']:
                 ipaddress.ip_address(config.api.host)
         except ValueError:
             errors.append(f"Invalid API host: {config.api.host}")

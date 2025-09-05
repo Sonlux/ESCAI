@@ -136,8 +136,8 @@ class EpistemicExtractor:
         
         if AutoTokenizer is not None and AutoModel is not None:
             try:
-                self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-                self.model = AutoModel.from_pretrained(self.model_name, trust_remote_code=False)  # nosec B615
+                self.tokenizer = AutoTokenizer.from_pretrained(self.model_name, revision="main")  # nosec B615
+                self.model = AutoModel.from_pretrained(self.model_name, revision="main", trust_remote_code=False)  # nosec B615
             except Exception as e:
                 self.logger.warning(f"Could not initialize transformer model: {e}")
         

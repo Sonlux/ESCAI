@@ -492,7 +492,8 @@ class BaseInstrumentor(ABC):
         # Wait for processing task to complete
         if self._processing_task and not self._processing_task.done():
             try:
-                assert self._processing_task is not None
+                if self._processing_task is None:
+                    raise RuntimeError("Processing task is missing")
                 await asyncio.wait_for(self._processing_task, timeout=5.0)
             except asyncio.TimeoutError:
                 self.logger.warning("Processing task did not complete within timeout")
