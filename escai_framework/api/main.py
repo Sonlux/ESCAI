@@ -1,3 +1,6 @@
+import gevent.monkey
+gevent.monkey.patch_all()
+
 """
 Main FastAPI application for ESCAI Framework API.
 """
