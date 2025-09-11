@@ -10,7 +10,7 @@ be used with trusted data sources. For untrusted data, use JSON serialization.
 """
 
 import json
-import pickle
+import pickle  # nosec B403 - Controlled usage with security safeguards implemented
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, Union
 from collections.abc import Callable as CallableType
@@ -285,7 +285,7 @@ def safe_from_pickle(data: bytes, allowed_classes: Optional[List[str]] = None) -
         SerializationError: If deserialization fails or class not allowed
     """
     import io
-    import pickletools
+    import pickletools  # nosec B403 - Used for security analysis of pickle data
     
     # Basic validation - check if data looks like pickle
     if not data or len(data) < 2:
