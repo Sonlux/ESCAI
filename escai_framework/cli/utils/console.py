@@ -86,7 +86,7 @@ COLOR_SCHEMES = {
 _console = None
 _current_theme = "default"
 
-def get_console(theme: str = None) -> Console:
+def get_console(theme: str | None = None) -> Console:
     """Get the global console instance with optional theme"""
     global _console, _current_theme
     
