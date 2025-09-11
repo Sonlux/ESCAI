@@ -256,3 +256,58 @@ docs/_build/
 # Exclude performance profiling results
 *.prof
 profiling_results/
+
+# ============================================================================
+# RESEARCH FOCUS CLEANUP - Files moved to maintain clean research environment
+# All files below are preserved in repository but hidden from normal view
+# To restore visibility, remove the patterns below or restore from .gitignore.backup
+# ============================================================================
+
+# CI/CD and Deployment Infrastructure
+.github/
+helm/
+k8s/
+docker/
+docker-compose.yml
+Dockerfile
+
+# Implementation Summary Documentation
+*_IMPLEMENTATION_SUMMARY.md
+MYPY_*.md
+FLAKE8_*.md
+PYTHON_*.md
+
+# Development and Testing Artifacts
+test_*.py
+fix_imports.py
+verify_*.py
+analytics_demo.py
+run_tests.py
+
+# Generated Reports and Exports
+*.json
+!pyproject.toml
+!package.json
+mypy_output.txt
+comprehensive_test_report.json
+escai_export_*.json
+compatible.json
+
+# Development Configuration Files
+alembic.ini
+mypy.ini
+test_config.yaml
+
+# Development Notes and Documentation
+problems.md
+errors.md
+trysol.md
+INSTALLATION.md
+TESTING.md
+
+# Junk and Temporary Files
+erg sbergsgvergxawrga
+
+# Cleanup Strategy Documentation (temporary)
+CLEANUP_STRATEGY.md
+.gitignore.backup
