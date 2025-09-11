@@ -219,8 +219,7 @@ class TestEpistemicState:
         goal = GoalState(
             description="Test goal",
             status=GoalStatus.ACTIVE,
-            priority=5,
-            progress=0.4
+            priority=5
         )
         
         timestamp = datetime.utcnow()
@@ -231,8 +230,7 @@ class TestEpistemicState:
             knowledge_state=knowledge,
             goal_states=[goal],
             confidence_level=0.75,
-            uncertainty_score=0.25,
-            decision_context={"context_key": "context_value"}
+            uncertainty_score=0.25
         )
         
         assert epistemic_state.agent_id == "test_agent"
@@ -242,7 +240,6 @@ class TestEpistemicState:
         assert len(epistemic_state.goal_states) == 1
         assert epistemic_state.confidence_level == 0.75
         assert epistemic_state.uncertainty_score == 0.25
-        assert epistemic_state.decision_context == {"context_key": "context_value"}
     
     def test_epistemic_state_validation(self):
         """Test EpistemicState validation."""
