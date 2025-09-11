@@ -20,10 +20,8 @@ try:
     from escai_framework.models.prediction_result import PredictionResult
 except ModuleNotFoundError:
     # fallback if models/ isn’t a subpackage
-    from escai_framework.epistemic_state import EpistemicState, BeliefState, KnowledgeState, GoalState, GoalStatus
-    from escai_framework.behavioral_pattern import BehavioralPattern, ExecutionSequence, ExecutionStep, ExecutionStatus
-    from escai_framework.causal_relationship import CausalRelationship
-    from escai_framework.prediction_result import PredictionResult
+    raise ImportError("Could not import ESCAI models. Please ensure the package is properly installed.")
+
 from escai_framework.instrumentation.events import AgentEvent, EventType
 
 
