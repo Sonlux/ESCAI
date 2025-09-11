@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Basic setup test to verify ESCAI framework installation and functionality."""
+"""Basic setup test to verify ESCAI framework installation and functionality (ASCII only)."""
 
 import sys
 import traceback
@@ -29,7 +29,7 @@ def test_basic_imports():
         return True
         
     except ImportError as e:
-        print(f"❌ Import failed: {e}")
+        print(f"[ERROR] Import failed: {e}")
         traceback.print_exc()
         return False
 
@@ -50,23 +50,23 @@ def test_basic_functionality():
         
         # Test validation
         if belief.validate():
-            print("✅ BeliefState creation and validation works")
+            print("[OK] BeliefState creation and validation works")
         else:
-            print("❌ BeliefState validation failed")
+            print("[ERROR] BeliefState validation failed")
             return False
         
         # Test serialization
         belief_dict = belief.to_dict()
         if isinstance(belief_dict, dict) and 'content' in belief_dict:
-            print("✅ BeliefState serialization works")
+            print("[OK] BeliefState serialization works")
         else:
-            print("❌ BeliefState serialization failed")
+            print("[ERROR] BeliefState serialization failed")
             return False
         
         return True
         
     except Exception as e:
-        print(f"❌ Functionality test failed: {e}")
+        print(f"[ERROR] Functionality test failed: {e}")
         traceback.print_exc()
         return False
 
@@ -80,16 +80,16 @@ def test_package_structure():
         import escai_framework.core
         import escai_framework.instrumentation
         
-        print("✅ All main packages are accessible")
+        print("[OK] All main packages are accessible")
         
         # Test that __all__ exports work
         from escai_framework import EpistemicState, BeliefState
-        print("✅ Main package exports work correctly")
+        print("[OK] Main package exports work correctly")
         
         return True
         
     except ImportError as e:
-        print(f"❌ Package structure test failed: {e}")
+        print(f"[ERROR] Package structure test failed: {e}")
         return False
 
 def main():
@@ -110,16 +110,16 @@ def main():
         if test():
             passed += 1
         else:
-            print(f"\n❌ Test {test.__name__} failed!")
+            print(f"\n[ERROR] Test {test.__name__} failed!")
     
     print("\n" + "=" * 50)
-    print(f"📊 Results: {passed}/{total} tests passed")
+    print(f"Results: {passed}/{total} tests passed")
     
     if passed == total:
-        print("🎉 All basic setup tests passed! ESCAI Framework is ready to use.")
+        print("SUCCESS: All basic setup tests passed! ESCAI Framework is ready to use.")
         return 0
     else:
-        print("💥 Some tests failed. Please check the setup.")
+        print("FAILURE: Some tests failed. Please check the setup.")
         return 1
 
 if __name__ == "__main__":

@@ -10,6 +10,11 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+# Also add the current directory to ensure package discovery
+current_dir = Path.cwd()
+if str(current_dir) not in sys.path:
+    sys.path.insert(0, str(current_dir))
+
 def validate_imports():
     """Test importing all main modules."""
     errors = []
