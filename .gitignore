@@ -270,6 +270,13 @@ k8s/
 docker/
 docker-compose.yml
 Dockerfile
+pyproject.toml
+
+# Additional Development Files for Clean GitHub Appearance
+requirements-dev.txt
+setup.py
+MANIFEST.in
+mypy.ini
 
 # Implementation Summary Documentation
 *_IMPLEMENTATION_SUMMARY.md
@@ -286,8 +293,8 @@ run_tests.py
 
 # Generated Reports and Exports
 *.json
-!pyproject.toml
 !package.json
+!config/*.json
 mypy_output.txt
 comprehensive_test_report.json
 escai_export_*.json
@@ -304,10 +311,20 @@ errors.md
 trysol.md
 INSTALLATION.md
 TESTING.md
+CLI_RESEARCH_EXAMPLES.md
 
 # Junk and Temporary Files
 erg sbergsgvergxawrga
 
+# Additional Files to Hide for Clean Repository
+ESCAI Framework_ Detailed AI IDE-Friendly Implemen.md
+MYPY_RESOLUTION_FINAL_STATUS.md
+
 # Cleanup Strategy Documentation (temporary)
 CLEANUP_STRATEGY.md
 .gitignore.backup
+
+# Additional Development and Build Files
+*.egg-info/
+escai.egg-info/
+escai_framework.egg-info/
