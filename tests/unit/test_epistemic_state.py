@@ -36,7 +36,7 @@ class TestBeliefState:
         """Test validation of valid BeliefState."""
         belief = BeliefState(
             content="Valid belief",
-            belief_type=BeliefType.PROBABILISTIC,
+            belief_type=BeliefType.PREDICTIVE,
             confidence=0.7
         )
         assert belief.validate() is True

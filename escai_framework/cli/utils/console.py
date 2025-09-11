@@ -118,4 +118,7 @@ def create_themed_console(scheme: str) -> Console:
     """Create a console with specific theme without affecting global instance"""
     if scheme in COLOR_SCHEMES:
         return Console(theme=COLOR_SCHEMES[scheme])
+
+# Export the default theme as escai_theme for backward compatibility
+escai_theme = COLOR_SCHEMES["default"]
     return Console(theme=COLOR_SCHEMES["default"])

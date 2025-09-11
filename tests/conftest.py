@@ -14,14 +14,14 @@ from datetime import datetime, timedelta
 
 # Import ESCAI models and components
 try:
-    from escai_framework.models.epistemic_state import EpistemicState, BeliefState, KnowledgeState, GoalState
-    from escai_framework.models.behavioral_pattern import BehavioralPattern, ExecutionSequence
+    from escai_framework.models.epistemic_state import EpistemicState, BeliefState, KnowledgeState, GoalState, GoalStatus
+    from escai_framework.models.behavioral_pattern import BehavioralPattern, ExecutionSequence, ExecutionStep, ExecutionStatus
     from escai_framework.models.causal_relationship import CausalRelationship
     from escai_framework.models.prediction_result import PredictionResult
 except ModuleNotFoundError:
     # fallback if models/ isn’t a subpackage
-    from escai_framework.epistemic_state import EpistemicState, BeliefState, KnowledgeState, GoalState
-    from escai_framework.behavioral_pattern import BehavioralPattern, ExecutionSequence
+    from escai_framework.epistemic_state import EpistemicState, BeliefState, KnowledgeState, GoalState, GoalStatus
+    from escai_framework.behavioral_pattern import BehavioralPattern, ExecutionSequence, ExecutionStep, ExecutionStatus
     from escai_framework.causal_relationship import CausalRelationship
     from escai_framework.prediction_result import PredictionResult
 from escai_framework.instrumentation.events import AgentEvent, EventType
@@ -58,7 +58,6 @@ def sample_session_id():
 def sample_belief_state():
     """Sample belief state for testing."""
     return BeliefState(
-        belief_id="belief_001",
         content="The user wants to analyze sales data",
         confidence=0.85,
         timestamp=datetime.now(),
@@ -71,9 +70,8 @@ def sample_knowledge_state():
     """Sample knowledge state for testing."""
     return KnowledgeState(
         facts=["Sales data is in CSV format", "Data contains 1000 records"],
-        concepts=["data analysis", "sales metrics"],
-        relationships={"sales": ["revenue", "profit", "customers"]},
-        timestamp=datetime.now()
+        confidence=0.9,
+        source="test_data"
     )
 
 
@@ -81,10 +79,10 @@ def sample_knowledge_state():
 def sample_goal_state():
     """Sample goal state for testing."""
     return GoalState(
-        primary_goal="Analyze sales performance",
-        sub_goals=["Load data", "Calculate metrics", "Generate report"],
-        progress=0.3,
-        timestamp=datetime.now()
+        description="Analyze sales performance",
+        primary_goals=["Load data", "Calculate metrics", "Generate report"],
+        priority=7,
+        status=GoalStatus.ACTIVE
     )
 
 
@@ -96,10 +94,9 @@ def sample_epistemic_state(sample_agent_id, sample_belief_state, sample_knowledg
         timestamp=datetime.now(),
         belief_states=[sample_belief_state],
         knowledge_state=sample_knowledge_state,
-        goal_state=sample_goal_state,
+        goal_states=[sample_goal_state],
         confidence_level=0.8,
-        uncertainty_score=0.2,
-        decision_context={"task": "data_analysis", "priority": "high"}
+        uncertainty_score=0.2
     )
 
 
@@ -110,9 +107,9 @@ def sample_execution_sequence():
         sequence_id="seq_001",
         agent_id="test_agent_001",
         steps=[
-            {"action": "load_data", "timestamp": datetime.now(), "success": True},
-            {"action": "validate_data", "timestamp": datetime.now(), "success": True},
-            {"action": "analyze_data", "timestamp": datetime.now(), "success": False}
+            ExecutionStep(step_id="step_1", action="load_data", status=ExecutionStatus.SUCCESS),
+            ExecutionStep(step_id="step_2", action="validate_data", status=ExecutionStatus.SUCCESS),
+            ExecutionStep(step_id="step_3", action="analyze_data", status=ExecutionStatus.FAILED)
         ],
         start_time=datetime.now() - timedelta(minutes=5),
         end_time=datetime.now(),
@@ -140,15 +137,37 @@ def sample_behavioral_pattern(sample_execution_sequence):
 @pytest.fixture
 def sample_causal_relationship():
     """Sample causal relationship for testing."""
+    from escai_framework.models.causal_relationship import CausalEvent, CausalEvidence, EvidenceType
+    
+    cause_event = CausalEvent(
+        event_id="cause_001",
+        event_type="validation_failure",
+        description="Data validation failed"
+    )
+    
+    effect_event = CausalEvent(
+        event_id="effect_001", 
+        event_type="task_failure",
+        description="Analysis task failed"
+    )
+    
+    evidence = [
+        CausalEvidence(
+            evidence_type=EvidenceType.TEMPORAL,
+            description="Temporal correlation observed",
+            strength=0.85,
+            confidence=0.90
+        )
+    ]
+    
     return CausalRelationship(
-        cause_event="data_validation_failure",
-        effect_event="analysis_task_failure",
+        relationship_id="rel_001",
+        cause_event=cause_event,
+        effect_event=effect_event,
         strength=0.82,
         confidence=0.91,
         delay_ms=150,
-        evidence=["Temporal correlation", "Statistical significance"],
-        statistical_significance=0.99,
-        causal_mechanism="Invalid data prevents analysis execution"
+        evidence=evidence
     )
 
 
@@ -156,15 +175,15 @@ def sample_causal_relationship():
 def sample_prediction_result():
     """Sample prediction result for testing."""
     return PredictionResult(
-        prediction_id="pred_001",
         agent_id="test_agent_001",
-        predicted_outcome="success",
+        prediction_type="success_probability",
+        predicted_value=0.87,
         confidence=0.87,
-        probability_distribution={"success": 0.87, "failure": 0.13},
+        uncertainty=0.13,
         risk_factors=["data_quality", "time_constraint"],
         recommended_actions=["validate_data_first", "increase_timeout"],
         timestamp=datetime.now(),
-        model_version="v1.2.3"
+        model_used="v1.2.3"
     )
 
 
@@ -183,14 +202,14 @@ def sample_agent_events():
         AgentEvent(
             event_id="event_002",
             agent_id="test_agent_001",
-            event_type=EventType.DECISION_MADE,
+            event_type=EventType.DECISION_COMPLETE,
             timestamp=base_time + timedelta(seconds=30),
             data={"decision": "load_csv_data", "confidence": 0.9}
         ),
         AgentEvent(
             event_id="event_003",
             agent_id="test_agent_001",
-            event_type=EventType.ERROR_OCCURRED,
+            event_type=EventType.AGENT_ERROR,
             timestamp=base_time + timedelta(minutes=2),
             data={"error": "FileNotFoundError", "message": "sales.csv not found"}
         )
@@ -330,12 +349,14 @@ class TestDataGenerator:
                 if not step_success:
                     success = False
                 
-                steps.append({
-                    "action": action,
-                    "timestamp": current_time,
-                    "success": step_success,
-                    "duration": np.random.exponential(30)  # seconds
-                })
+                status = ExecutionStatus.SUCCESS if step_success else ExecutionStatus.FAILED
+                steps.append(ExecutionStep(
+                    step_id=f"step_{i}_{j}",
+                    action=action,
+                    timestamp=current_time,
+                    status=status,
+                    duration=np.random.exponential(30)  # seconds
+                ))
                 current_time += timedelta(seconds=np.random.exponential(60))
             
             sequences.append(ExecutionSequence(
