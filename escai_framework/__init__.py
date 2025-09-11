@@ -1,8 +1,26 @@
-"""
-ESCAI Framework - Epistemic State and Causal Analysis Intelligence
+"""ESCAI Framework - Epistemic State Cognitive AI Framework."""
 
-A comprehensive observability system for monitoring autonomous agent cognition in real-time.
-"""
-
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__ = "ESCAI Framework Team"
+
+from escai_framework.models import (
+    EpistemicState,
+    BeliefState,
+    KnowledgeState,
+    GoalState,
+    BehavioralPattern,
+    ExecutionSequence,
+    CausalRelationship,
+    PredictionResult,
+)
+
+__all__ = [
+    "EpistemicState",
+    "BeliefState",
+    "KnowledgeState",
+    "GoalState",
+    "BehavioralPattern",
+    "ExecutionSequence",
+    "CausalRelationship",
+    "PredictionResult",
+]

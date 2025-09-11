@@ -2,15 +2,21 @@
 Pytest configuration and fixtures for ESCAI Framework tests.
 """
 
-import asyncio
+import sys
 import os
+import asyncio
 import tempfile
+from pathlib import Path
 from typing import AsyncGenerator, Dict, Any, List
 from unittest.mock import AsyncMock, MagicMock
 import pytest
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+
+# Add the project root to the Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 # Import ESCAI models and components
 try:
@@ -31,6 +37,12 @@ def event_loop():
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
+
+
+@pytest.fixture(scope="session")
+def test_data_dir():
+    """Return the test data directory."""
+    return Path(__file__).parent / "data"
 
 
 @pytest.fixture
