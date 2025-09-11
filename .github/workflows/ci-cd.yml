@@ -122,7 +122,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
-          pip install -e .
+
+      - name: Install ESCAI package in development mode
+        run: |
+          # Install the package in editable mode with test dependencies
+          pip install -e ".[test]"
+          echo "✅ ESCAI package installed successfully"
+          pip list | grep escai || echo "⚠️  ESCAI not found in pip list, but should be available for import"
+
+      - name: Verify ESCAI installation
+        run: |
+          python scripts/validate_imports.py
 
       - name: Lint with flake8
         run: |
@@ -136,30 +146,23 @@ jobs:
       - name: Security check with bandit
         run: |
           bandit -r escai_framework
-
-      
-
-      - name: Install package
-        run: |
-          pip install -e .
-          pip list | grep escai
-      - name: Debug structure
-        run: ls -R .
       - name: Run unit tests
         env:
           DATABASE_URL: postgresql://root:postgres@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379/0
           MONGODB_URL: mongodb://admin:password@localhost:27017/test_db?authSource=admin
+          PYTHONPATH: ${{ github.workspace }}:$PYTHONPATH
         run: |
-          pytest tests/unit/ -v --cov=escai_framework --cov-report=xml --cov-report=html
+          python scripts/run_tests.py --unit --coverage --verbose
 
       - name: Run integration tests
         env:
           DATABASE_URL: postgresql://root:postgres@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379/0
           MONGODB_URL: mongodb://admin:password@localhost:27017/test_db?authSource=admin
+          PYTHONPATH: ${{ github.workspace }}:$PYTHONPATH
         run: |
-          pytest tests/integration/ -v
+          python scripts/run_tests.py --integration --verbose
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
