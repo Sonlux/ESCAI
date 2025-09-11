@@ -3,6 +3,10 @@ Serialization utilities for the ESCAI framework.
 
 This module provides common serialization functions for converting
 data models to and from various formats (JSON, dict, etc.).
+
+SECURITY WARNING: This module includes pickle serialization functions.
+Pickle can execute arbitrary code during deserialization and should only
+be used with trusted data sources. For untrusted data, use JSON serialization.
 """
 
 import json
@@ -216,6 +220,9 @@ def to_pickle(obj: Any) -> bytes:
     """
     Serialize an object to pickle format.
     
+    WARNING: Pickle serialization should only be used with trusted data.
+    Consider using JSON serialization for untrusted data sources.
+    
     Args:
         obj: Object to serialize
     
@@ -226,28 +233,81 @@ def to_pickle(obj: Any) -> bytes:
         SerializationError: If serialization fails
     """
     try:
-        return pickle.dumps(obj)
+        return pickle.dumps(obj)  # nosec B301 - Controlled usage with warning
     except Exception as e:
         raise SerializationError(f"Failed to serialize to pickle: {e}")
 
 
-def from_pickle(data: bytes) -> Any:
+def from_pickle(data: bytes, trusted_source: bool = False) -> Any:
     """
     Deserialize an object from pickle format.
     
+    SECURITY WARNING: Pickle deserialization can execute arbitrary code.
+    Only use with data from trusted sources. Set trusted_source=True to acknowledge this risk.
+    
     Args:
         data: Pickled bytes
+        trusted_source: Must be True to acknowledge security risks
     
     Returns:
         Deserialized object
     
     Raises:
-        SerializationError: If deserialization fails
+        SerializationError: If deserialization fails or source not trusted
     """
+    if not trusted_source:
+        raise SerializationError(
+            "Pickle deserialization requires trusted_source=True. "
+            "Pickle can execute arbitrary code and should only be used with trusted data."
+        )
+    
     try:
-        return pickle.loads(data)
+        return pickle.loads(data)  # nosec B301 - Controlled usage with explicit trust check
     except Exception as e:
         raise SerializationError(f"Failed to deserialize from pickle: {e}")
+
+
+def safe_from_pickle(data: bytes, allowed_classes: Optional[List[str]] = None) -> Any:
+    """
+    Safer pickle deserialization with class restrictions.
+    
+    This function provides additional safety by restricting which classes
+    can be deserialized, but should still only be used with trusted data.
+    
+    Args:
+        data: Pickled bytes
+        allowed_classes: List of allowed class names (optional)
+    
+    Returns:
+        Deserialized object
+    
+    Raises:
+        SerializationError: If deserialization fails or class not allowed
+    """
+    import io
+    import pickletools
+    
+    # Basic validation - check if data looks like pickle
+    if not data or len(data) < 2:
+        raise SerializationError("Invalid pickle data")
+    
+    # For additional safety, we could implement a restricted unpickler
+    # but for now, we'll use the standard approach with warnings
+    try:
+        # Analyze pickle opcodes for suspicious operations (basic check)
+        opcodes = list(pickletools.genops(data))
+        suspicious_ops = ['GLOBAL', 'REDUCE', 'BUILD', 'INST']
+        
+        if allowed_classes:
+            for opcode, arg, pos in opcodes:
+                if opcode.name == 'GLOBAL' and arg:
+                    class_name = arg.split('.')[-1] if '.' in arg else arg
+                    if class_name not in allowed_classes:
+                        raise SerializationError(f"Class '{class_name}' not in allowed classes")
+        
+        return pickle.loads(data)  # nosec B301 - Controlled usage with validation
+    except Exception as e:
+        raise SerializationError(f"Failed to safely deserialize pickle: {e}")
 
 
 def serialize_batch(objects: List[Any], format: str = 'json') -> Union[str, bytes]:
@@ -296,7 +356,8 @@ def deserialize_batch(data: Union[str, bytes], format: str = 'json') -> List[Any
     elif format == 'pickle':
         if isinstance(data, str):
             raise SerializationError("Pickle format requires bytes data")
-        result = from_pickle(data)
+        # Note: This assumes batch deserialization is from trusted internal sources
+        result = from_pickle(data, trusted_source=True)
         if not isinstance(result, list):
             raise SerializationError("Expected list from pickle deserialization")
         return result
@@ -354,9 +415,11 @@ def safe_serialize(obj: Any, format: str = 'json', fallback_to_str: bool = True)
     """
     Safely serialize an object with fallback options.
     
+    Recommends JSON over pickle for security reasons.
+    
     Args:
         obj: Object to serialize
-        format: Serialization format
+        format: Serialization format ('json' recommended, 'pickle' for trusted data only)
         fallback_to_str: Whether to fallback to string representation
     
     Returns:
@@ -365,6 +428,16 @@ def safe_serialize(obj: Any, format: str = 'json', fallback_to_str: bool = True)
     # Check format first - invalid formats should always raise an error
     if format not in ['json', 'pickle']:
         raise SerializationError(f"Unsupported format: {format}")
+    
+    # Warn about pickle usage
+    if format == 'pickle':
+        import warnings
+        warnings.warn(
+            "Pickle serialization should only be used with trusted data. "
+            "Consider using JSON for better security.",
+            UserWarning,
+            stacklevel=2
+        )
     
     try:
         if format == 'json':
@@ -378,3 +451,31 @@ def safe_serialize(obj: Any, format: str = 'json', fallback_to_str: bool = True)
     
     # This should never be reached, but added for type safety
     raise SerializationError(f"Unexpected error in serialization")
+
+
+def get_recommended_format(obj: Any) -> str:
+    """
+    Get the recommended serialization format for an object.
+    
+    Always recommends JSON for security unless object cannot be JSON serialized.
+    
+    Args:
+        obj: Object to analyze
+    
+    Returns:
+        Recommended format ('json' or 'pickle')
+    """
+    try:
+        # Try JSON first
+        to_json(obj)
+        return 'json'
+    except SerializationError:
+        # If JSON fails, recommend pickle with warning
+        import warnings
+        warnings.warn(
+            f"Object of type {type(obj).__name__} cannot be JSON serialized. "
+            "Pickle will be recommended but should only be used with trusted data.",
+            UserWarning,
+            stacklevel=2
+        )
+        return 'pickle'

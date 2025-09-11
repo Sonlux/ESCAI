@@ -351,7 +351,7 @@ class TestPickleSerialization:
         """Test basic pickle deserialization."""
         data = {"key": "value", "number": 42}
         pickled = pickle.dumps(data)
-        result = from_pickle(pickled)
+        result = from_pickle(pickled, trusted_source=True)
         
         assert result == data
     
@@ -369,7 +369,20 @@ class TestPickleSerialization:
         invalid_pickle = b"invalid pickle data"
         
         with pytest.raises(SerializationError):
-            from_pickle(invalid_pickle)
+            from_pickle(invalid_pickle, trusted_source=True)
+    
+    def test_pickle_security_check(self):
+        """Test that pickle deserialization requires trusted_source=True."""
+        data = {"key": "value"}
+        pickled = pickle.dumps(data)
+        
+        # Should raise error without trusted_source=True
+        with pytest.raises(SerializationError, match="trusted_source=True"):
+            from_pickle(pickled)
+        
+        # Should work with trusted_source=True
+        result = from_pickle(pickled, trusted_source=True)
+        assert result == data
 
 
 class TestBatchSerialization:
