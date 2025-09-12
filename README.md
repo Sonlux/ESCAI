@@ -1,343 +1,168 @@
 # ESCAI Framework
 
-**Epistemic State and Causal Analysis Intelligence**
+A comprehensive observability system for monitoring autonomous agent cognition in real-time. ESCAI (Epistemic State and Causal Analysis Intelligence) provides deep insights into how AI agents think, decide, and behave during task execution, enabling researchers and developers to understand agent behavior patterns, causal relationships, and performance characteristics.
 
-A comprehensive CLI framework for monitoring autonomous agent cognition in real-time, designed for research in epistemic state monitoring and causal inference. ESCAI provides deep insights into how AI agents think, decide, and behave during task execution.
+## Getting Started
 
-## 🎓 Research Context
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
-This framework supports research in **"Epistemic State monitoring and causal inference in autonomous agent cognition"** by providing:
+### Prerequisites
 
-- **Real-time Epistemic State Extraction**: Monitor agent beliefs, knowledge, and goals as they evolve
-- **Causal Relationship Discovery**: Analyze cause-effect relationships in agent decision-making
-- **Behavioral Pattern Analysis**: Identify and analyze patterns in agent execution strategies
-- **Performance Prediction**: Forecast task outcomes and identify potential failure modes
-- **Multi-Framework Support**: Compatible with LangChain, AutoGen, CrewAI, and OpenAI Assistants
+What things you need to install the software and how to install them:
 
-## 🚀 Installation
-
-### Quick Install
+- **Python 3.10 or higher**
+- **4GB RAM minimum** (8GB recommended for large datasets)
+- **1GB free disk space** for installation and data storage
+- **Git** for version control
 
 ```bash
-# Install the ESCAI framework
+# Check Python version
+python --version
+
+# Check available memory
+python -c "import psutil; print(f'Available RAM: {psutil.virtual_memory().available / (1024**3):.1f} GB')"
+```
+
+### Installing
+
+A step by step series of examples that tell you how to get a development environment running:
+
+**Step 1: Clone the repository**
+
+```bash
+git clone https://github.com/Sonlux/ESCAI.git
+cd ESCAI
+```
+
+**Step 2: Create a virtual environment**
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+**Step 3: Install dependencies**
+
+```bash
+# Install basic dependencies
 pip install -e .
 
-# Install with full dependencies for research
+# Or install with full research dependencies
 pip install -e ".[full]"
+```
 
-# Verify installation
+**Step 4: Verify installation**
+
+```bash
 escai --version
-```
-
-### System Requirements
-
-- **Python**: 3.10 or higher
-- **Memory**: 4GB RAM minimum (8GB recommended for large datasets)
-- **Storage**: 1GB free space for installation and data
-- **Monitoring Overhead**: < 5% impact on agent execution (configurable)
-
-## 🖥️ CLI Commands
-
-The ESCAI CLI provides a comprehensive interface for epistemic state monitoring and causal analysis research.
-
-### Core Command Groups
-
-#### 🔍 Monitoring Commands
-
-```bash
-# Start monitoring an agent
-escai monitor start --agent-id <agent-id> --framework <framework>
-
-# View real-time agent status
-escai monitor status --refresh 2
-
-# Monitor epistemic states in real-time
-escai monitor epistemic --agent-id <agent-id> --refresh 3
-
-# Launch comprehensive monitoring dashboard
-escai monitor dashboard
-
-# Stream live agent logs with filtering
-escai monitor logs --filter "error" --highlight "timeout"
-
-# Stop monitoring sessions
-escai monitor stop --session-id <session-id>
-```
-
-**Supported Frameworks:**
-
-- `langchain` - LangChain agents and chains
-- `autogen` - Multi-agent conversations
-- `crewai` - Crew workflow monitoring
-- `openai` - OpenAI Assistants
-
-#### 📊 Analysis Commands
-
-```bash
-# Analyze behavioral patterns
-escai analyze patterns --agent-id <agent-id> --timeframe 24h --min-frequency 5
-
-# Interactive pattern exploration
-escai analyze patterns --interactive
-
-# Explore causal relationships
-escai analyze causal --min-strength 0.7 --interactive
-
-# Generate performance predictions
-escai analyze predictions --agent-id <agent-id> --horizon 1h
-
-# View recent agent events
-escai analyze events --agent-id <agent-id> --limit 20
-
-# Create ASCII visualizations
-escai analyze visualize --chart-type heatmap --metric confidence
-escai analyze visualize --chart-type scatter --metric performance
-
-# Interactive data exploration
-escai analyze interactive --agent-id <agent-id>
-
-# Statistical analysis
-escai analyze stats --field confidence --agent-id <agent-id>
-
-# Time series analysis
-escai analyze timeseries --metric performance --timeframe 7d
-```
-
-#### ⚙️ Configuration Commands
-
-```bash
-# Interactive configuration setup
-escai config setup
-
-# Show current configuration
-escai config show
-
-# Set specific configuration values
-escai config set database host localhost
-escai config set api port 8080
-
-# Test database connections
-escai config test
-
-# System health check
 escai config check
 ```
 
-#### 📋 Session Management
+End with an example of getting some data out of the system:
 
 ```bash
-# List all monitoring sessions
-escai session list
+# Start monitoring a sample agent
+escai monitor start --agent-id demo-agent --framework langchain
 
-# Show detailed session information
-escai session show <session-id>
-
-# Stop active sessions
-escai session stop <session-id>
-
-# Clean up old sessions
-escai session cleanup --older-than 7d
-
-# Export session data
-escai session export <session-id> --format json --output session_data.json
+# View real-time epistemic states
+escai monitor epistemic --agent-id demo-agent --refresh 2
 ```
 
-## 🧪 Research Workflow
+## Running the tests
 
-### Quick Research Session
-
-```bash
-# 1. Start monitoring
-escai monitor start --agent-id research-agent --framework langchain
-
-# 2. Real-time epistemic state monitoring
-escai monitor epistemic --agent-id research-agent --refresh 2
-
-# 3. Analyze behavioral patterns
-escai analyze patterns --agent-id research-agent --timeframe 1h --interactive
-
-# 4. Discover causal relationships
-escai analyze causal --min-strength 0.7 --interactive
-
-# 5. Export research data
-escai analyze export --type all --format json --output research_data.json
-```
-
-### Advanced Features
-
-- **Real-time Updates**: Live monitoring with automatic refresh
-- **Interactive Tables**: Navigate and explore data with keyboard controls
-- **ASCII Visualizations**: Charts, graphs, and progress bars in the terminal
-- **Color Themes**: Multiple color schemes for different environments
-- **Progress Indicators**: Real-time progress bars with ETA and rate information
-
-## 📊 Data Export and Analysis
-
-### Export Capabilities
-
-```bash
-# Export epistemic states
-escai analyze export --type epistemic --agent-id research-agent --format json
-
-# Export causal relationships
-escai analyze export --type causal --format csv --output causal_data.csv
-
-# Export behavioral patterns
-escai analyze export --type patterns --timeframe 7d --format json
-
-# Export complete session data
-escai session export session_123 --format json --output complete_session.json
-```
-
-### Report Generation
-
-```bash
-# Generate comprehensive analysis report
-escai analyze report --agent-id research-agent --timeframe 24h --format pdf
-
-# Create custom report interactively
-escai analyze custom-report
-
-# Schedule automated reports
-escai analyze schedule-report --frequency daily --format json
-```
-
-## 🔧 Configuration
-
-### Database Setup
-
-The framework supports multiple databases for different data types:
-
-```bash
-# Configure PostgreSQL (structured data)
-escai config set postgresql host localhost
-escai config set postgresql port 5432
-escai config set postgresql database escai_research
-
-# Configure MongoDB (unstructured data)
-escai config set mongodb host localhost
-escai config set mongodb port 27017
-
-# Configure Redis (caching and real-time data)
-escai config set redis host localhost
-escai config set redis port 6379
-
-# Test all connections
-escai config test
-```
-
-### Research Configuration
-
-```bash
-# Set up for research use
-escai config set research mode enabled
-escai config set monitoring overhead_limit 0.05  # 5% max overhead
-escai config set analysis confidence_threshold 0.7
-escai config set causal min_strength 0.6
-```
-
-## 📖 Getting Help
-
-```bash
-# General help
-escai --help
-
-# Command-specific help
-escai monitor --help
-escai analyze --help
-escai config --help
-
-# Subcommand help
-escai monitor start --help
-escai analyze patterns --help
-```
-
-## 🏗️ Framework Architecture
-
-### Core Components
-
-- **📊 Data Models**: Formal representations of epistemic states, behavioral patterns, causal relationships, and predictions
-- **🔧 Instrumentation Layer**: Non-intrusive adapters for LangChain, AutoGen, CrewAI, and OpenAI Assistants
-- **⚙️ Processing Engines**: Advanced algorithms for causal inference, pattern mining, and performance prediction
-- **🧠 Analytics Engine**: Statistical analysis, machine learning models, and hypothesis testing
-- **🗄️ Multi-Database Storage**: PostgreSQL, MongoDB, Redis, InfluxDB, and Neo4j support
-- **🖥️ CLI Research Interface**: Comprehensive command-line tools designed for academic research
-
-### Research-Focused Design
-
-1. **Minimal Overhead**: <5% performance impact on monitored agents
-2. **Real-time Processing**: Sub-second latency for epistemic state extraction
-3. **Statistical Rigor**: Built-in statistical validation and significance testing
-4. **Reproducibility**: Complete audit trails and deterministic analysis
-5. **Extensibility**: Plugin architecture for custom analysis methods
-
-## 📚 Research Applications
-
-### Academic Use Cases
-
-1. **Epistemic State Evolution Studies**: Track how agent beliefs change over time
-2. **Causal Inference Research**: Discover causal relationships in agent cognition
-3. **Behavioral Pattern Analysis**: Identify recurring patterns in agent behavior
-4. **Performance Prediction Models**: Develop models to predict agent success
-5. **Multi-Agent Interaction Studies**: Analyze interactions between multiple agents
-
-### Methodological Contributions
-
-1. **Real-time Epistemic State Extraction**: Novel algorithms for extracting beliefs, knowledge, and goals
-2. **Causal Discovery in Agent Systems**: Adapted causal inference methods for agent cognition
-3. **Behavioral Pattern Analysis**: Sequential pattern mining techniques for agent behavior
-4. **Performance Prediction**: Machine learning models using epistemic state features
-5. **Multi-Framework Instrumentation**: Unified monitoring across diverse agent frameworks
-
-## 🧪 Testing and Validation
-
-### Running Tests
+Explain how to run the automated tests for this system:
 
 ```bash
 # Run all tests
 python -m pytest tests/
 
-# Run specific test categories
-python -m pytest tests/unit/          # Unit tests
-python -m pytest tests/integration/   # Integration tests
-
-# Test CLI functionality
-python -m pytest tests/unit/test_cli_*.py
-
-# Test with coverage
+# Run with coverage report
 python -m pytest --cov=escai_framework tests/
 ```
 
-## 📄 Academic Citation
+### Break down into end to end tests
 
-If you use the ESCAI framework in your research, please cite:
+Explain what these tests test and why:
 
-```bibtex
-@software{escai_framework_2024,
-  title={ESCAI Framework: Epistemic State and Causal Analysis Intelligence},
-  author={ESCAI Research Team},
-  year={2024},
-  url={https://github.com/your-repo/ESCAI},
-  version={1.0.0},
-  note={Framework for epistemic state monitoring and causal inference in autonomous agent cognition},
-  keywords={epistemic states, causal inference, autonomous agents, cognitive monitoring}
-}
+```bash
+# Test complete monitoring workflow
+python -m pytest tests/e2e/test_complete_workflows.py
 ```
 
-## 📝 License
+These tests verify that the entire monitoring pipeline works correctly from agent instrumentation through data analysis and visualization.
+
+### And coding style tests
+
+Explain what these tests test and why:
+
+```bash
+# Run linting and type checking
+python -m pytest tests/unit/test_code_quality.py
+mypy escai_framework/
+flake8 escai_framework/
+```
+
+These tests ensure code quality, type safety, and adherence to Python coding standards.
+
+## Deployment
+
+Add additional notes about how to deploy this on a live system:
+
+### Production Deployment
+
+```bash
+# Using Docker
+docker-compose up -d
+
+# Using Kubernetes
+kubectl apply -f k8s/
+
+# Using Helm
+helm install escai ./helm/escai
+```
+
+### Environment Configuration
+
+```bash
+# Set production environment variables
+export ESCAI_ENV=production
+export ESCAI_DATABASE_URL=postgresql://user:pass@host:5432/escai
+export ESCAI_REDIS_URL=redis://host:6379/0
+```
+
+## Built With
+
+- [FastAPI](https://fastapi.tiangolo.com/) - The web framework used for REST API
+- [SQLAlchemy](https://www.sqlalchemy.org/) - Database ORM and management
+- [Redis](https://redis.io/) - Used for caching and real-time data
+- [PostgreSQL](https://www.postgresql.org/) - Primary database for structured data
+- [MongoDB](https://www.mongodb.com/) - Document storage for unstructured data
+- [Neo4j](https://neo4j.com/) - Graph database for causal relationships
+- [InfluxDB](https://www.influxdata.com/) - Time series database for metrics
+- [Streamlit](https://streamlit.io/) - Dashboard framework for visualization
+- [Click](https://click.palletsprojects.com/) - Command line interface framework
+
+## Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/Sonlux/ESCAI/tags).
+
+## Authors
+
+- **ESCAI Research Team** - _Initial work_ - [Sonlux](https://github.com/Sonlux)
+
+See also the list of [contributors](https://github.com/Sonlux/ESCAI/contributors) who participated in this project.
+
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🤝 Contributing
+## Acknowledgments
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on code standards, testing requirements, and the pull request process.
-
----
-
-**Ready to start your epistemic state monitoring research?**
-
-```bash
-pip install -e ".[full]"
-escai config setup
-escai monitor start --agent-id your-research-agent --framework langchain
-```
+- Hat tip to the autonomous agent research community for inspiration
+- Thanks to the open-source frameworks that made this possible: LangChain, AutoGen, CrewAI
+- Inspired by the need for better observability in AI agent systems
+- Special thanks to contributors and early adopters who provided valuable feedback
