@@ -328,3 +328,6 @@ CLEANUP_STRATEGY.md
 *.egg-info/
 escai.egg-info/
 escai_framework.egg-info/
+
+# Archived GitHub Actions workflows
+archived-workflows/
