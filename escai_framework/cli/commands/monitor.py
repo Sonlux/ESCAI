@@ -19,8 +19,17 @@ from ..utils.formatters import (
     create_progress_bar
 )
 from ..services.api_client import ESCAIAPIClient
+from ..utils.error_handling import (
+    CLIErrorHandler, FrameworkError, ValidationError, NetworkError,
+    ErrorSeverity, ErrorSuggestion
+)
+from ..utils.error_decorators import (
+    handle_cli_errors, require_framework, retry_on_network_error,
+    graceful_degradation, create_monitoring_context
+)
 
 console = get_console()
+error_handler = CLIErrorHandler(console=console)
 
 @click.group(name='monitor')
 def monitor_group():
@@ -32,21 +41,104 @@ def monitor_group():
 @click.option('--framework', type=click.Choice(['langchain', 'autogen', 'crewai', 'openai']), 
               required=True, help='Agent framework')
 @click.option('--config', help='Configuration file path')
+@handle_cli_errors(error_handler=error_handler, context_factory=create_monitoring_context("start"))
+@require_framework("framework")  # This will be dynamically checked
+@retry_on_network_error(max_attempts=3, base_delay=1.0)
 def start(agent_id: str, framework: str, config: Optional[str]):
     """Start monitoring an agent"""
+    # Validate inputs
+    if not agent_id or not agent_id.strip():
+        raise ValidationError(
+            "Agent ID cannot be empty",
+            field="agent_id"
+        )
+    
+    if len(agent_id) > 100:
+        raise ValidationError(
+            "Agent ID must be less than 100 characters",
+            field="agent_id"
+        )
+    
     console.print(f"[info]Starting monitoring for agent: {agent_id}[/info]")
     
-    with create_progress_bar("Initializing monitoring...") as progress:
-        task = progress.add_task("Setting up instrumentor...", total=100)
+    try:
+        # Check framework availability
+        _validate_framework_availability(framework)
         
-        # Simulate setup steps
-        for i in range(0, 101, 20):
-            time.sleep(0.1)
-            progress.update(task, completed=i)
+        with create_progress_bar("Initializing monitoring...") as progress:
+            task = progress.add_task("Setting up instrumentor...", total=100)
+            
+            # Simulate setup steps with potential failure points
+            for i in range(0, 101, 20):
+                time.sleep(0.1)
+                progress.update(task, completed=i)
+                
+                # Simulate potential network issues during setup
+                if i == 60 and framework == "network_test_failure":
+                    raise NetworkError(
+                        "Failed to connect to ESCAI backend service",
+                        endpoint="https://api.escai.framework/monitor"
+                    )
+        
+        console.print(f"[success]✅ Monitoring started for {agent_id} ({framework})[/success]")
+        console.print(f"Session ID: [highlight]session_{int(time.time())}[/highlight]")
+        console.print("\nUse [cyan]escai monitor status[/cyan] to view real-time updates")
+        
+    except Exception as e:
+        # Re-raise with additional context
+        if not isinstance(e, (ValidationError, NetworkError, FrameworkError)):
+            raise FrameworkError(
+                f"Failed to initialize monitoring for {framework}: {str(e)}",
+                framework=framework,
+                severity=ErrorSeverity.HIGH
+            )
+        raise
+
+
+def _validate_framework_availability(framework: str) -> None:
+    """Validate that the specified framework is available."""
+    framework_modules = {
+        'langchain': 'langchain',
+        'autogen': 'autogen',
+        'crewai': 'crewai',
+        'openai': 'openai'
+    }
     
-    console.print(f"[success]✅ Monitoring started for {agent_id} ({framework})[/success]")
-    console.print(f"Session ID: [highlight]session_{int(time.time())}[/highlight]")
-    console.print("\nUse [cyan]escai monitor status[/cyan] to view real-time updates")
+    module_name = framework_modules.get(framework)
+    if not module_name:
+        raise FrameworkError(
+            f"Unknown framework: {framework}",
+            framework=framework,
+            severity=ErrorSeverity.HIGH,
+            suggestions=[
+                ErrorSuggestion(
+                    action="Use supported framework",
+                    description="Choose from: langchain, autogen, crewai, openai",
+                    command_example="escai monitor start --framework langchain --agent-id my_agent"
+                )
+            ]
+        )
+    
+    try:
+        __import__(module_name)
+    except ImportError:
+        raise FrameworkError(
+            f"Framework '{framework}' is not installed",
+            framework=framework,
+            severity=ErrorSeverity.HIGH,
+            suggestions=[
+                ErrorSuggestion(
+                    action="Install framework",
+                    description=f"Install the {framework} framework",
+                    command_example=f"pip install {module_name}"
+                ),
+                ErrorSuggestion(
+                    action="Check installation",
+                    description="Verify the framework is properly installed",
+                    command_example=f"python -c 'import {module_name}'"
+                )
+            ]
+        )
 
 @monitor_group.command()
 @click.option('--session-id', help='Specific session to stop')
