@@ -93,9 +93,11 @@ class InteractiveMenuSystem:
                         MenuAction.NAVIGATE, "sessions", icon="📁"),
                 MenuItem("4", "Configuration", "Setup databases, frameworks, and preferences", 
                         MenuAction.NAVIGATE, "config", icon="⚙️"),
-                MenuItem("5", "Help & Documentation", "Access guides, examples, and support", 
+                MenuItem("5", "Publication Tools", "Generate academic papers and reports", 
+                        MenuAction.NAVIGATE, "publication", icon="📄"),
+                MenuItem("6", "Help & Documentation", "Access guides, examples, and support", 
                         MenuAction.NAVIGATE, "help", icon="📚"),
-                MenuItem("6", "Exit", "Exit the interactive menu system", 
+                MenuItem("7", "Exit", "Exit the interactive menu system", 
                         MenuAction.EXIT, icon="🚪")
             ]
         )
@@ -180,6 +182,28 @@ class InteractiveMenuSystem:
                         MenuAction.EXECUTE, handler=self._view_config, icon="👁️"),
                 MenuItem("5", "Export Configuration", "Export configuration for sharing", 
                         MenuAction.EXECUTE, handler=self._export_config, icon="📤"),
+                MenuItem("6", "Back to Main Menu", "Return to the main menu", 
+                        MenuAction.BACK, icon="⬅️")
+            ],
+            parent="main"
+        )
+        
+        # Publication Menu
+        menus["publication"] = Menu(
+            name="publication",
+            title="Publication Tools",
+            description="Generate academic papers, reports, and citations",
+            items=[
+                MenuItem("1", "Generate Paper", "Create academic paper from analysis results", 
+                        MenuAction.EXECUTE, handler=self._generate_paper, icon="📝"),
+                MenuItem("2", "Statistical Report", "Generate comprehensive statistical report", 
+                        MenuAction.EXECUTE, handler=self._generate_report, icon="📊"),
+                MenuItem("3", "Manage Citations", "View and manage bibliography citations", 
+                        MenuAction.EXECUTE, handler=self._manage_citations, icon="📚"),
+                MenuItem("4", "LaTeX Templates", "View and manage LaTeX templates", 
+                        MenuAction.EXECUTE, handler=self._latex_templates, icon="📄"),
+                MenuItem("5", "Export Bibliography", "Generate bibliography in various formats", 
+                        MenuAction.EXECUTE, handler=self._export_bibliography, icon="📤"),
                 MenuItem("6", "Back to Main Menu", "Return to the main menu", 
                         MenuAction.BACK, icon="⬅️")
             ],
@@ -776,6 +800,247 @@ class InteractiveMenuSystem:
             border_style="blue"
         )
         self.console.print(about_panel)
+        
+        Prompt.ask("\n[dim]Press Enter to continue[/dim]", default="")
+    
+    # Publication handlers
+    def _generate_paper(self):
+        """Generate academic paper workflow"""
+        self.console.print("[bold cyan]Generate Academic Paper[/bold cyan]\n")
+        
+        # Get input file
+        input_file = Prompt.ask("Enter path to analysis data file (JSON/CSV)")
+        if not input_file:
+            self.console.print("[error]Input file is required[/error]")
+            return
+        
+        # Get output file
+        output_file = Prompt.ask("Enter output file path", default="paper.tex")
+        
+        # Get template
+        templates = ["ieee_conference", "acm", "springer_lncs", "elsevier", "generic"]
+        template_choice = Prompt.ask(
+            "Select template",
+            choices=templates,
+            default="ieee_conference"
+        )
+        
+        # Get paper details
+        title = Prompt.ask("Enter paper title", default="ESCAI Framework Analysis Results")
+        authors = Prompt.ask("Enter authors (comma-separated)", default="Research Team")
+        abstract = Prompt.ask("Enter abstract", default="Analysis results from ESCAI Framework monitoring.")
+        
+        # Execute command
+        try:
+            import subprocess
+            cmd = [
+                "escai", "publication", "generate",
+                "--input", input_file,
+                "--output", output_file,
+                "--format", "latex",
+                "--template", template_choice,
+                "--title", title,
+                "--authors", authors,
+                "--abstract", abstract
+            ]
+            
+            self.console.print("[info]Generating paper...[/info]")
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                self.console.print(f"[success]Paper generated successfully: {output_file}[/success]")
+            else:
+                self.console.print(f"[error]Error generating paper: {result.stderr}[/error]")
+        
+        except Exception as e:
+            self.console.print(f"[error]Error: {str(e)}[/error]")
+        
+        Prompt.ask("\n[dim]Press Enter to continue[/dim]", default="")
+    
+    def _generate_report(self):
+        """Generate statistical report workflow"""
+        self.console.print("[bold cyan]Generate Statistical Report[/bold cyan]\n")
+        
+        # Get input file
+        input_file = Prompt.ask("Enter path to analysis data file (JSON/CSV)")
+        if not input_file:
+            self.console.print("[error]Input file is required[/error]")
+            return
+        
+        # Get output file
+        output_file = Prompt.ask("Enter output file path", default="statistical_report.tex")
+        
+        # Get format
+        formats = ["latex", "markdown", "html"]
+        format_choice = Prompt.ask(
+            "Select output format",
+            choices=formats,
+            default="latex"
+        )
+        
+        # Execute command
+        try:
+            import subprocess
+            cmd = [
+                "escai", "publication", "report",
+                "--input", input_file,
+                "--output", output_file,
+                "--format", format_choice
+            ]
+            
+            self.console.print("[info]Generating statistical report...[/info]")
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                self.console.print(f"[success]Report generated successfully: {output_file}[/success]")
+            else:
+                self.console.print(f"[error]Error generating report: {result.stderr}[/error]")
+        
+        except Exception as e:
+            self.console.print(f"[error]Error: {str(e)}[/error]")
+        
+        Prompt.ask("\n[dim]Press Enter to continue[/dim]", default="")
+    
+    def _manage_citations(self):
+        """Manage citations workflow"""
+        self.console.print("[bold cyan]Manage Citations[/bold cyan]\n")
+        
+        while True:
+            action = Prompt.ask(
+                "What would you like to do?",
+                choices=["search", "list_methodologies", "back"],
+                default="search"
+            )
+            
+            if action == "back":
+                break
+            elif action == "search":
+                query = Prompt.ask("Enter search query")
+                if query:
+                    try:
+                        import subprocess
+                        cmd = ["escai", "publication", "citations", "--search", query]
+                        result = subprocess.run(cmd, capture_output=True, text=True)
+                        
+                        if result.returncode == 0:
+                            self.console.print(result.stdout)
+                        else:
+                            self.console.print(f"[error]Error: {result.stderr}[/error]")
+                    except Exception as e:
+                        self.console.print(f"[error]Error: {str(e)}[/error]")
+            
+            elif action == "list_methodologies":
+                try:
+                    import subprocess
+                    cmd = ["escai", "publication", "citations"]
+                    result = subprocess.run(cmd, capture_output=True, text=True)
+                    
+                    if result.returncode == 0:
+                        self.console.print(result.stdout)
+                    else:
+                        self.console.print(f"[error]Error: {result.stderr}[/error]")
+                except Exception as e:
+                    self.console.print(f"[error]Error: {str(e)}[/error]")
+        
+        Prompt.ask("\n[dim]Press Enter to continue[/dim]", default="")
+    
+    def _latex_templates(self):
+        """LaTeX templates workflow"""
+        self.console.print("[bold cyan]LaTeX Templates[/bold cyan]\n")
+        
+        action = Prompt.ask(
+            "What would you like to do?",
+            choices=["list", "show_details", "generate_sample"],
+            default="list"
+        )
+        
+        try:
+            import subprocess
+            
+            if action == "list":
+                cmd = ["escai", "publication", "templates", "--list"]
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                
+                if result.returncode == 0:
+                    self.console.print(result.stdout)
+                else:
+                    self.console.print(f"[error]Error: {result.stderr}[/error]")
+            
+            elif action == "show_details":
+                template = Prompt.ask(
+                    "Enter template name",
+                    choices=["ieee_conference", "acm", "springer_lncs", "elsevier", "generic"],
+                    default="ieee_conference"
+                )
+                
+                cmd = ["escai", "publication", "templates", "--show", template]
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                
+                if result.returncode == 0:
+                    self.console.print(result.stdout)
+                else:
+                    self.console.print(f"[error]Error: {result.stderr}[/error]")
+            
+            elif action == "generate_sample":
+                output_file = Prompt.ask("Enter output file path", default="sample_paper.tex")
+                
+                cmd = ["escai", "publication", "templates", "--output", output_file]
+                result = subprocess.run(cmd, capture_output=True, text=True)
+                
+                if result.returncode == 0:
+                    self.console.print(f"[success]Sample document generated: {output_file}[/success]")
+                else:
+                    self.console.print(f"[error]Error: {result.stderr}[/error]")
+        
+        except Exception as e:
+            self.console.print(f"[error]Error: {str(e)}[/error]")
+        
+        Prompt.ask("\n[dim]Press Enter to continue[/dim]", default="")
+    
+    def _export_bibliography(self):
+        """Export bibliography workflow"""
+        self.console.print("[bold cyan]Export Bibliography[/bold cyan]\n")
+        
+        # Get methodologies
+        methodologies = Prompt.ask(
+            "Enter methodologies (comma-separated)",
+            default="statistical_analysis,epistemic_extraction"
+        )
+        
+        # Get format
+        formats = ["bibtex", "apa", "ieee"]
+        format_choice = Prompt.ask(
+            "Select bibliography format",
+            choices=formats,
+            default="bibtex"
+        )
+        
+        # Get output file
+        output_file = Prompt.ask("Enter output file path", default=f"bibliography.{format_choice}")
+        
+        # Execute command
+        try:
+            import subprocess
+            cmd = [
+                "escai", "publication", "citations",
+                "--format", format_choice,
+                "--output", output_file
+            ]
+            
+            # Add methodologies
+            for methodology in methodologies.split(","):
+                cmd.extend(["--methodology", methodology.strip()])
+            
+            self.console.print("[info]Generating bibliography...[/info]")
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                self.console.print(f"[success]Bibliography generated: {output_file}[/success]")
+            else:
+                self.console.print(f"[error]Error generating bibliography: {result.stderr}[/error]")
+        
+        except Exception as e:
+            self.console.print(f"[error]Error: {str(e)}[/error]")
         
         Prompt.ask("\n[dim]Press Enter to continue[/dim]", default="")
 

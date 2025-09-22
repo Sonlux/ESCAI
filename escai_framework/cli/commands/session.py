@@ -36,12 +36,17 @@ def session_group():
 @click.option('--status', help='Filter by status')
 @click.option('--tags', help='Filter by tags (comma-separated)')
 @click.option('--limit', default=50, help='Maximum number of sessions to show')
+@click.option('--active', is_flag=True, help='Show only active sessions')
 def list(agent_id: Optional[str], framework: Optional[str], status: Optional[str], 
-         tags: Optional[str], limit: int):
+         tags: Optional[str], limit: int, active: bool):
     """List monitoring sessions with advanced filtering"""
     
     # Parse tags
     tag_list = [tag.strip() for tag in tags.split(',')] if tags else None
+    
+    # If active flag is set, override status filter
+    if active:
+        status = 'active'
     
     sessions = session_storage.list_sessions(
         agent_id=agent_id,

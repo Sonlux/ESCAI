@@ -107,7 +107,7 @@ def setup():
     with open(CONFIG_FILE, 'w') as f:
         json.dump(config, f, indent=2)
     
-    console.print(f"\n[success]✅ Configuration saved to {CONFIG_FILE}[/success]")
+    console.print(f"\n[success]Configuration saved to {CONFIG_FILE}[/success]")
 
 @config_group.command()
 def show():
@@ -171,7 +171,7 @@ def set(section: str, key: str, value: str):
     with open(CONFIG_FILE, 'w') as f:
         json.dump(config, f, indent=2)
     
-    console.print(f"[success]✅ Set {section}.{key} = {converted_value}[/success]")
+    console.print(f"[success]Set {section}.{key} = {converted_value}[/success]")
 
 @config_group.command()
 @click.argument('section')
@@ -219,26 +219,26 @@ def test():
     if 'postgresql' in config:
         try:
             # Mock connection test
-            console.print("🔍 Testing PostgreSQL connection...")
-            results.append(("PostgreSQL", "✅ Connected", "green"))
+            console.print("Testing PostgreSQL connection...")
+            results.append(("PostgreSQL", "PASS - Connected", "green"))
         except Exception as e:
-            results.append(("PostgreSQL", f"❌ Failed: {str(e)}", "red"))
+            results.append(("PostgreSQL", f"FAIL - {str(e)}", "red"))
     
     # Test MongoDB
     if 'mongodb' in config:
         try:
-            console.print("🔍 Testing MongoDB connection...")
-            results.append(("MongoDB", "✅ Connected", "green"))
+            console.print("Testing MongoDB connection...")
+            results.append(("MongoDB", "PASS - Connected", "green"))
         except Exception as e:
-            results.append(("MongoDB", f"❌ Failed: {str(e)}", "red"))
+            results.append(("MongoDB", f"FAIL - {str(e)}", "red"))
     
     # Test Redis
     if 'redis' in config:
         try:
-            console.print("🔍 Testing Redis connection...")
-            results.append(("Redis", "✅ Connected", "green"))
+            console.print("Testing Redis connection...")
+            results.append(("Redis", "PASS - Connected", "green"))
         except Exception as e:
-            results.append(("Redis", f"❌ Failed: {str(e)}", "red"))
+            results.append(("Redis", f"FAIL - {str(e)}", "red"))
     
     # Display results
     table = Table(title="Connection Test Results", show_header=True, header_style="bold cyan")
@@ -307,7 +307,7 @@ def theme(scheme: str, list_schemes: bool, preview: bool):
             
             # Apply theme
             set_color_scheme(scheme)
-            console.print(f"[success]✅ Color scheme set to '{scheme}'[/success]")
+            console.print(f"[success]Color scheme set to '{scheme}'[/success]")
             
             # Show preview of new theme
             console.print(f"\n[bold]Preview of {scheme} theme:[/bold]")
@@ -346,13 +346,13 @@ def check():
     import sys
     python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
     if sys.version_info >= (3, 8):
-        checks.append(("Python Version", f"✅ {python_version}", "green"))
+        checks.append(("Python Version", f"PASS - {python_version}", "green"))
     else:
-        checks.append(("Python Version", f"❌ {python_version} (requires 3.8+)", "red"))
+        checks.append(("Python Version", f"FAIL - {python_version} (requires 3.8+)", "red"))
     
     # Check configuration file
     if CONFIG_FILE.exists():
-        checks.append(("Configuration File", "✅ Found", "green"))
+        checks.append(("Configuration File", "PASS - Found", "green"))
         
         # Validate configuration
         try:
@@ -362,15 +362,15 @@ def check():
             required_sections = ['api', 'monitoring']
             for section in required_sections:
                 if section in config:
-                    checks.append((f"Config Section: {section}", "✅ Present", "green"))
+                    checks.append((f"Config Section: {section}", "PASS - Present", "green"))
                 else:
-                    checks.append((f"Config Section: {section}", "⚠️ Missing", "yellow"))
+                    checks.append((f"Config Section: {section}", "WARN - Missing", "yellow"))
         
         except json.JSONDecodeError:
-            checks.append(("Configuration File", "❌ Invalid JSON", "red"))
+            checks.append(("Configuration File", "FAIL - Invalid JSON", "red"))
     
     else:
-        checks.append(("Configuration File", "❌ Not found", "red"))
+        checks.append(("Configuration File", "FAIL - Not found", "red"))
     
     # Check dependencies
     required_packages = [
@@ -381,9 +381,9 @@ def check():
     for package in required_packages:
         try:
             __import__(package)
-            checks.append((f"Package: {package}", "✅ Installed", "green"))
+            checks.append((f"Package: {package}", "PASS - Installed", "green"))
         except ImportError:
-            checks.append((f"Package: {package}", "❌ Missing", "red"))
+            checks.append((f"Package: {package}", "FAIL - Missing", "red"))
     
     # Check directories
     directories = [
@@ -394,9 +394,9 @@ def check():
     
     for directory in directories:
         if directory.exists():
-            checks.append((f"Directory: {directory.name}", "✅ Exists", "green"))
+            checks.append((f"Directory: {directory.name}", "PASS - Exists", "green"))
         else:
-            checks.append((f"Directory: {directory.name}", "⚠️ Missing", "yellow"))
+            checks.append((f"Directory: {directory.name}", "WARN - Missing", "yellow"))
     
     # Display results
     table = Table(title="System Check Results", show_header=True, header_style="bold cyan")
@@ -409,9 +409,9 @@ def check():
     console.print(table)
     
     # Summary
-    passed = sum(1 for _, status, _ in checks if "✅" in status)
-    warnings = sum(1 for _, status, _ in checks if "⚠️" in status)
-    failed = sum(1 for _, status, _ in checks if "❌" in status)
+    passed = sum(1 for _, status, _ in checks if "PASS" in status or "OK" in status)
+    warnings = sum(1 for _, status, _ in checks if "WARN" in status)
+    failed = sum(1 for _, status, _ in checks if "FAIL" in status or "ERROR" in status)
     
     console.print(f"\n[bold]Summary:[/bold] {passed} passed, {warnings} warnings, {failed} failed")
     
@@ -424,7 +424,7 @@ def check():
         console.print("  • Create missing directories")
         console.print("  • Complete configuration setup: [cyan]escai config setup[/cyan]")
     else:
-        console.print("\n[bold green]✅ All checks passed! System is ready.[/bold green]")
+        console.print("\n[bold green]All checks passed! System is ready.[/bold green]")
 
 
 @config_group.command()
@@ -434,6 +434,6 @@ def reset():
     if CONFIG_FILE.exists():
         if Confirm.ask("Are you sure you want to reset all configuration?", default=False):
             CONFIG_FILE.unlink()
-            console.print("[success]✅ Configuration reset. Run 'escai config setup' to reconfigure.[/success]")
+            console.print("[success]Configuration reset. Run 'escai config setup' to reconfigure.[/success]")
     else:
         console.print("[info]No configuration file found.[/info]")

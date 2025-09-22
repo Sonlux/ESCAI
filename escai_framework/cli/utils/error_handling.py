@@ -271,7 +271,10 @@ class CLIErrorHandler:
             if error.context.session_id:
                 log_data['session_id'] = error.context.session_id
             if error.context.additional_data:
-                log_data.update(error.context.additional_data)
+                # Avoid conflicts with logging reserved keys
+                for key, value in error.context.additional_data.items():
+                    if key not in ['message', 'asctime', 'args']:
+                        log_data[key] = value
                 
         if error.original_error:
             log_data['original_error'] = str(error.original_error)
