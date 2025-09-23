@@ -316,7 +316,8 @@ _Shows: System check results, component status, and framework availability_
 
 The ESCAI CLI provides comprehensive commands for monitoring, analysis, and configuration with an intuitive interface.
 
-![alt text](image-23.png)
+<img width="2528" height="844" alt="image" src="https://github.com/user-attachments/assets/c601e5df-c66d-45cb-8243-b334efd45969" />
+
 
 ### **Core Commands**
 
