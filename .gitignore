@@ -253,6 +253,9 @@ scripts/dev/
 docs/build/
 docs/_build/
 
+# Exclude screenshot assets (stored locally for documentation)
+docs/assets/screenshots/
+
 # Exclude performance profiling results
 *.prof
 profiling_results/
