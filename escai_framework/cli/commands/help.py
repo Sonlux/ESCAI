@@ -17,11 +17,10 @@ error_handler = CLIErrorHandler(console=console)
 
 
 @click.group(name='help', invoke_without_command=True)
-@click.argument('topic', required=False)
 @click.option('--search', '-s', help='Search help content')
 @click.pass_context
 @handle_cli_errors(error_handler=error_handler, context_factory=create_command_context("help"))
-def help_group(ctx, topic: Optional[str], search: Optional[str]):
+def help_group(ctx, search: Optional[str]):
     """
     Comprehensive help system with cross-references.
     
@@ -29,10 +28,11 @@ def help_group(ctx, topic: Optional[str], search: Optional[str]):
     and cross-references to related functionality.
     
     Examples:
-        escai help                    # Show quick reference
-        escai help monitor            # Show command help
-        escai help getting_started    # Show topic help
-        escai help --search patterns  # Search help content
+        escai help                           # Show quick reference
+        escai help show monitor              # Show command help
+        escai help topic getting_started     # Show topic help
+        escai help workflow basic_monitoring # Show workflow help
+        escai help --search patterns         # Search help content
     """
     help_system = get_help_system()
     
@@ -40,29 +40,45 @@ def help_group(ctx, topic: Optional[str], search: Optional[str]):
         help_system.search_help(search)
         return
     
-    if topic:
-        # Try to show command help first, then topic help
-        if '.' in topic:
-            # Handle subcommand help (e.g., "monitor.start")
-            command, subcommand = topic.split('.', 1)
-            help_system.show_command_help(command, subcommand)
-        else:
-            # Try as topic first, then as command
-            if topic in help_system._topics:
-                help_system.show_topic_help(topic)
-            elif topic in help_system._commands:
-                help_system.show_command_help(topic)
-            else:
-                # Try both and let them handle the error
-                try:
-                    help_system.show_topic_help(topic)
-                except:
-                    help_system.show_command_help(topic)
-        return
-    
     if ctx.invoked_subcommand is None:
         # Show quick reference by default
         help_system.show_quick_reference()
+
+
+@help_group.command(name='show')
+@click.argument('item')
+@handle_cli_errors(error_handler=error_handler, context_factory=create_command_context("help.show"))
+def show_help(item: str):
+    """
+    Show help for a topic or command.
+    
+    This is a general help command that tries to find help for the given item,
+    whether it's a topic, command, or other help item.
+    
+    Examples:
+        escai help show monitor
+        escai help show getting_started
+        escai help show frameworks
+    """
+    help_system = get_help_system()
+    
+    # Try to show command help first, then topic help
+    if '.' in item:
+        # Handle subcommand help (e.g., "monitor.start")
+        command, subcommand = item.split('.', 1)
+        help_system.show_command_help(command, subcommand)
+    else:
+        # Try as topic first, then as command
+        if item in help_system._topics:
+            help_system.show_topic_help(item)
+        elif item in help_system._commands:
+            help_system.show_command_help(item)
+        else:
+            # Try both and let them handle the error
+            try:
+                help_system.show_topic_help(item)
+            except:
+                help_system.show_command_help(item)
 
 
 @help_group.command()

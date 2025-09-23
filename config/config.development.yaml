@@ -1,0 +1,48 @@
+# ESCAI Framework Development Configuration
+# This file contains development-specific settings
+
+# Database Configuration
+database:
+  host: localhost
+  port: 5432
+  name: escai_dev
+  user: escai
+  password: ""
+
+# API Configuration
+api:
+  host: localhost
+  port: 8000
+  debug: true
+
+# Logging Configuration
+logging:
+  level: INFO
+  file: logs/escai.log
+  max_size: 10MB
+  backup_count: 5
+
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  max_overhead_percent: 5
+  buffer_size: 10000
+  max_events_per_second: 100
+
+# Framework Integration
+frameworks:
+  langchain:
+    enabled: true
+  autogen:
+    enabled: true
+  crewai:
+    enabled: true
+  openai:
+    enabled: true
+
+# CLI Configuration
+cli:
+  theme: default
+  interactive_mode: true
+  startup_optimization: true
+  help_system: comprehensive

@@ -65,8 +65,8 @@ def init(environment: str, output: Optional[str], format: str):
             else:
                 json.dump(config_data, f, indent=2)
         
-        console.print(f"✅ Configuration initialized for {environment} environment")
-        console.print(f"📁 Saved to: {output_path}")
+        console.print(f"[green]Configuration initialized for {environment} environment[/green]")
+        console.print(f"[blue]Saved to: {output_path}[/blue]")
         
         # Show next steps
         console.print("\n📋 Next steps:")
@@ -75,7 +75,7 @@ def init(environment: str, output: Optional[str], format: str):
         console.print("3. Validate configuration: escai config validate")
         
     except Exception as e:
-        console.print(f"❌ Failed to initialize configuration: {e}")
+        console.print(f"[red]Failed to initialize configuration: {e}[/red]")
         raise click.Abort()
 
 
@@ -103,16 +103,16 @@ def validate(config_file: Optional[str], environment: Optional[str], detailed: b
             config_path = config_manager._get_environment_config_path()
             
             if not config_path.exists():
-                console.print(f"❌ Configuration file not found: {config_path}")
+                console.print(f"[red]Configuration file not found: {config_path}[/red]")
                 raise click.Abort()
             
             is_valid, errors = validator.validate_config_file(str(config_path))
         
         # Show validation results
         if is_valid:
-            console.print("✅ Configuration is valid")
+            console.print("[green]Configuration is valid[/green]")
         else:
-            console.print("❌ Configuration validation failed")
+            console.print("[red]Configuration validation failed[/red]")
             
             error_table = Table(title="Validation Errors")
             error_table.add_column("Error", style="red")
@@ -153,7 +153,7 @@ def validate(config_file: Optional[str], environment: Optional[str], detailed: b
                 console.print(rec_table)
         
     except Exception as e:
-        console.print(f"❌ Validation failed: {e}")
+        console.print(f"[red]Validation failed: {e}[/red]")
         raise click.Abort()
 
 
@@ -184,8 +184,8 @@ def encrypt(config_file: str, output: Optional[str], key_file: Optional[str], ge
                     f.write(master_key)
                 console.print(f"💾 Saved encryption key to: {key_file}")
             else:
-                console.print(f"🔑 Master key: {master_key}")
-                console.print("⚠️  Store this key securely!")
+                console.print(f"[yellow]Master key: {master_key}[/yellow]")
+                console.print("[yellow]Store this key securely![/yellow]")
             
             encryption = ConfigEncryption(master_key=master_key)
         else:
@@ -218,7 +218,7 @@ def encrypt(config_file: str, output: Optional[str], key_file: Optional[str], ge
         console.print(f"📁 Saved to: {output_path}")
         
     except Exception as e:
-        console.print(f"❌ Encryption failed: {e}")
+        console.print(f"[red]Encryption failed: {e}[/red]")
         raise click.Abort()
 
 
@@ -266,7 +266,7 @@ def decrypt(config_file: str, output: Optional[str], key_file: Optional[str]):
         console.print(f"📁 Saved to: {output_path}")
         
     except Exception as e:
-        console.print(f"❌ Decryption failed: {e}")
+        console.print(f"[red]Decryption failed: {e}[/red]")
         raise click.Abort()
 
 
@@ -316,7 +316,7 @@ def history(config_dir: str, limit: int):
         console.print(f"\n📊 Total versions: {stats['total_versions']}")
         
     except Exception as e:
-        console.print(f"❌ Failed to show history: {e}")
+        console.print(f"[red]Failed to show history: {e}[/red]")
         raise click.Abort()
 
 
@@ -333,17 +333,17 @@ def rollback(config_dir: str, version_id: str):
         
         # Confirm rollback
         if not Confirm.ask(f"Are you sure you want to rollback to version {version_id}?"):
-            console.print("❌ Rollback cancelled")
+            console.print("[red]Rollback cancelled[/red]")
             return
         
         # Perform rollback
         config_manager.rollback_config(version_id)
         
-        console.print(f"✅ Configuration rolled back to version: {version_id}")
-        console.print("⚠️  Remember to restart services to apply changes")
+        console.print(f"[green]Configuration rolled back to version: {version_id}[/green]")
+        console.print("[yellow]Remember to restart services to apply changes[/yellow]")
         
     except Exception as e:
-        console.print(f"❌ Rollback failed: {e}")
+        console.print(f"[red]Rollback failed: {e}[/red]")
         raise click.Abort()
 
 
@@ -370,7 +370,7 @@ def diff(config_dir: str, version1_id: str, version2_id: str):
         
         # Show differences
         if not comparison['differences']:
-            console.print("✅ No differences found between versions")
+            console.print("[green]No differences found between versions[/green]")
             return
         
         diff_table = Table(title=f"Differences ({comparison['total_changes']} changes)")
@@ -399,7 +399,7 @@ def diff(config_dir: str, version1_id: str, version2_id: str):
         console.print(diff_table)
         
     except Exception as e:
-        console.print(f"❌ Comparison failed: {e}")
+        console.print(f"[red]Comparison failed: {e}[/red]")
         raise click.Abort()
 
 
@@ -431,8 +431,8 @@ def generate_deploy(environment: str, output_dir: str, format: str):
             with open(compose_file, 'w') as f:
                 f.write(compose_content)
             
-            console.print(f"✅ Generated Docker Compose configuration")
-            console.print(f"📁 Saved to: {compose_file}")
+            console.print(f"[green]Generated Docker Compose configuration[/green]")
+            console.print(f"[blue]Saved to: {compose_file}[/blue]")
             
         elif format == 'kubernetes':
             # Generate Kubernetes manifests
@@ -443,9 +443,9 @@ def generate_deploy(environment: str, output_dir: str, format: str):
                 with open(manifest_file, 'w') as f:
                     f.write(content)
                 
-                console.print(f"📁 Generated: {manifest_file}")
+                console.print(f"[blue]Generated: {manifest_file}[/blue]")
             
-            console.print(f"✅ Generated Kubernetes manifests for {environment}")
+            console.print(f"[green]Generated Kubernetes manifests for {environment}[/green]")
         
         # Show next steps
         console.print("\n📋 Next steps:")
@@ -459,7 +459,7 @@ def generate_deploy(environment: str, output_dir: str, format: str):
             console.print(f"3. Deploy: kubectl apply -f {output_path}")
         
     except Exception as e:
-        console.print(f"❌ Failed to generate deployment files: {e}")
+        console.print(f"[red]Failed to generate deployment files: {e}[/red]")
         raise click.Abort()
 
 
@@ -484,7 +484,7 @@ def show(config_file: Optional[str], key: Optional[str], format: str):
             config_path = config_manager._get_environment_config_path()
         
         if not config_path.exists():
-            console.print(f"❌ Configuration file not found: {config_path}")
+            console.print(f"[red]Configuration file not found: {config_path}[/red]")
             raise click.Abort()
         
         # Load configuration
@@ -502,7 +502,7 @@ def show(config_file: Optional[str], key: Optional[str], format: str):
                     value = value[k]
                 config_data = {key: value}
             except KeyError:
-                console.print(f"❌ Configuration key not found: {key}")
+                console.print(f"[red]Configuration key not found: {key}[/red]")
                 raise click.Abort()
         
         # Display configuration
@@ -532,7 +532,7 @@ def show(config_file: Optional[str], key: Optional[str], format: str):
             console.print(table)
         
     except Exception as e:
-        console.print(f"❌ Failed to show configuration: {e}")
+        console.print(f"[red]Failed to show configuration: {e}[/red]")
         raise click.Abort()
 
 
@@ -567,11 +567,11 @@ def set(config_file: Optional[str], key: str, value: str):
         # Save configuration
         config_manager.save_config(config_file)
         
-        console.print(f"✅ Set {key} = {parsed_value}")
-        console.print("💾 Configuration saved")
+        console.print(f"[green]Set {key} = {parsed_value}[/green]")
+        console.print("[blue]Configuration saved[/blue]")
         
     except Exception as e:
-        console.print(f"❌ Failed to set configuration: {e}")
+        console.print(f"[red]Failed to set configuration: {e}[/red]")
         raise click.Abort()
 
 

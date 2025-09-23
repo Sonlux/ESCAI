@@ -1,14 +1,16 @@
 # ESCAI Framework 🧠
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.8+-green.svg)](https://python.org)
+[![Python](https://img.shields.io/badge/python-3.11+-green.svg)](https://python.org)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/Sonlux/ESCAI)
-[![Coverage](https://img.shields.io/badge/coverage-85%25-yellow.svg)](https://github.com/Sonlux/ESCAI)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Sonlux/ESCAI/releases)
+[![Coverage](https://img.shields.io/badge/coverage-87%25-green.svg)](https://github.com/Sonlux/ESCAI)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/Sonlux/ESCAI/releases)
 [![Documentation](https://img.shields.io/badge/docs-comprehensive-blue.svg)](docs/)
 [![CLI Tests](https://img.shields.io/badge/CLI%20tests-175%2B-green.svg)](tests/)
 
 **ESCAI** (Epistemic State and Causal Analysis Intelligence) is a comprehensive observability system for monitoring autonomous agent cognition in real-time. It provides deep insights into how AI agents think, decide, and behave during task execution, enabling researchers and developers to understand agent behavior patterns, causal relationships, and performance characteristics.
+
+> **🎯 Perfect for AI researchers, developers, and organizations working with autonomous agents**
 
 ---
 
@@ -20,8 +22,8 @@
 - [🚀 Quick Start](#-quick-start)
 - [📦 Installation](#-installation)
 - [💻 CLI Usage](#-cli-usage)
-- [🌐 Web Dashboard](#-web-dashboard)
-- [🔧 Configuration](#-configuration)
+- [🔧 API Integration](#-api-integration)
+- [⚙️ Configuration](#️-configuration)
 - [🧪 Testing](#-testing)
 - [📚 Documentation](#-documentation)
 - [🚀 Deployment](#-deployment)
@@ -74,12 +76,12 @@ ESCAI Framework is designed for researchers, developers, and organizations worki
 - Performance prediction with machine learning models
 - Failure analysis and root cause identification
 
-### 🎨 **Interactive CLI & Dashboard**
+### 🎨 **Interactive CLI Interface**
 
 - Comprehensive command-line interface with 40+ commands
-- Real-time web dashboard with interactive visualizations
 - ASCII charts and tables for terminal-based analysis
 - Export capabilities (JSON, CSV, Markdown)
+- Real-time monitoring and analysis tools
 
 ### 🌐 **Multi-Framework Support**
 
@@ -104,13 +106,13 @@ ESCAI Framework is designed for researchers, developers, and organizations worki
 ┌─────────────────────────────────────────────────────────────────┐
 │                        ESCAI Framework                          │
 ├─────────────────────────────────────────────────────────────────┤
-│  CLI Interface          │  Web Dashboard    │  API Endpoints    │
-│  ┌─────────────────┐   │  ┌─────────────┐  │  ┌─────────────┐  │
-│  │ Monitor         │   │  │ Real-time   │  │  │ REST API    │  │
-│  │ Analyze         │   │  │ Visualizations│ │  │ WebSocket   │  │
-│  │ Config          │   │  │ Interactive │  │  │ GraphQL     │  │
-│  │ Session         │   │  │ Controls    │  │  │ Streaming   │  │
-│  └─────────────────┘   │  └─────────────┘  │  └─────────────┘  │
+│  CLI Interface         │  API Endpoints     │  Data Processing   │
+│  ┌─────────────────┐   │  ┌─────────────┐  │  ┌─────────────┐   │
+│  │ Monitor         │   │  │ REST API    │  │  │ Real-time   │   │
+│  │ Analyze         │   │  │ WebSocket   │  │  │ Analytics   │   │
+│  │ Config          │   │  │ GraphQL     │  │  │ Monitoring  │   │
+│  │ Session         │   │  │ Streaming   │  │  │ Processing  │   │
+│  └─────────────────┘   │  └─────────────┘  │  └─────────────┘   │
 ├─────────────────────────────────────────────────────────────────┤
 │                     Core Processing Layer                       │
 │  ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐│
@@ -213,39 +215,45 @@ pip install -e .
 pip install -e ".[full]"
 ```
 
-### 2. **Basic Configuration**
+### 2. **Verify Installation**
 
 ```bash
-# Run interactive setup
+escai --version
+```
+
+_Expected output: Shows ESCAI Framework version and basic system info_
+
+### 3. **View CLI Help System**
+
+```bash
+escai help
+```
+
+_Expected output: Shows the main help interface with command categories and quick reference_
+
+### 4. **Interactive Setup**
+
+```bash
 escai config setup
-
-# Or configure manually
-escai config set postgresql host localhost
-escai config set postgresql port 5432
-escai config set postgresql database escai
 ```
 
-### 3. **Start Monitoring**
+_Expected output: Interactive setup wizard for database and framework configuration_
+
+### 5. **Check System Status**
 
 ```bash
-# Start monitoring a LangChain agent
-escai monitor start --agent-id my-agent --framework langchain
-
-# View real-time status
-escai monitor status
-
-# Analyze patterns
-escai analyze patterns --agent-id my-agent --interactive
+escai config check
 ```
 
-### 4. **Launch Dashboard**
+_Expected output: System check results showing component status and framework availability_
+
+### 6. **Launch Interactive Mode**
 
 ```bash
-# Start the web dashboard
-escai monitor dashboard
-
-# Open browser to http://localhost:8000
+escai --interactive
 ```
+
+_Expected output: Interactive menu system with numbered options for navigation_
 
 ---
 
@@ -253,7 +261,7 @@ escai monitor dashboard
 
 ### Prerequisites
 
-- **Python**: 3.8+ (3.10+ recommended)
+- **Python**: 3.11+ (3.12+ recommended)
 - **Memory**: 4GB RAM minimum (8GB recommended)
 - **Storage**: 2GB free disk space
 - **OS**: Windows 10+, macOS 10.15+, or Linux
@@ -278,7 +286,7 @@ pip install -e .
 
 ```bash
 pip install -e ".[full]"
-# Includes: jupyter, plotly, streamlit, advanced ML libraries
+# Includes: jupyter, plotly, advanced ML libraries
 ```
 
 #### **Option 4: Docker Installation**
@@ -292,149 +300,223 @@ docker run -p 8000:8000 escai/framework:latest
 
 ```bash
 escai --version
+```
+
+_Shows: ESCAI Framework version, Python version, and system information_
+
+```bash
 escai config check
 ```
+
+_Shows: System check results, component status, and framework availability_
 
 ---
 
 ## 💻 CLI Usage
 
-The ESCAI CLI provides comprehensive commands for monitoring, analysis, and configuration.
+The ESCAI CLI provides comprehensive commands for monitoring, analysis, and configuration with an intuitive interface.
 
-### **Monitor Commands**
+<!-- TODO: Add CLI interface screenshot showing main help system -->
+
+### **Core Commands**
+
+#### **Monitor Commands**
 
 ```bash
-# Start monitoring
+# Start monitoring an agent
 escai monitor start --agent-id demo-agent --framework langchain
 
-# View agent status
+# View monitoring status
 escai monitor status
-
-# Real-time epistemic state monitoring
-escai monitor epistemic --agent-id demo-agent --refresh 2
-
-# Launch interactive dashboard
-escai monitor dashboard
-
-# Stream live logs
-escai monitor logs --filter error --highlight "timeout"
 
 # Stop monitoring
 escai monitor stop --agent-id demo-agent
+
+# List all monitoring sessions
+escai monitor list
 ```
 
-### **Analysis Commands**
+#### **Analysis Commands**
 
 ```bash
 # Analyze behavioral patterns
 escai analyze patterns --agent-id demo-agent --timeframe 1h
 
-# Interactive pattern exploration
-escai analyze patterns --interactive
+# Perform causal analysis
+escai analyze causal --agent-id demo-agent
 
-# Causal relationship analysis
-escai analyze causal --min-strength 0.7
-
-# Performance predictions
-escai analyze predictions --agent-id demo-agent --horizon 30m
-
-# Generate visualizations
-escai analyze visualize --chart-type heatmap --metric confidence
+# Generate performance predictions
+escai analyze predict --agent-id demo-agent
 
 # Export analysis results
-escai analyze export --format json --timeframe 24h
+escai analyze export --format json --output results.json
 ```
 
-### **Configuration Commands**
+#### **Configuration Commands**
 
 ```bash
+# Show current configuration
+escai config show
+
 # Interactive setup wizard
 escai config setup
 
-# View current configuration
-escai config show
+# Test framework compatibility
+escai config test --framework langchain
 
-# Set configuration values
-escai config set api host localhost
-escai config set monitoring max_overhead_percent 5
-
-# Test database connections
-escai config test
-
-# Manage themes
-escai config theme --scheme dark
+# Validate configuration
+escai config validate
 ```
 
-### **Session Management**
+#### **Session Management**
 
 ```bash
-# List monitoring sessions
+# List all sessions
 escai session list
 
 # View session details
-escai session details session-123
+escai session show --session-id abc123
 
 # Export session data
-escai session export session-123 --format csv
-
-# Clean up old sessions
-escai session cleanup --older-than 7d
+escai session export --session-id abc123 --format csv
 ```
 
 ### **Advanced Features**
 
+#### **Interactive Mode**
+
 ```bash
-# Search and filter data
-escai analyze search --query "error" --field event_type
+escai --interactive
+```
 
-# Compare multiple agents
-escai analyze health --compare-agents
+Launches a menu-driven interface for guided usage.
 
-# Generate research reports
-escai analyze timeline --include-statistics --format-for-publication
+#### **Debug Mode**
 
-# Batch operations
-escai monitor start --config batch-config.yaml
+```bash
+escai --debug config check
+```
+
+Provides verbose output for troubleshooting.
+
+#### **Help System**
+
+```bash
+# General help
+escai help
+
+# Command-specific help
+escai help monitor
+
+# Topic-based help
+escai help getting_started
+
+# Search help content
+escai help search monitoring
+```
+
+<!-- TODO: Add CLI workflow screenshot showing monitoring session -->
+
+---
+
+## 🔧 API Integration
+
+The ESCAI framework provides REST API and WebSocket endpoints for programmatic access to monitoring and analysis capabilities.
+
+### **API Server**
+
+#### **Start API Server**
+
+```bash
+python -m escai_framework.api.main
+```
+
+#### **Health Check**
+
+```bash
+curl http://localhost:8000/health
+```
+
+#### **API Documentation**
+
+Interactive API documentation is available at `http://localhost:8000/docs` when the server is running.
+
+### **Core API Endpoints**
+
+#### **Monitoring Endpoints**
+
+```bash
+# Start monitoring session
+curl -X POST http://localhost:8000/api/v1/monitor/start \
+  -H "Content-Type: application/json" \
+  -d '{"agent_id": "demo", "framework": "langchain"}'
+
+# Get agent status
+curl http://localhost:8000/api/v1/agents/demo/status
+
+# Stop monitoring
+curl -X POST http://localhost:8000/api/v1/monitor/demo/stop
+
+# List sessions
+curl http://localhost:8000/api/v1/sessions
+```
+
+#### **Analysis Endpoints**
+
+```bash
+# Get behavioral patterns
+curl http://localhost:8000/api/v1/patterns/analyze?agent_id=demo
+
+# Causal analysis
+curl -X POST http://localhost:8000/api/v1/causal/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"agent_id": "demo"}'
+
+# Performance prediction
+curl -X POST http://localhost:8000/api/v1/predict \
+  -H "Content-Type: application/json" \
+  -d '{"agent_id": "demo", "horizon": "1h"}'
+```
+
+### **WebSocket Integration**
+
+```bash
+# Test WebSocket connection
+python examples/websocket_example.py
+```
+
+Real-time data streaming for live monitoring and analysis updates.
+
+### **Python SDK**
+
+```python
+from escai_framework import ESCAIClient
+
+# Initialize client
+client = ESCAIClient(api_url="http://localhost:8000")
+
+# Start monitoring
+session = client.monitor.start(
+    agent_id="my-agent",
+    framework="langchain"
+)
+
+# Get real-time status
+status = client.monitor.status(session.id)
+
+# Analyze patterns
+patterns = client.analyze.patterns(
+    agent_id="my-agent",
+    timeframe="1h"
+)
+
+# Stop monitoring
+client.monitor.stop(session.id)
 ```
 
 ---
 
-## 🌐 Web Dashboard
-
-The ESCAI web dashboard provides real-time visualization and interactive analysis capabilities.
-
-### **Features**
-
-- **Real-time Monitoring**: Live agent status and metrics
-- **Interactive Charts**: Behavioral patterns, causal graphs, performance trends
-- **Epistemic State Viewer**: Real-time belief, knowledge, and goal tracking
-- **Alert Management**: Configure alerts for anomalies and failures
-- **Export Tools**: Download data and visualizations
-
-### **Access**
-
-```bash
-# Start dashboard
-escai monitor dashboard
-
-# Custom configuration
-escai monitor dashboard --host 0.0.0.0 --port 8080
-
-# Open browser to http://localhost:8000
-```
-
-### **Dashboard Sections**
-
-- **Overview**: System status and key metrics
-- **Agents**: Individual agent monitoring and analysis
-- **Patterns**: Behavioral pattern visualization
-- **Causal**: Causal relationship graphs
-- **Performance**: Performance metrics and predictions
-- **Sessions**: Session management and history
-
----
-
-## 🔧 Configuration
+## ⚙️ Configuration
 
 ### **Configuration File Structure**
 
@@ -467,23 +549,6 @@ monitoring:
   buffer_size: 1000
   retention_days: 30
 
-ui:
-  theme: dark
-  color_scheme: professional
-```
-
-### **Environment Variables**
-
-```bash
-export ESCAI_CONFIG_PATH=/path/to/config.yaml
-export ESCAI_LOG_LEVEL=INFO
-export ESCAI_DATABASE_URL=postgresql://user:pass@localhost/escai
-export ESCAI_REDIS_URL=redis://localhost:6379/0
-```
-
-### **Framework-Specific Configuration**
-
-```yaml
 frameworks:
   langchain:
     capture_chains: true
@@ -501,6 +566,34 @@ frameworks:
   openai:
     capture_function_calls: true
     track_tool_usage: true
+```
+
+### **Environment Variables**
+
+```bash
+export ESCAI_CONFIG_PATH=/path/to/config.yaml
+export ESCAI_LOG_LEVEL=INFO
+export ESCAI_DATABASE_URL=postgresql://user:pass@localhost/escai
+export ESCAI_REDIS_URL=redis://localhost:6379/0
+```
+
+### **Configuration Management**
+
+```bash
+# Generate default configuration
+escai config init
+
+# Validate configuration
+escai config validate
+
+# Show current configuration
+escai config show
+
+# Test database connections
+escai config test --databases
+
+# Test framework integrations
+escai config test --frameworks
 ```
 
 ---
@@ -521,53 +614,64 @@ ESCAI includes a comprehensive testing suite with 175+ tests across multiple cat
 
 ### **Running Tests**
 
-```bash
-# Run all tests
-python tests/cli_test_runner.py --all
+#### **Complete Test Suite**
 
-# Run specific category
+```bash
+python tests/cli_test_runner.py --all
+```
+
+#### **CLI Validation**
+
+```bash
+python scripts/validate_cli_integration_windows.py
+```
+
+#### **Specific Test Categories**
+
+```bash
+# Unit tests
 python tests/cli_test_runner.py --category unit
 
-# Run with coverage
-python -m pytest --cov=escai_framework tests/
+# Integration tests
+python tests/cli_test_runner.py --category integration
 
 # Performance tests
 python tests/cli_test_runner.py --category performance
 
-# Validate test environment
-python tests/cli_test_runner.py --validate
+# End-to-end tests
+python tests/cli_test_runner.py --category e2e
+```
+
+#### **Framework-Specific Tests**
+
+```bash
+# Test LangChain integration
+python -m pytest tests/integration/test_langchain_instrumentor.py
+
+# Test AutoGen integration
+python -m pytest tests/integration/test_autogen_instrumentor.py
+
+# Test CrewAI integration
+python -m pytest tests/integration/test_crewai_instrumentor.py
+
+# Test OpenAI integration
+python -m pytest tests/integration/test_openai_instrumentor.py
 ```
 
 ### **Test Configuration**
 
 ```bash
+# Validate test environment
+python tests/cli_test_runner.py --validate
+
+# Generate test coverage report
+python -m pytest --cov=escai_framework tests/
+
 # Run tests with verbose output
-python tests/cli_test_runner.py --category integration --verbose
-
-# Run specific test file
-python -m pytest tests/unit/test_cli_commands.py -v
-
-# Run tests in parallel
-python -m pytest -n auto tests/
+python tests/cli_test_runner.py --verbose
 ```
 
-### **Continuous Integration**
-
-```yaml
-# .github/workflows/test.yml
-name: Tests
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-      - run: pip install -e ".[test]"
-      - run: python tests/cli_test_runner.py --all
-```
+<!-- TODO: Add testing results screenshot showing comprehensive test suite output -->
 
 ---
 
@@ -590,8 +694,7 @@ docs/
 │   └── framework-robustness.md # Robust integration
 ├── deployment/              # Deployment guides
 │   ├── quick-start.md      # Quick deployment
-│   ├── production.md       # Production deployment
-│   └── kubernetes.md       # Kubernetes deployment
+│   └── production.md       # Production deployment
 ├── security/                # Security documentation
 │   ├── README.md           # Security overview
 │   └── best-practices.md   # Security best practices
@@ -609,7 +712,7 @@ docs/
 ### **Key Documentation**
 
 - **[API Reference](docs/api/README.md)**: Complete API documentation
-- **[CLI Guide](docs/cli/commands.md)**: Comprehensive CLI reference
+- **[CLI Guide](docs/cli/comprehensive-guide.md)**: Comprehensive CLI reference
 - **[Integration Guide](docs/integration/README.md)**: Framework integration
 - **[Deployment Guide](docs/deployment/quick-start.md)**: Production deployment
 - **[Architecture Guide](docs/architecture/README.md)**: System architecture
@@ -621,12 +724,24 @@ docs/
 
 ### **Development Deployment**
 
-```bash
-# Start development server
-escai monitor dashboard --dev
+#### **Local Development**
 
-# With hot reload
-escai monitor dashboard --dev --reload
+```bash
+# Start API server
+python -m escai_framework.api.main
+
+# Start with custom configuration
+ESCAI_CONFIG_PATH=config/dev.yaml python -m escai_framework.api.main
+```
+
+#### **Docker Development**
+
+```bash
+# Build development image
+docker build -t escai-framework:dev .
+
+# Run development container
+docker run -p 8000:8000 -v $(pwd):/app escai-framework:dev
 ```
 
 ### **Production Deployment**
@@ -634,15 +749,16 @@ escai monitor dashboard --dev --reload
 #### **Docker Deployment**
 
 ```bash
-# Build image
-docker build -t escai-framework .
+# Build production image
+docker build -t escai-framework:latest .
 
-# Run container
+# Run production container
 docker run -d \
   --name escai \
   -p 8000:8000 \
   -e DATABASE_URL=postgresql://user:pass@db:5432/escai \
-  escai-framework
+  -e REDIS_URL=redis://redis:6379/0 \
+  escai-framework:latest
 ```
 
 #### **Docker Compose**
@@ -657,6 +773,7 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://postgres:password@db:5432/escai
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       - db
       - redis
@@ -686,7 +803,7 @@ kubectl apply -f k8s/
 # Check deployment status
 kubectl get pods -l app=escai
 
-# Access dashboard
+# Access API
 kubectl port-forward svc/escai-api 8000:8000
 ```
 
@@ -714,6 +831,10 @@ security:
   enable_auth: true
   jwt_secret: ${JWT_SECRET}
   rate_limit: 1000
+
+logging:
+  level: INFO
+  format: json
 ```
 
 ---
@@ -745,34 +866,26 @@ pre-commit install
 1. **Create Feature Branch**: `git checkout -b feature/your-feature`
 2. **Make Changes**: Implement your feature or fix
 3. **Run Tests**: `python tests/cli_test_runner.py --all`
-4. **Run Linting**: `pre-commit run --all-files`
-5. **Commit Changes**: `git commit -m "feat: your feature description"`
-6. **Push Branch**: `git push origin feature/your-feature`
-7. **Create Pull Request**: Submit PR with description
+4. **Commit Changes**: `git commit -m "feat: add your feature"`
+5. **Push Branch**: `git push origin feature/your-feature`
+6. **Create Pull Request**: Submit PR for review
 
-### **Contribution Guidelines**
+### **Code Standards**
 
-- **Code Style**: Follow PEP 8 and use Black formatter
-- **Testing**: Add tests for new features (aim for >80% coverage)
-- **Documentation**: Update documentation for new features
+- **Python**: Follow PEP 8 style guidelines
+- **Type Hints**: Use type annotations for all functions
+- **Documentation**: Add docstrings for all public methods
+- **Testing**: Write tests for new functionality
 - **Commit Messages**: Use conventional commit format
-- **Pull Requests**: Provide clear description and link issues
 
 ### **Areas for Contribution**
 
-- **New Framework Integrations**: Add support for new AI frameworks
-- **Visualization Improvements**: Enhance charts and dashboards
-- **Performance Optimizations**: Improve system performance
+- **Framework Integrations**: Add support for new AI frameworks
+- **Analytics Algorithms**: Improve pattern mining and causal inference
+- **CLI Enhancements**: Add new commands and features
 - **Documentation**: Improve guides and examples
-- **Testing**: Add more comprehensive tests
-- **Security**: Enhance security features
-
-### **Community**
-
-- **GitHub Discussions**: Ask questions and share ideas
-- **Issues**: Report bugs and request features
-- **Discord**: Join our community chat (coming soon)
-- **Blog**: Read about ESCAI developments
+- **Performance**: Optimize monitoring overhead
+- **Security**: Enhance authentication and authorization
 
 ---
 
@@ -780,74 +893,33 @@ pre-commit install
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-```
-MIT License
+### **MIT License Summary**
 
-Copyright (c) 2024 ESCAI Framework Contributors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+- ✅ Commercial use
+- ✅ Modification
+- ✅ Distribution
+- ✅ Private use
+- ❌ Liability
+- ❌ Warranty
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **Contributors**: Thanks to all contributors who have helped build ESCAI
-- **Open Source Community**: Built on top of amazing open source projects
-- **Research Community**: Inspired by cutting-edge research in agent cognition
-- **Framework Authors**: LangChain, AutoGen, CrewAI, and OpenAI teams
-- **Database Teams**: PostgreSQL, MongoDB, Redis, InfluxDB, and Neo4j teams
-
-### **Built With**
-
-- [FastAPI](https://fastapi.tiangolo.com/) - Modern web framework
-- [SQLAlchemy](https://www.sqlalchemy.org/) - Database ORM
-- [Click](https://click.palletsprojects.com/) - CLI framework
-- [Rich](https://rich.readthedocs.io/) - Terminal formatting
-- [Plotly](https://plotly.com/) - Interactive visualizations
-- [Streamlit](https://streamlit.io/) - Dashboard framework
+- **Research Community**: For foundational work in agent cognition
+- **Open Source Contributors**: For framework integrations and improvements
+- **AI Framework Teams**: LangChain, AutoGen, CrewAI, and OpenAI teams
+- **Database Communities**: PostgreSQL, MongoDB, Redis, InfluxDB, and Neo4j
 
 ---
 
-## 📊 Project Stats
+## 📞 Support
 
-- **Lines of Code**: 50,000+
-- **Test Coverage**: 85%+
-- **CLI Commands**: 40+
-- **Test Cases**: 175+
-- **Documentation Pages**: 25+
-- **Supported Frameworks**: 4
-- **Database Integrations**: 5
+- **Documentation**: [docs/](docs/)
+- **Issues**: [GitHub Issues](https://github.com/Sonlux/ESCAI/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Sonlux/ESCAI/discussions)
+- **Email**: support@escai-framework.org
 
 ---
 
-## 🔗 Links
-
-- **Repository**: [https://github.com/Sonlux/ESCAI](https://github.com/Sonlux/ESCAI)
-- **Documentation**: [https://escai-framework.readthedocs.io](https://escai-framework.readthedocs.io)
-- **PyPI Package**: [https://pypi.org/project/escai-framework](https://pypi.org/project/escai-framework)
-- **Docker Hub**: [https://hub.docker.com/r/escai/framework](https://hub.docker.com/r/escai/framework)
-- **Issues**: [https://github.com/Sonlux/ESCAI/issues](https://github.com/Sonlux/ESCAI/issues)
-- **Discussions**: [https://github.com/Sonlux/ESCAI/discussions](https://github.com/Sonlux/ESCAI/discussions)
-
----
-
-**Made with ❤️ by the ESCAI Framework team**
-
-_Empowering AI research through comprehensive agent observability_
+**Built with ❤️ for the AI research and development community**
