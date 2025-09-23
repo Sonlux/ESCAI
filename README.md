@@ -316,7 +316,7 @@ _Shows: System check results, component status, and framework availability_
 
 The ESCAI CLI provides comprehensive commands for monitoring, analysis, and configuration with an intuitive interface.
 
-<!-- TODO: Add CLI interface screenshot showing main help system -->
+![alt text](image-23.png)
 
 ### **Core Commands**
 
@@ -415,7 +415,7 @@ escai help getting_started
 escai help search monitoring
 ```
 
-<!-- TODO: Add CLI workflow screenshot showing monitoring session -->
+![alt text](image-24.png)
 
 ---
 
@@ -670,8 +670,6 @@ python -m pytest --cov=escai_framework tests/
 # Run tests with verbose output
 python tests/cli_test_runner.py --verbose
 ```
-
-<!-- TODO: Add testing results screenshot showing comprehensive test suite output -->
 
 ---
 
