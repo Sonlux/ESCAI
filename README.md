@@ -416,7 +416,8 @@ escai help getting_started
 escai help search monitoring
 ```
 
-![alt text](image-24.png)
+<img width="1651" height="851" alt="image" src="https://github.com/user-attachments/assets/9c352308-5c1d-40aa-86cd-4795aa18fd8f" />
+
 
 ---
 
@@ -917,7 +918,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Documentation**: [docs/](docs/)
 - **Issues**: [GitHub Issues](https://github.com/Sonlux/ESCAI/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/Sonlux/ESCAI/discussions)
-- **Email**: support@escai-framework.org
+- **Email**: lakshanammineni@gmail.com
 
 ---
 
