@@ -198,6 +198,7 @@ logs/
 config/secrets.yaml
 config/local.yaml
 .secrets/
+.pypirc
 
 # Data files
 data/
