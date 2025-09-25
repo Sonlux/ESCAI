@@ -4,6 +4,15 @@ Constants for GitHub CI/CD automation system.
 This module defines constants used throughout the automation system.
 """
 
+# Workflow Status Constants
+class WorkflowStatus:
+    """Workflow status constants."""
+    QUEUED = "queued"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    FAILURE = "failure"
+
 # Default configuration values
 DEFAULT_POLLING_INTERVAL = 30  # seconds
 DEFAULT_TIMEOUT = 3600  # seconds (1 hour)

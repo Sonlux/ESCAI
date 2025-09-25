@@ -1,15 +1,16 @@
 """
-Basic example demonstrating GitHub CI/CD automation data models.
+Basic example demonstrating GitHub CI/CD automation system.
 
 This example shows how to create and work with the core data models
-for the GitHub CI/CD automation system.
+and the GitHubMCPClient for the GitHub CI/CD automation system.
 """
 
+import asyncio
 from datetime import datetime, timedelta
 from escai_framework.github_cicd import (
     WorkflowRun, WorkflowJob, WorkflowStep, AutomationSession,
     WorkflowStatus, WorkflowConclusion, JobStatus, StepStatus, AutomationSessionStatus,
-    utils, constants
+    GitHubMCPClient, utils, constants
 )
 
 
@@ -218,5 +219,72 @@ def demonstrate_workflow_analysis():
     print(f"Session managed {len(session.commits_made)} commits")
 
 
-if __name__ == "__main__":
+async def demonstrate_github_mcp_client():
+    """Demonstrate GitHubMCPClient usage."""
+    
+    print("\n=== GitHub MCP Client Demo ===")
+    
+    # Create client instance
+    client = GitHubMCPClient(default_timeout=30)
+    
+    try:
+        # Get available workflows
+        print("Getting available workflows...")
+        workflows = await client.get_workflows("myorg", "myapp")
+        print(f"Found {len(workflows)} workflows:")
+        for workflow in workflows:
+            print(f"  - {workflow['name']} ({workflow['path']})")
+        
+        # Trigger a workflow
+        print("\nTriggering workflow...")
+        inputs = {"environment": "staging", "version": "1.2.3"}
+        trigger_result = await client.trigger_workflow_dispatch(
+            "myorg", "myapp", "ci.yml", inputs
+        )
+        print(f"Workflow triggered: {trigger_result['workflow_id']}")
+        
+        # Get workflow run details
+        print("\nGetting workflow run details...")
+        workflow_run = await client.get_workflow_run("myorg", "myapp", 12345)
+        print(f"Workflow: {workflow_run.workflow_name}")
+        print(f"Status: {workflow_run.status.value}")
+        print(f"Repository: {workflow_run.repository}")
+        print(f"Branch: {workflow_run.branch}")
+        print(f"Commit: {workflow_run.commit_sha}")
+        
+        # Get workflow jobs
+        print("\nGetting workflow jobs...")
+        jobs = await client.get_workflow_run_jobs("myorg", "myapp", 12345)
+        print(f"Found {len(jobs)} jobs:")
+        for job in jobs:
+            print(f"  - {job.name}: {job.status.value}")
+            for step in job.steps:
+                print(f"    • {step.name}: {step.status.value}")
+        
+        # List recent workflow runs
+        print("\nListing recent workflow runs...")
+        runs = await client.list_workflow_runs("myorg", "myapp", per_page=5)
+        print(f"Found {len(runs)} recent runs:")
+        for run in runs:
+            status_symbol = constants.STATUS_SYMBOLS.get(run.status.value, '?')
+            print(f"  {status_symbol} #{run.run_number} - {run.workflow_name} ({run.status.value})")
+        
+        # Check rate limit status
+        rate_limit = client.get_rate_limit_status()
+        print(f"\nRate limit status: {rate_limit}")
+        
+    except Exception as e:
+        print(f"Error during MCP client demo: {e}")
+
+
+def main():
+    """Run all demonstrations."""
+    # Run synchronous demo
     demonstrate_workflow_analysis()
+    
+    # Run asynchronous demo
+    asyncio.run(demonstrate_github_mcp_client())
+
+
+if __name__ == "__main__":
+    main()

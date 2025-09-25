@@ -18,11 +18,13 @@ from .interfaces import (
 from . import constants
 from . import utils
 
+# Import implemented classes
+from .github_mcp_client import GitHubMCPClient
+from .status_monitor import StatusMonitor, ProgressReport, MonitoringSession, MonitoringStatus
+from .commit_manager import CommitManager, CommitContext, CommitResult, PushResult
+
 # Import placeholder classes (will be implemented in future tasks)
 # from .workflow_manager import WorkflowManager
-# from .github_mcp_client import GitHubMCPClient
-# from .status_monitor import StatusMonitor
-# from .commit_manager import CommitManager
 # from .rollback_manager import RollbackManager
 # from .error_handler import ErrorHandler
 
@@ -57,11 +59,19 @@ __all__ = [
     "constants",
     "utils",
     
+    # Main classes
+    "GitHubMCPClient",
+    "StatusMonitor",
+    "ProgressReport",
+    "MonitoringSession", 
+    "MonitoringStatus",
+    "CommitManager",
+    "CommitContext",
+    "CommitResult",
+    "PushResult",
+    
     # Main classes (to be implemented in future tasks)
     # "WorkflowManager",
-    # "GitHubMCPClient",
-    # "StatusMonitor",
-    # "CommitManager",
     # "RollbackManager",
     # "ErrorHandler",
 ]
