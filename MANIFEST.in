@@ -10,26 +10,49 @@ include CHANGELOG.md
 # Include the contributing guide
 include CONTRIBUTING.md
 
-# Include requirements files
-include requirements.txt
-
 # Include configuration files
 include pyproject.toml
+include alembic.ini
+
+# Include example configuration files
+include config/config.example.yaml
 
 # Include test files
 recursive-include tests *.py
 
 # Include examples
-recursive-include examples *.py *.md *.yaml *.json
+recursive-include examples *.py *.md
 
 # Include documentation
-recursive-include docs *.md *.rst *.txt *.py
+recursive-include docs *.md *.py
+
+# Include package data files (all Python files are already included by setuptools)
+# recursive-include escai_framework *.py
 
 # Exclude development and build artifacts
 exclude .gitignore
-exclude test_basic_functionality.py
+exclude .gitignore.backup
+exclude requirements.txt
+exclude requirements-dev.txt
+exclude mypy.ini
+exclude pytest_cli.ini
+exclude test_cli_enhancement.py
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 recursive-exclude * *.so
 recursive-exclude * .DS_Store
 recursive-exclude .kiro *
+recursive-exclude .git *
+recursive-exclude .github *
+recursive-exclude .mypy_cache *
+recursive-exclude .pytest_cache *
+recursive-exclude build *
+recursive-exclude dist *
+recursive-exclude *.egg-info *
+recursive-exclude archived-workflows *
+recursive-exclude dev *
+recursive-exclude docker *
+recursive-exclude helm *
+recursive-exclude k8s *
+recursive-exclude scripts *
+exclude escai_export_*.json
