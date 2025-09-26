@@ -27,7 +27,11 @@ try:
     LANGCHAIN_AVAILABLE = True
 except ImportError:
     # Create mock classes for type hints when LangChain is not available
-    BaseCallbackHandler = None  # type: ignore[misc]
+    class BaseCallbackHandler:
+        """Mock BaseCallbackHandler when LangChain is not available."""
+        def __init__(self, *args, **kwargs):
+            pass
+    
     BaseMessage = None  # type: ignore[misc]
     AgentAction = None  # type: ignore[misc]
     AgentFinish = None  # type: ignore[misc]
@@ -233,7 +237,7 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         except Exception as e:
             self.logger.error(f"Error in on_llm_start: {str(e)}")
     
-    def on_llm_end(self, response: LLMResult, *, run_id: UUID,
+    def on_llm_end(self, response: Any, *, run_id: UUID,
                   parent_run_id: Optional[UUID] = None, **kwargs: Any) -> Any:
         """Called when an LLM finishes generating."""
         try:
@@ -419,7 +423,7 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         except Exception as e:
             self.logger.error(f"Error in on_tool_error: {str(e)}")
     
-    def on_agent_action(self, action: AgentAction, *, run_id: UUID,
+    def on_agent_action(self, action: Any, *, run_id: UUID,
                        parent_run_id: Optional[UUID] = None, **kwargs: Any) -> Any:
         """Called when an agent takes an action."""
         try:
@@ -450,7 +454,7 @@ class LangChainCallbackHandler(BaseCallbackHandler):
         except Exception as e:
             self.logger.error(f"Error in on_agent_action: {str(e)}")
     
-    def on_agent_finish(self, finish: AgentFinish, *, run_id: UUID,
+    def on_agent_finish(self, finish: Any, *, run_id: UUID,
                        parent_run_id: Optional[UUID] = None, **kwargs: Any) -> Any:
         """Called when an agent finishes."""
         try:
