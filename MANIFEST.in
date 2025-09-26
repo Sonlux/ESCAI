@@ -27,7 +27,7 @@ recursive-include examples *.py *.md
 recursive-include docs *.md *.py
 
 # Include package data files (all Python files are already included by setuptools)
-# recursive-include escai_framework *.py
+recursive-include escai_framework *.py
 
 # Exclude development and build artifacts
 exclude .gitignore
