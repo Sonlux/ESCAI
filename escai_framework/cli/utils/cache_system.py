@@ -373,7 +373,7 @@ class CLICacheManager:
         self.config = config or CacheConfig()
         
         if self.config.enable_persistence:
-            self.backend = PersistentCache(self.config)
+            self.backend: Union[MemoryCache, PersistentCache] = PersistentCache(self.config)
         else:
             self.backend = MemoryCache(self.config)
     

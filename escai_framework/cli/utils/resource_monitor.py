@@ -148,7 +148,7 @@ class ResourceOptimizer:
     def __init__(self, config: ResourceConfig):
         self.config = config
         self.optimization_callbacks: List[Callable] = []
-        self.last_optimization = 0
+        self.last_optimization = 0.0
     
     def register_optimization_callback(self, callback: Callable):
         """Register a callback for resource optimization."""
@@ -188,7 +188,7 @@ class ResourceOptimizer:
     
     def optimize(self, usage: ResourceUsage, reasons: List[str]) -> Dict[str, Any]:
         """Perform resource optimization."""
-        optimization_results = {
+        optimization_results: Dict[str, Any] = {
             "timestamp": time.time(),
             "reasons": reasons,
             "actions_taken": [],
