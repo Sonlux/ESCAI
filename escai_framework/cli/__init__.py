@@ -2,4 +2,4 @@
 ESCAI Framework CLI Package
 """
 
-__version__ = "1.0.0"
+from escai_framework import __version__

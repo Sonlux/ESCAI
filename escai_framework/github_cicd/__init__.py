@@ -28,7 +28,7 @@ from .commit_manager import CommitManager, CommitContext, CommitResult, PushResu
 # from .rollback_manager import RollbackManager
 # from .error_handler import ErrorHandler
 
-__version__ = "1.0.0"
+from escai_framework import __version__
 
 __all__ = [
     # Data models

@@ -71,7 +71,8 @@ def cli(ctx, version, interactive, debug, verbose):
     
     if version:
         logger.user_action("Version information requested")
-        click.echo("ESCAI Framework v1.0.0")
+        from escai_framework import __version__
+        click.echo(f"ESCAI Framework v{__version__}")
         return
     
     if interactive:

@@ -59,10 +59,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     await db_manager.close()
 
 # Create FastAPI app
+from escai_framework import __version__
 app = FastAPI(
     title="ESCAI Framework API",
     description="Epistemic State and Causal Analysis Intelligence Framework",
-    version="1.0.0",
+    version=__version__,
     docs_url="/docs",
     redoc_url="/redoc",
     lifespan=lifespan
@@ -100,7 +101,7 @@ async def root(request: Request) -> Dict[str, str]:
     """Root endpoint with API information."""
     return {
         "name": "ESCAI Framework API",
-        "version": "1.0.0",
+        "version": __version__,
         "description": "Epistemic State and Causal Analysis Intelligence Framework",
         "docs": "/docs",
         "health": "/health"
@@ -119,7 +120,7 @@ async def health_check(request: Request) -> Dict[str, Any]:
             "status": "healthy" if health_status["overall"] else "unhealthy",
             "timestamp": datetime.utcnow().isoformat(),
             "services": health_status,
-            "version": "1.0.0",
+            "version": __version__,
             "uptime": str(datetime.utcnow() - app.state.start_time) if hasattr(app.state, 'start_time') else "unknown"
         }
     except Exception as e:

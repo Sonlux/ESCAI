@@ -14,6 +14,8 @@ from rich.prompt import Prompt, Confirm, IntPrompt
 from rich.table import Table
 from rich.text import Text
 from rich.layout import Layout
+
+from escai_framework import __version__
 from rich.live import Live
 
 from .console import get_console
@@ -770,7 +772,7 @@ class InteractiveMenuSystem:
 [bold]ESCAI Framework[/bold]
 [dim]Epistemic State and Causal Analysis Intelligence[/dim]
 
-[accent]Version:[/accent] 1.0.0
+[accent]Version:[/accent] {__version__}
 [accent]Purpose:[/accent] Monitor autonomous agent cognition in real-time
 
 [accent]Key Features:[/accent]
