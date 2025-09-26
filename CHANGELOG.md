@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Continuous Integration/Continuous Deployment (CI/CD) pipeline
+- Automated PyPI publishing workflow
+- Comprehensive GitHub Actions for testing, building, and deployment
+
+### Changed
+
+- Updated CI/CD workflow for better reliability and PyPI integration
+
+## [0.2.0] - 2025-09-26
+
+### Added
+
 - Initial project structure and core data models
 - EpistemicState model for tracking agent beliefs, knowledge, and goals
 - BehavioralPattern model for analyzing execution sequences
@@ -17,9 +29,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive validation utilities with custom exceptions
 - JSON serialization utilities with support for complex types
 - Dictionary conversion utilities for all data models
-- Comprehensive unit test suite
+- Comprehensive unit test suite with 175+ tests
 - Development setup with pyproject.toml configuration
 - Documentation with usage examples and API reference
+- Multi-framework support (LangChain, AutoGen, CrewAI, OpenAI)
+- Rich CLI with 40+ commands using Click + Rich
+- FastAPI REST endpoints with WebSocket support
+- Multi-database architecture (PostgreSQL, MongoDB, Redis, InfluxDB, Neo4j)
+- Framework instrumentation for real-time agent monitoring
+- Docker Compose for full-stack development
+- Custom CLI test runner for comprehensive testing
+- Security scanning with Bandit
+- Type checking with MyPy
+- Code formatting with Black and isort
+- Production-ready CI/CD pipeline
 
 ### Changed
 
