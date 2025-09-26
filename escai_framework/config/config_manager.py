@@ -14,11 +14,46 @@ from typing import Dict, Any, Optional, List, Callable, Union
 from pathlib import Path
 from datetime import datetime
 import logging
-from watchdog.events import FileSystemEventHandler
-from typing import TYPE_CHECKING, Any
 
-if TYPE_CHECKING:
+# Optional watchdog import for file system monitoring
+try:
+    from watchdog.events import FileSystemEventHandler
     from watchdog.observers import Observer
+    WATCHDOG_AVAILABLE = True
+except ImportError:
+    # Create mock classes when watchdog is not available
+    class MockEvent:
+        """Mock file system event."""
+        def __init__(self, src_path="", is_directory=False):
+            self.src_path = src_path
+            self.is_directory = is_directory
+    
+    class FileSystemEventHandler:
+        """Mock FileSystemEventHandler when watchdog is not available."""
+        def __init__(self, *args, **kwargs):
+            pass
+        
+        def on_modified(self, event):
+            pass
+    
+    class Observer:
+        """Mock Observer when watchdog is not available."""
+        def __init__(self):
+            pass
+        
+        def schedule(self, *args, **kwargs):
+            pass
+        
+        def start(self):
+            pass
+        
+        def stop(self):
+            pass
+        
+        def join(self):
+            pass
+    
+    WATCHDOG_AVAILABLE = False
 
 from .config_schema import ConfigSchema, Environment
 from .config_validator import ConfigValidator, ConfigValidationError
@@ -379,11 +414,14 @@ class ConfigManager:
         try:
             self.watched_files = config_files
             
+            if not WATCHDOG_AVAILABLE:
+                logger.warning("Watchdog not available - hot-reload monitoring disabled")
+                return
+            
             if self.observer is not None:
                 self.observer.stop()
                 self.observer.join()
             
-            from watchdog.observers import Observer
             self.observer = Observer()
             handler = ConfigChangeHandler(self)
             
