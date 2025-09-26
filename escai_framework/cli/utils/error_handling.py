@@ -278,11 +278,11 @@ class CLIErrorHandler:
                 
         if error.original_error:
             log_data['original_error'] = str(error.original_error)
-            log_data['traceback'] = traceback.format_exception(
+            log_data['traceback'] = ''.join(traceback.format_exception(
                 type(error.original_error),
                 error.original_error,
                 error.original_error.__traceback__
-            )
+            ))
             
         if error.severity in [ErrorSeverity.HIGH, ErrorSeverity.CRITICAL]:
             self.logger.error("CLI Error", extra=log_data)

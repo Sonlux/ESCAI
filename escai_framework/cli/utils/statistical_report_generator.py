@@ -84,7 +84,7 @@ class StatisticalAnalyzer:
             )
         
         if 'epistemic_uncertainty' in data.columns:
-            results['uncertainty_stats'] = self._calculate_descriptive_stats(
+            results['uncertainty_stats'] = self._calculate_descriptive_stats(  # type: ignore[assignment]
                 data['epistemic_uncertainty'], 'Epistemic Uncertainty'
             )
         

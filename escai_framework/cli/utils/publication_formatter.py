@@ -57,8 +57,8 @@ class Citation:
         """Generate APA format citation."""
         authors_str = ", ".join(self.authors)
         if len(self.authors) > 1:
-            authors_str = authors_str.rsplit(", ", 1)
-            authors_str = f"{authors_str[0]}, & {authors_str[1]}"
+            author_parts = authors_str.rsplit(", ", 1)
+            authors_str = f"{author_parts[0]}, & {author_parts[1]}"
         
         citation = f"{authors_str}"
         if self.year:
