@@ -27,6 +27,8 @@ try:
     LANGCHAIN_AVAILABLE = True
 except ImportError:
     # Create mock classes for type hints when LangChain is not available
+    LANGCHAIN_AVAILABLE = False
+    
     class BaseCallbackHandler:
         """Mock BaseCallbackHandler when LangChain is not available."""
         def __init__(self, *args, **kwargs):
@@ -37,7 +39,6 @@ except ImportError:
     AgentFinish = None  # type: ignore[misc]
     LLMResult = None  # type: ignore[misc]
     Document = None  # type: ignore[misc]
-    LANGCHAIN_AVAILABLE = False
 
 
 class LangChainCallbackHandler(BaseCallbackHandler):

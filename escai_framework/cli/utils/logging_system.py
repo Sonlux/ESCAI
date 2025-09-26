@@ -103,7 +103,7 @@ class CLILogger:
         self.name = name
         self.session_id = session_id
         self.logger = logging.getLogger(name)
-        self._context = {}
+        self._context: Dict[str, Any] = {}
         
         # Add custom log levels
         logging.addLevelName(LogLevel.TRACE.value, "TRACE")

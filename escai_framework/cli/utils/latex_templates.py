@@ -326,7 +326,7 @@ class LatexTableGenerator:
             return ""
         
         # Get all unique metrics
-        all_metrics = set()
+        all_metrics: set[str] = set()
         for dataset in data.values():
             all_metrics.update(dataset.keys())
         

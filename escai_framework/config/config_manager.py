@@ -22,6 +22,8 @@ try:
     WATCHDOG_AVAILABLE = True
 except ImportError:
     # Create mock classes when watchdog is not available
+    WATCHDOG_AVAILABLE = False
+    
     class MockEvent:
         """Mock file system event."""
         def __init__(self, src_path="", is_directory=False):
@@ -52,8 +54,6 @@ except ImportError:
         
         def join(self):
             pass
-    
-    WATCHDOG_AVAILABLE = False
 
 from .config_schema import ConfigSchema, Environment
 from .config_validator import ConfigValidator, ConfigValidationError

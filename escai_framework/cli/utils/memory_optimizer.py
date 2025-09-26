@@ -97,7 +97,7 @@ class SessionObjectTracker:
         cleaned = 0
         with self._lock:
             # Create new deque without the specified category
-            new_objects = deque(maxlen=self.max_objects)
+            new_objects: deque[Dict[str, Any]] = deque(maxlen=self.max_objects)
             
             for obj_info in self.tracked_objects:
                 if obj_info["category"] == category:
@@ -122,7 +122,7 @@ class SessionObjectTracker:
         cleaned = 0
         
         with self._lock:
-            new_objects = deque(maxlen=self.max_objects)
+            new_objects: deque[Dict[str, Any]] = deque(maxlen=self.max_objects)
             
             for obj_info in self.tracked_objects:
                 age = current_time - obj_info["created_at"]
