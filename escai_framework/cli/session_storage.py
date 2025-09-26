@@ -7,7 +7,7 @@ import sqlite3
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass, asdict
 
 from .utils.console import get_console
@@ -181,7 +181,7 @@ class SessionStorage:
                      limit: int = 50) -> List[Dict[str, Any]]:
         """List sessions with optional filtering."""
         query = "SELECT * FROM sessions WHERE 1=1"
-        params = []
+        params: List[Union[str, int]] = []
         
         if agent_id:
             query += " AND agent_id = ?"

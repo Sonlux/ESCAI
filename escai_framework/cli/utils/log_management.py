@@ -190,7 +190,7 @@ class LogFileManager:
         log_files = self.get_log_files()
         
         # Group files by date for archiving
-        files_by_date = {}
+        files_by_date: Dict[str, List[LogFileInfo]] = {}
         for log_file in log_files:
             if (not log_file.archived and 
                 log_file.modified < cutoff_date and
@@ -269,7 +269,7 @@ class LogFileManager:
     def perform_maintenance(self) -> Dict[str, Any]:
         """Perform comprehensive log maintenance."""
         maintenance_start = time.time()
-        results = {
+        results: Dict[str, List[str]] = {
             'rotated_files': [],
             'compressed_files': [],
             'archived_files': [],

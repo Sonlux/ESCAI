@@ -71,9 +71,9 @@ class CLIInputValidator:
     def validate_command_parameter(self, param_name: str, value: Any, 
                                  param_type: str = 'string') -> CLIValidationResult:
         """Validate individual command parameter with CLI-specific rules"""
-        errors = []
-        warnings = []
-        suggestions = []
+        errors: List[str] = []
+        warnings: List[str] = []
+        suggestions: List[str] = []
         sanitized_value = value
         help_text = None
         
@@ -239,7 +239,7 @@ class CLIInputValidator:
     def _validate_float_parameter(self, param_name: str, value: Any) -> CLIValidationResult:
         """Validate float parameters"""
         errors = []
-        warnings = []
+        warnings: List[str] = []
         suggestions = []
         
         try:
@@ -662,7 +662,7 @@ class CLIInputValidator:
                                  choices: List[str] = None) -> CLIValidationResult:
         """Validate choice parameters against allowed values"""
         errors = []
-        warnings = []
+        warnings: List[str] = []
         suggestions = []
         
         str_value = str(value).strip().lower()
@@ -772,7 +772,7 @@ class CLIInputValidator:
         
         # Simple similarity based on common characters
         best_match = None
-        best_score = 0
+        best_score = 0.0
         
         for choice in choices:
             # Calculate similarity score
