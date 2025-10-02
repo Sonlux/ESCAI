@@ -72,7 +72,7 @@ class TokenData(BaseModel):
 class AuthManager:
     """Authentication and authorization manager."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.users_db: Dict[str, Dict] = {}  # In production, use proper database
         self.refresh_tokens: Dict[str, str] = {}  # In production, use Redis
         

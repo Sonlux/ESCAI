@@ -1,5 +1,12 @@
 """
-Comprehensive help system with cross-references for ESCAI CLI.
+Comprehensive help system with cross-references fo    
+    def __init__(self) -> None:
+        \"\"\"Initialize the help system.\"\"\"
+        self.console = get_console()
+        self._topics: Dict[str, HelpTopic] = {}
+        self._commands: Dict[str, CommandReference] = {}
+        self._workflows: Dict[str, List[str]] = {}
+        self._initialize_help_content()CLI.
 
 This module provides a unified help system that generates contextual help
 with cross-references between commands and features.

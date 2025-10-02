@@ -65,7 +65,7 @@ class DescriptiveStatistics:
 class StatisticalAnalyzer:
     """Performs statistical analysis on ESCAI monitoring data."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.results: Dict[str, Any] = {}
     
     def analyze_agent_performance(self, data: pd.DataFrame) -> Dict[str, Any]:

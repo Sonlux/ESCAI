@@ -199,7 +199,7 @@ class QueryBuilder:
 class AdvancedSearch:
     """Advanced search with regex, fuzzy matching, and saved searches"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.saved_searches: Dict[str, Dict[str, Any]] = {}
         self.search_history: List[str] = []
         self.max_history = 50
