@@ -356,7 +356,7 @@ class AsyncProcessor(ParallelProcessor):
         
         return processed_results
     
-    async def _async_process_stream(self, items: Iterator[Any], func: Callable, **kwargs) -> List[ProcessingResult]:
+    async def _async_process_stream(self, items: Iterator[Any], func: Callable, **kwargs) -> list[ProcessingResult]:  # type: ignore[misc]
         """Async implementation of stream processing."""
         # Convert iterator to list for async processing
         item_list = list(items)

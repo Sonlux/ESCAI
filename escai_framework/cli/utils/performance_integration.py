@@ -229,7 +229,7 @@ class OptimizedCLISession:
         )
         
         # Define progress callback
-        def progress_callback(completed_count):
+        def progress_callback(completed_count: int) -> None:
             self.progress_manager.update_progress(progress_name, completed_count)
         
         # Process with tracking
@@ -239,10 +239,10 @@ class OptimizedCLISession:
         )
         
         # Update final progress
-        successful_count = sum(1 for r in results if r.success)
+        successful_count = sum(1 for r in results if r.success)  # type: ignore[attr-defined]
         self.progress_manager.update_progress(progress_name, successful_count)
         
-        return results
+        return results  # type: ignore[return-value]
     
     def optimize_memory(self) -> Dict[str, Any]:
         """Force memory optimization."""
@@ -276,21 +276,21 @@ class OptimizedCLISession:
     def _register_optimization_callbacks(self):
         """Register callbacks with optimization components."""
         # Resource monitoring alerts
-        def resource_alert_callback(level, resource, value, usage):
+        def resource_alert_callback(level: str, resource: str, value: float, usage: float) -> None:
             self.metrics.increment("resource_alerts")
             self._trigger_callbacks("resource_alert", level, resource, value)
         
         self.resource_manager.monitor.register_alert_callback(resource_alert_callback)
         
         # Memory optimization callbacks
-        def memory_optimization_callback():
+        def memory_optimization_callback() -> str:
             return "Session-triggered memory optimization"
         
         self.memory_manager.optimizer.register_optimization_callback(memory_optimization_callback)
     
-    def _start_auto_optimization(self):
+    def _start_auto_optimization(self) -> None:
         """Start automatic optimization thread."""
-        def optimization_worker():
+        def optimization_worker() -> None:
             while self._running:
                 try:
                     time.sleep(self.config.optimization_interval)
@@ -302,10 +302,10 @@ class OptimizedCLISession:
                     metrics = self.metrics.get_metrics()
                     
                     # Auto-optimize based on metrics
-                    if metrics["cache_hit_rate"] < 50:  # Low cache hit rate
+                    if metrics["cache_hit_rate"] < 50:  # type: ignore[comparison-overlap] # Low cache hit rate
                         logger.info("Auto-optimization: Low cache hit rate detected")
                     
-                    if metrics["memory_optimizations"] == 0 and metrics["elapsed_time"] > 300:
+                    if metrics["memory_optimizations"] == 0 and metrics["elapsed_time"] > 300:  # type: ignore[comparison-overlap]
                         # No memory optimizations in 5+ minutes
                         self.optimize_memory()
                         logger.info("Auto-optimization: Performed memory optimization")
