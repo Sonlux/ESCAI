@@ -36,13 +36,15 @@
 ## � Highlights & Achievements
 
 ### **Production-Ready Status**
+
 - ✅ **Comprehensive CI/CD Pipeline**: Automated testing, building, and publishing to TestPyPI
-- ✅ **Type-Safe Codebase**: 100% mypy compliant (resolved 154+ type errors)  
+- ✅ **Type-Safe Codebase**: 100% mypy compliant (resolved 154+ type errors)
 - ✅ **Extensive Test Suite**: 1,429+ tests across unit, integration, E2E, performance, and UX categories
 - ✅ **Security Hardening**: Pre-commit hooks, secret detection, OIDC trusted publishing
 - ✅ **Zero Web Dependencies**: Pure CLI architecture with no frontend requirements
 
 ### **CLI Excellence**
+
 - 📦 **40+ Commands**: Fully documented with comprehensive help system
 - 🎨 **Rich Terminal UI**: ASCII art, colored output, tables, and progress indicators
 - 🔄 **Interactive Mode**: Menu-driven interface for guided usage
@@ -50,6 +52,7 @@
 - ⚡ **Performance Optimized**: 30-second test timeouts, intelligent caching
 
 ### **Research & Analysis Capabilities**
+
 - 📊 **Pattern Mining**: Statistical behavioral pattern analysis
 - 🔗 **Causal Discovery**: Graph-based causal relationship inference
 - 🔮 **ML Predictions**: Performance forecasting with machine learning
@@ -115,7 +118,7 @@ ESCAI Framework is built entirely around the command-line interface, making it p
 ### 📊 **Advanced Analytics**
 
 - **Pattern Mining**: Discover behavioral patterns with statistical significance
-- **Causal Inference**: Graph-based causal relationship discovery  
+- **Causal Inference**: Graph-based causal relationship discovery
 - **Performance Prediction**: ML-powered outcome forecasting
 - **Failure Analysis**: Root cause identification for agent failures
 - **Comparative Analysis**: Compare sessions and identify regressions
@@ -357,7 +360,6 @@ The ESCAI CLI provides comprehensive commands for monitoring, analysis, and conf
 
 <img width="2528" height="844" alt="image" src="https://github.com/user-attachments/assets/c601e5df-c66d-45cb-8243-b334efd45969" />
 
-
 ### **Core Commands**
 
 #### **Monitor Commands**
@@ -456,7 +458,6 @@ escai help search monitoring
 ```
 
 <img width="1651" height="851" alt="image" src="https://github.com/user-attachments/assets/9c352308-5c1d-40aa-86cd-4795aa18fd8f" />
-
 
 ---
 
@@ -664,8 +665,9 @@ python tests/cli_test_runner.py --all
 ```
 
 **Test Categories:**
+
 - **Unit Tests** (~1,198 tests): Individual component testing
-- **Integration Tests** (~231 tests): Framework integration testing  
+- **Integration Tests** (~231 tests): Framework integration testing
 - **E2E Tests**: Complete workflow testing
 - **Performance Tests**: Large dataset handling
 - **UX Tests**: CLI usability and experience
@@ -956,14 +958,14 @@ ESCAI provides **40+ commands** organized into logical groups:
 
 ### **Core Command Groups**
 
-| Group | Commands | Purpose |
-|-------|----------|---------|
-| `monitor` | 8 commands | Start, stop, and manage real-time agent monitoring |
-| `analyze` | 13 commands | Analyze patterns, causality, and predictions |
-| `config` | 8 commands | Configure framework, databases, and settings |
-| `session` | 9 commands | Manage, replay, and export monitoring sessions |
-| `publication` | 5 commands | Generate research reports and papers |
-| `help` | 5 commands | Comprehensive help system and tutorials |
+| Group         | Commands    | Purpose                                            |
+| ------------- | ----------- | -------------------------------------------------- |
+| `monitor`     | 8 commands  | Start, stop, and manage real-time agent monitoring |
+| `analyze`     | 13 commands | Analyze patterns, causality, and predictions       |
+| `config`      | 8 commands  | Configure framework, databases, and settings       |
+| `session`     | 9 commands  | Manage, replay, and export monitoring sessions     |
+| `publication` | 5 commands  | Generate research reports and papers               |
+| `help`        | 5 commands  | Comprehensive help system and tutorials            |
 
 ### **Most Used Commands**
 
@@ -1005,7 +1007,7 @@ ESCAI uses GitHub Actions for automated CI/CD:
 
 - ✅ **Automated Testing**: 1,429+ tests run on every commit (< 15 minutes)
 - ✅ **Type Checking**: MyPy validation (100% compliant)
-- ✅ **Security Scanning**: Bandit security analysis  
+- ✅ **Security Scanning**: Bandit security analysis
 - ✅ **Code Linting**: Flake8 style enforcement
 - ✅ **Auto-Publishing**: OIDC trusted publishing to TestPyPI on main branch pushes
 - ✅ **Test Timeouts**: 30-second per-test timeout (prevents hanging)
@@ -1021,7 +1023,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### **MIT License Summary**
 
 - ✅ Commercial use allowed
-- ✅ Modification allowed  
+- ✅ Modification allowed
 - ✅ Distribution allowed
 - ✅ Private use allowed
 - ❌ No liability
@@ -1032,12 +1034,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 ### **Technology Stack**
+
 - **CLI Framework**: Click + Rich for beautiful terminal interfaces
 - **AI Frameworks**: LangChain, AutoGen, CrewAI, and OpenAI teams
 - **Databases**: PostgreSQL, MongoDB, Redis, InfluxDB, and Neo4j communities
 - **Testing**: Pytest, MyPy, and comprehensive test tooling
 
 ### **Special Thanks**
+
 - **Research Community**: For foundational work in agent cognition and observability
 - **Open Source Contributors**: For framework integrations and improvements
 - **GitHub Actions**: For OIDC trusted publishing and robust CI/CD
@@ -1047,19 +1051,23 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support & Community
 
 ### **Get Help**
+
 - 📚 **Documentation**: [docs/](docs/) - Comprehensive guides and tutorials
 - 🐛 **Issues**: [GitHub Issues](https://github.com/Sonlux/ESCAI/issues) - Bug reports and feature requests
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/Sonlux/ESCAI/discussions) - Community Q&A
 - ✉️ **Email**: <lakshanammineni@gmail.com> - Direct support
 
 ### **Contributing**
+
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+
 - Development setup instructions
 - Code standards and conventions
 - Testing requirements
 - Pull request process
 
 ### **Stay Updated**
+
 - ⭐ Star this repo on GitHub
 - 👀 Watch for releases
 - 📦 Follow on TestPyPI
@@ -1070,7 +1078,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 
 **Built with ❤️ for the AI research and development community**
 
-*ESCAI Framework - Making Agent Cognition Observable, One Command at a Time*
+_ESCAI Framework - Making Agent Cognition Observable, One Command at a Time_
 
 [![GitHub](https://img.shields.io/badge/GitHub-ESCAI-blue?logo=github)](https://github.com/Sonlux/ESCAI)
 [![TestPyPI](https://img.shields.io/badge/TestPyPI-escai--framework-blue)](https://test.pypi.org/project/escai-framework/)
