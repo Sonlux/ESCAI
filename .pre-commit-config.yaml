@@ -1,0 +1,118 @@
+# Pre-commit hooks for secret detection and security
+# Install: pip install pre-commit
+# Setup: pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Secret detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: package-lock.json
+
+  # Git secrets scanner
+  - repo: https://github.com/awslabs/git-secrets
+    rev: master
+    hooks:
+      - id: git-secrets
+        entry: git-secrets --scan
+        language: system
+
+  # Prevent committing sensitive files
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: detect-private-key
+      - id: check-case-conflict
+      - id: check-merge-conflict
+
+  # Prevent committing .env files
+  - repo: local
+    hooks:
+      - id: prevent-env-commit
+        name: Prevent .env files from being committed
+        entry: bash -c 'if git diff --cached --name-only | grep -qE "\.env$|\.env\..*$"; then echo "ERROR: Attempted to commit .env file!"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+  # Check for hardcoded secrets in code
+  - repo: local
+    hooks:
+      - id: check-hardcoded-secrets
+        name: Check for hardcoded API keys and tokens
+        entry: bash -c 'if git diff --cached | grep -iE "(api[_-]?key|secret[_-]?key|password|token).*(=|:).*(\"[a-zA-Z0-9]{20,}\"|'\''.+'\'')" | grep -v "secrets\\."; then echo "WARNING: Possible hardcoded secret detected!"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+  # Python security linter
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.5
+    hooks:
+      - id: bandit
+        args: ['-r', 'escai_framework', '-f', 'json', '-o', 'bandit-report.json']
+        pass_filenames: false
+
+  # Python code formatting
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3.11
+
+  # Python import sorting
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ['--profile', 'black']
+
+  # Python linting
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args: ['--max-line-length=127', '--extend-ignore=E203,W503']
+
+  # Type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        args: ['--ignore-missing-imports']
+        additional_dependencies: [types-all]
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.39.0
+    hooks:
+      - id: markdownlint
+        args: ['--fix']
+
+  # YAML linting
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.33.0
+    hooks:
+      - id: yamllint
+        args: ['-d', '{extends: default, rules: {line-length: {max: 120}}}']
+
+# CI configuration
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: [git-secrets, check-hardcoded-secrets, prevent-env-commit]
+  submodules: false
