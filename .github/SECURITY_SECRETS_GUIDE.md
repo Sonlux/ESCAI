@@ -39,6 +39,7 @@ PyPI recommends **constraining the Trusted Publisher** to the specific environme
 - **Recommended:** Constrain to `testpypi` environment only
 
 **How to constrain:**
+
 1. Use the "constrain publisher" link from PyPI notification (1-click), OR
 2. Go to TestPyPI → Project Settings → Publishing → Update publisher with Environment: `testpypi`
 
@@ -60,12 +61,14 @@ PyPI recommends **constraining the Trusted Publisher** to the specific environme
 ### For TestPyPI (✅ ALREADY CONFIGURED)
 
 **Current Configuration:**
+
 - Project: `escai-framework`
 - Repository: `Sonlux/ESCAI`
 - Workflow: `ci-cd.yml`
 - Environment: `testpypi` (recommended to constrain)
 
 **To constrain for security:**
+
 1. Go to: <https://test.pypi.org/manage/project/escai-framework/settings/publishing/>
 2. Remove existing publisher
 3. Re-add with Environment explicitly set to `testpypi`
