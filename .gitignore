@@ -182,6 +182,7 @@ ehthumbs_vista.db
 
 # Temporary files
 *.bak
+*.backup
 *.orig
 *.rej
 
@@ -347,3 +348,16 @@ archived-workflows/
 
 # IEEE Research Paper (generated documentation)
 ESCAI_Research_Paper.md
+
+# Personal Development Files (Not for Public Audience)
+# Root-level test files (tests/ directory is public)
+/test_cli_enhancement.py
+/test_github_mcp_validation.py
+/test_*.py
+
+# Personal instruction files
+venv_instructions.md
+testpypi_upload_instructions.md
+
+# Additional development configuration
+pytest_cli.ini
