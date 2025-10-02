@@ -290,7 +290,6 @@ Dockerfile
 requirements-dev.txt
 setup.py
 MANIFEST.in
-mypy.ini
 
 # Implementation Summary Documentation
 *_IMPLEMENTATION_SUMMARY.md
@@ -316,7 +315,6 @@ compatible.json
 
 # Development Configuration Files
 alembic.ini
-mypy.ini
 test_config.yaml
 
 # Development Notes and Documentation
