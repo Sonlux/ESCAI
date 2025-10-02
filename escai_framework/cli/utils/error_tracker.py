@@ -462,7 +462,7 @@ def error_tracking_context(session_id: Optional[str] = None,
     """Context manager for automatic error tracking."""
     try:
         yield
-    except Exception as e:
+    except (Exception, BaseException) as e:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         track_error(exc_type, exc_value, exc_traceback, session_id, command, user_input, context)
         raise

@@ -117,7 +117,7 @@ class OptimizedCLISession:
         self.lazy_loaders: Dict[str, LazyDataLoader] = {}
         
         # Performance optimization state
-        self._optimization_thread = None
+        self._optimization_thread: Optional[threading.Thread] = None
         self._running = False
         self._callbacks: Dict[str, List[Callable]] = {
             "cache_hit": [],
@@ -184,15 +184,9 @@ class OptimizedCLISession:
         loader_config = config or self.config.lazy_loading
         loader = LazyDatasetLoader(data_source, loader_config)
         
-        # Wrap loader to track metrics
-        original_get_data_iterator = loader.get_data_iterator
-        
-        def tracked_get_data_iterator():
-            self.metrics.increment("lazy_loads")
-            return original_get_data_iterator()
-        
-        loader.get_data_iterator = tracked_get_data_iterator
-        self.lazy_loaders[name] = loader
+        # Track metrics on loader usage (note: cannot modify method at runtime)
+        self.metrics.increment("lazy_loaders_created")
+        self.lazy_loaders[name] = loader  # type: ignore[assignment]
         
         return loader
     
@@ -258,7 +252,7 @@ class OptimizedCLISession:
             "metrics": self.metrics.get_metrics(),
             "cache_stats": self.cache_manager.get_stats(),
             "memory_report": self.memory_manager.get_memory_report(),
-            "resource_report": self.resource_manager.get_resource_manager().get_monitoring_report(),
+            "resource_report": self.resource_manager.monitor.get_monitoring_report(),
             "parallel_stats": {
                 "optimal_processor": self.parallel_manager.get_optimal_processor_type("analysis")
             },

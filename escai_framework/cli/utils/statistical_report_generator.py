@@ -257,12 +257,12 @@ class StatisticalAnalyzer:
         for i in range(len(correlation_matrix.columns)):  # type: ignore[arg-type]
             for j in range(i + 1, len(correlation_matrix.columns)):  # type: ignore[arg-type]
                 corr_val = correlation_matrix.iloc[i, j]  # type: ignore[assignment,index]
-                if abs(corr_val) > 0.7:  # type: ignore[arg-type]
+                if abs(float(corr_val)) > 0.7:  # type: ignore[arg-type,operator]
                     strong_correlations.append({
                         'variable1': correlation_matrix.columns[i],  # type: ignore[index]
                         'variable2': correlation_matrix.columns[j],  # type: ignore[index]
                         'correlation': corr_val,
-                        'strength': 'Strong' if abs(corr_val) > 0.8 else 'Moderate'  # type: ignore[arg-type]
+                        'strength': 'Strong' if abs(float(corr_val)) > 0.8 else 'Moderate'  # type: ignore[arg-type,operator]
                     })
         
         return {
@@ -287,7 +287,7 @@ class StatisticalAnalyzer:
                 treatment_group = data[data['intervention'] == True]['outcome']  # type: ignore[index,comparison-overlap]
                 
                 # Cohen's d
-                pooled_std = np.sqrt(  # type: ignore[assignment]
+                pooled_std = np.sqrt(  # type: ignore[assignment,call-overload]
                     ((len(control_group) - 1) * control_group.var() +  # type: ignore[arg-type,attr-defined,operator]
                      (len(treatment_group) - 1) * treatment_group.var()) /  # type: ignore[arg-type,attr-defined,operator]
                     (len(control_group) + len(treatment_group) - 2)  # type: ignore[arg-type,operator]
@@ -297,7 +297,7 @@ class StatisticalAnalyzer:
                 
                 results['effect_size'] = {  # type: ignore[assignment]
                     'cohens_d': cohens_d,
-                    'interpretation': self._interpret_effect_size(cohens_d)  # type: ignore[arg-type]
+                    'interpretation': self._interpret_effect_size(float(cohens_d))  # type: ignore[arg-type]
                 }
         
         return results

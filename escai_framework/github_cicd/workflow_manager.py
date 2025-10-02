@@ -11,7 +11,7 @@ from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime
 
 from .github_mcp_client import GitHubMCPClient
-from .models import WorkflowRun, AutomationSession
+from .models import WorkflowRun, AutomationSession, AutomationSessionStatus
 from .interfaces import WorkflowManagerInterface
 from .utils import generate_session_id, validate_workflow_inputs
 from .constants import WorkflowStatus, DEFAULT_TIMEOUT
@@ -133,7 +133,6 @@ class WorkflowManager(WorkflowManagerInterface):
             )
             
             # Create automation session
-            from .interfaces import AutomationSessionStatus
             session_id = generate_session_id()
             session = AutomationSession(
                 session_id=session_id,
@@ -184,27 +183,27 @@ class WorkflowManager(WorkflowManagerInterface):
             
             # Get workflow run details from GitHub
             repo_parts = session.repository.split('/')
-            workflow_run = await self.github_client.get_workflow_run(
+            workflow_run_data = await self.github_client.get_workflow_run(
                 repo_parts[0], repo_parts[1], workflow_run_id
             )
             
             # Convert to WorkflowRun model
             run = WorkflowRun(
-                id=workflow_run['id'],
-                workflow_id=workflow_run['workflow_id'],
-                workflow_name=workflow_run['name'],
-                status=workflow_run['status'],
-                conclusion=workflow_run.get('conclusion'),
-                created_at=datetime.fromisoformat(workflow_run['created_at'].replace('Z', '+00:00')),
-                updated_at=datetime.fromisoformat(workflow_run['updated_at'].replace('Z', '+00:00')),
+                id=workflow_run_data['id'],  # type: ignore[index]
+                workflow_id=workflow_run_data['workflow_id'],  # type: ignore[index]
+                workflow_name=workflow_run_data['name'],  # type: ignore[index]
+                status=workflow_run_data['status'],  # type: ignore[index]
+                conclusion=workflow_run_data.get('conclusion'),  # type: ignore[attr-defined]
+                created_at=datetime.fromisoformat(workflow_run_data['created_at'].replace('Z', '+00:00')),  # type: ignore[index]
+                updated_at=datetime.fromisoformat(workflow_run_data['updated_at'].replace('Z', '+00:00')),  # type: ignore[index]
                 jobs=[],  # Jobs will be populated by status monitor
                 repository=session.repository,
-                branch=workflow_run['head_branch'],
-                commit_sha=workflow_run['head_sha']
+                branch=workflow_run_data['head_branch'],  # type: ignore[index]
+                commit_sha=workflow_run_data['head_sha']  # type: ignore[index]
             )
             
             # Update session status
-            session.status = workflow_run['status']
+            session.status = workflow_run_data['status']  # type: ignore[index]
             
             return run
             

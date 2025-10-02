@@ -498,8 +498,8 @@ def compare(session_ids: tuple, output: Optional[str]):
             for cmd in commands:
                 command_counts[cmd['command']] = command_counts.get(cmd['command'], 0) + 1
             
-            for cmd, count in sorted(command_counts.items(), key=lambda x: x[1], reverse=True)[:5]:
-                console.print(f"  • {cmd}: {count}x")
+            for cmd_name, count in sorted(command_counts.items(), key=lambda x: x[1], reverse=True)[:5]:
+                console.print(f"  • {cmd_name}: {count}x")
     
     if output:
         # Generate detailed comparison report

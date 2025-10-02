@@ -326,7 +326,8 @@ class AsyncProcessor(ParallelProcessor):
     
     def process_stream(self, items: Iterator[Any], func: Callable, **kwargs) -> Iterator[ProcessingResult]:
         """Process a stream of items using async concurrency."""
-        return asyncio.run(self._async_process_stream(items, func, **kwargs))
+        result_list = asyncio.run(self._async_process_stream(items, func, **kwargs))
+        return iter(result_list)  # Convert list to iterator
     
     async def _async_process_batch(self, items: List[Any], func: Callable, **kwargs) -> List[ProcessingResult]:
         """Async implementation of batch processing."""

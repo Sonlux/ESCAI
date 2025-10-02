@@ -199,22 +199,23 @@ class LogFileManager:
                 date_key = log_file.modified.strftime("%Y%m%d")
                 if date_key not in files_by_date:
                     files_by_date[date_key] = []
-                files_by_date[date_key].append(log_file.path)
+                files_by_date[date_key].append(log_file)
         
         # Create archives for each date
-        for date_key, files in files_by_date.items():
-            if files:
-                archive_path = self._create_archive(date_key, files)
+        for date_key, log_files in files_by_date.items():
+            if log_files:
+                file_paths = [lf.path for lf in log_files]
+                archive_path = self._create_archive(date_key, file_paths)
                 if archive_path:
                     archived_files.append(archive_path)
                     
                     # Remove original files after successful archiving
-                    for file_path in files:
+                    for log_file_item in log_files:
                         try:
-                            file_path.unlink()
-                            self.logger.debug(f"Removed archived file: {file_path.name}")
+                            log_file_item.path.unlink()
+                            self.logger.debug(f"Removed archived file: {log_file_item.path.name}")
                         except Exception as e:
-                            self.logger.warning(f"Could not remove {file_path}: {e}")
+                            self.logger.warning(f"Could not remove {log_file_item.path}: {e}")
         
         return archived_files
     
