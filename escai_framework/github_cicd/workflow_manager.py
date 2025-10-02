@@ -7,7 +7,7 @@ for triggering, monitoring, and managing GitHub Actions workflows.
 
 import asyncio
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime
 
 from .github_mcp_client import GitHubMCPClient
@@ -89,9 +89,10 @@ class WorkflowManager(WorkflowManagerInterface):
         repo_owner: str,
         repo_name: str,
         workflow_name: str,
-        inputs: Optional[Dict[str, Any]] = None,
-        ref: str = "main"
-    ) -> str:
+        inputs: Optional[Dict[str, Any]] = None
+    ) -> int:
+        """Trigger workflow - ref parameter removed to match interface."""
+        ref = "main"  # Default ref value
         """
         Trigger a GitHub Actions workflow with optional input parameters.
         
@@ -132,13 +133,14 @@ class WorkflowManager(WorkflowManagerInterface):
             )
             
             # Create automation session
+            from .interfaces import AutomationSessionStatus
             session_id = generate_session_id()
             session = AutomationSession(
                 session_id=session_id,
                 workflow_run_id=run_response.get('id'),
                 repository=f"{repo_owner}/{repo_name}",
                 started_at=datetime.utcnow(),
-                status=WorkflowStatus.QUEUED,
+                status=AutomationSessionStatus.RUNNING,
                 commits_made=[],
                 rollback_point=None,
                 error_log=[]
@@ -146,38 +148,44 @@ class WorkflowManager(WorkflowManagerInterface):
             
             self.active_sessions[session_id] = session
             
-            self._logger.info(f"Workflow triggered successfully. Session ID: {session_id}")
-            return session_id
+            workflow_run_id = run_response.get('id', 0)
+            self._logger.info(f"Workflow triggered successfully. Run ID: {workflow_run_id}, Session ID: {session_id}")
+            return int(workflow_run_id) if workflow_run_id else hash(session_id) % (10 ** 9)
             
         except Exception as e:
             self._logger.error(f"Failed to trigger workflow: {str(e)}")
             raise
     
-    async def get_workflow_status(self, session_id: str) -> Optional[WorkflowRun]:
+    async def get_workflow_status(self, workflow_run_id: int) -> Optional[WorkflowRun]:
         """
-        Get the current status of a workflow run by session ID.
+        Get the current status of a workflow run by workflow_run_id.
         
         Args:
-            session_id: Automation session identifier
+            workflow_run_id: Workflow run identifier
             
         Returns:
             WorkflowRun object with current status, or None if not found
             
         Raises:
-            SessionNotFoundError: If session ID doesn't exist
+            WorkflowNotFoundError: If workflow run ID doesn't exist
             GitHubAPIError: If unable to fetch status from GitHub
         """
         try:
-            if session_id not in self.active_sessions:
-                self._logger.warning(f"Session {session_id} not found")
-                return None
+            # Find session by workflow_run_id
+            session = None
+            for sess in self.active_sessions.values():
+                if sess.workflow_run_id == workflow_run_id:
+                    session = sess
+                    break
             
-            session = self.active_sessions[session_id]
+            if not session:
+                self._logger.warning(f"Workflow run {workflow_run_id} not found in active sessions")
+                return None
             
             # Get workflow run details from GitHub
             repo_parts = session.repository.split('/')
             workflow_run = await self.github_client.get_workflow_run(
-                repo_parts[0], repo_parts[1], session.workflow_run_id
+                repo_parts[0], repo_parts[1], workflow_run_id
             )
             
             # Convert to WorkflowRun model
@@ -206,8 +214,8 @@ class WorkflowManager(WorkflowManagerInterface):
     
     async def monitor_workflow_progress(
         self, 
-        session_id: str,
-        callback: Optional[callable] = None
+        workflow_run_id: int,
+        callback: Optional[Callable] = None
     ) -> WorkflowRun:
         """
         Monitor workflow progress until completion with optional progress callback.
@@ -225,18 +233,15 @@ class WorkflowManager(WorkflowManagerInterface):
             GitHubAPIError: If monitoring fails due to API issues
         """
         try:
-            self._logger.info(f"Starting workflow monitoring for session {session_id}")
-            
-            if session_id not in self.active_sessions:
-                raise ValueError(f"Session {session_id} not found")
+            self._logger.info(f"Starting workflow monitoring for run {workflow_run_id}")
             
             start_time = datetime.utcnow()
             
             while True:
-                workflow_run = await self.get_workflow_status(session_id)
+                workflow_run = await self.get_workflow_status(workflow_run_id)
                 
                 if not workflow_run:
-                    raise ValueError(f"Unable to get status for session {session_id}")
+                    raise ValueError(f"Unable to get status for workflow run {workflow_run_id}")
                 
                 # Call progress callback if provided
                 if callback:
@@ -308,7 +313,8 @@ class WorkflowManager(WorkflowManagerInterface):
             )
             
             if success:
-                session.status = WorkflowStatus.CANCELLED
+                from .interfaces import AutomationSessionStatus
+                session.status = AutomationSessionStatus.CANCELLED
                 self._logger.info(f"Workflow cancelled for session {session_id}")
             
             return success
