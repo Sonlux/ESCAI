@@ -278,7 +278,7 @@ k8s/
 docker/
 docker-compose.yml
 Dockerfile
-pyproject.toml
+# NOTE: pyproject.toml must NOT be ignored - it's required for package building!
 
 # Additional Development Files for Clean GitHub Appearance
 requirements-dev.txt
