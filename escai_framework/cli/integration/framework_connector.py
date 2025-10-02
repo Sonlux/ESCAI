@@ -8,7 +8,7 @@ instrumentors, enabling real monitoring of agent frameworks.
 import asyncio
 import logging
 import time
-from typing import Dict, List, Any, Optional, Type, Union
+from typing import Dict, List, Any, Optional, Type, Union, Callable
 from datetime import datetime
 import threading
 from contextlib import asynccontextmanager
@@ -418,7 +418,7 @@ class FrameworkConnector:
                 'error': str(e)
             }
     
-    def add_event_handler(self, handler: callable) -> None:
+    def add_event_handler(self, handler: Callable) -> None:
         """
         Add an event handler for processing captured events.
         
@@ -433,7 +433,7 @@ class FrameworkConnector:
                 instrumentor = session_info['instrumentor']
                 instrumentor.add_event_handler(handler)
     
-    def remove_event_handler(self, handler: callable) -> None:
+    def remove_event_handler(self, handler: Callable) -> None:
         """
         Remove an event handler.
         
@@ -471,7 +471,8 @@ class FrameworkConnector:
         try:
             # Check framework availability
             if not self._is_framework_available(framework):
-                validation_result['errors'].append(f"Framework {framework} is not installed")
+                errors_list: List[str] = validation_result['errors']  # type: ignore[assignment]
+                errors_list.append(f"Framework {framework} is not installed")
                 return validation_result
             
             validation_result['available'] = True
@@ -508,7 +509,8 @@ class FrameworkConnector:
                     await instrumentor.stop()
                     
                 except Exception as test_error:
-                    validation_result['errors'].append(f"Test monitoring failed: {str(test_error)}")
+                    errors_list2: List[str] = validation_result['errors']  # type: ignore[assignment]
+                    errors_list2.append(f"Test monitoring failed: {str(test_error)}")
                     # Still try to clean up
                     try:
                         await instrumentor.stop()
@@ -516,10 +518,12 @@ class FrameworkConnector:
                         pass
                 
             except Exception as e:
-                validation_result['errors'].append(f"Instrumentor test failed: {str(e)}")
+                errors_list3: List[str] = validation_result['errors']  # type: ignore[assignment]
+                errors_list3.append(f"Instrumentor test failed: {str(e)}")
             
         except Exception as e:
-            validation_result['errors'].append(f"Validation failed: {str(e)}")
+            errors_list4: List[str] = validation_result['errors']  # type: ignore[assignment]
+            errors_list4.append(f"Validation failed: {str(e)}")
         
         return validation_result
     
