@@ -62,16 +62,33 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools wheel
           pip install build twine
-          pip install -e ".[test,dev]"
+          pip install -e ".[test,dev]" --verbose
 
       - name: Verify installation
         run: |
-          python -c "import escai_framework; print(f'ESCAI Framework version: {escai_framework.__version__}')"
-          python -c "from escai_framework.models import EpistemicState, BehavioralPattern; print('Models imported successfully')"
+          echo "=== Checking Python environment ==="
+          python --version
+          pip --version
+          echo ""
+          echo "=== Checking installed packages ==="
+          pip list | grep -i escai || echo "No escai package found in pip list"
+          echo ""
+          echo "=== Verifying package structure ==="
+          python -c "import sys; import os; print('Python executable:', sys.executable); print('Python path:', sys.path)"
+          echo ""
+          echo "=== Testing main package import ==="
+          python -c "import escai_framework; print(f'✓ Main package OK - version: {escai_framework.__version__}'); print(f'  Package location: {escai_framework.__file__}')"
+          echo ""
+          echo "=== Testing models subpackage import ==="
+          python -c "import escai_framework.models; print('✓ Models subpackage found'); print(f'  Location: {escai_framework.models.__file__}')"
+          echo ""
+          echo "=== Testing specific model imports ==="
+          python -c "from escai_framework.models import EpistemicState, BehavioralPattern; print('✓ Model classes imported successfully')"
+          echo ""
+          echo "=== Testing CLI command ==="
           escai --version
-          pip list | grep escai
 
       - name: Lint with flake8
         run: |

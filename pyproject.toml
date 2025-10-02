@@ -143,9 +143,15 @@ Documentation = "https://sonlux.github.io/ESCAI"
 Repository = "https://github.com/Sonlux/ESCAI"
 "Bug Tracker" = "https://github.com/Sonlux/ESCAI/issues"
 
+[tool.setuptools]
+# Explicitly enable package discovery
+zip-safe = false
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["escai_framework*"]
+exclude = ["tests*", "docs*", "examples*", "*.tests*", "*.tests"]
+namespaces = false
 
 [tool.black]
 line-length = 88
