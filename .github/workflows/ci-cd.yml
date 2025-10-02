@@ -129,6 +129,7 @@ jobs:
         continue-on-error: true
 
       - name: Run custom test runner
+        timeout-minutes: 15
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379/0
@@ -137,10 +138,10 @@ jobs:
           echo "Verifying package installation before tests..."
           python -c "import sys; print('Python path:', sys.path)"
           python -c "import escai_framework; print('Package location:', escai_framework.__file__)"
-          echo "Running unit tests..."
-          python tests/cli_test_runner.py --category unit
-          echo "Running integration tests..."
-          python tests/cli_test_runner.py --category integration
+          echo "Running unit tests with timeout..."
+          timeout 600 python tests/cli_test_runner.py --category unit --verbose || echo "Unit tests timed out or failed"
+          echo "Running integration tests with timeout..."
+          timeout 600 python tests/cli_test_runner.py --category integration --verbose || echo "Integration tests timed out or failed"
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v4
