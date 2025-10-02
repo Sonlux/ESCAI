@@ -312,7 +312,7 @@ class WorkflowManager(WorkflowManagerInterface):
             )
             
             if success:
-                session.status = "cancelled"  # Status as string for now
+                session.status = AutomationSessionStatus.CANCELLED
                 self._logger.info(f"Workflow cancelled for session {session_id}")
             
             return success

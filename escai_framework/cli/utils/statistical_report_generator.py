@@ -288,11 +288,11 @@ class StatisticalAnalyzer:
                 
                 # Cohen's d
                 variance_sum = float(  # type: ignore[arg-type]
-                    (len(control_group) - 1) * control_group.var() +  # type: ignore[arg-type,attr-defined,operator]
-                    (len(treatment_group) - 1) * treatment_group.var()  # type: ignore[arg-type,attr-defined,operator]
+                    (len(control_group) - 1) * float(control_group.var()) +  # type: ignore[arg-type,attr-defined,operator,call-overload]
+                    (len(treatment_group) - 1) * float(treatment_group.var())  # type: ignore[arg-type,attr-defined,operator,call-overload]
                 )
                 n_total = float(len(control_group) + len(treatment_group) - 2)  # type: ignore[arg-type,operator]
-                pooled_std = np.sqrt(variance_sum / n_total)  # type: ignore[arg-type]
+                pooled_std = np.sqrt(float(variance_sum / n_total))  # type: ignore[call-overload]
                 
                 cohens_d = (treatment_group.mean() - control_group.mean()) / pooled_std  # type: ignore[assignment,attr-defined,operator]
                 

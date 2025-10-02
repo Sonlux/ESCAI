@@ -50,6 +50,7 @@ class AutomationSessionStatus(Enum):
     COMPLETED = "completed"
     FAILED = "failed"
     ROLLED_BACK = "rolled_back"
+    CANCELLED = "cancelled"
 
 
 @dataclass
