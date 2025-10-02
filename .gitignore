@@ -339,3 +339,6 @@ escai_framework.egg-info/
 
 # Archived GitHub Actions workflows
 archived-workflows/
+
+# IEEE Research Paper (generated documentation)
+ESCAI_Research_Paper.md
