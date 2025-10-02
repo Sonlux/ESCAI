@@ -69,7 +69,9 @@ jobs:
       - name: Verify installation
         run: |
           python -c "import escai_framework; print(f'ESCAI Framework version: {escai_framework.__version__}')"
+          python -c "from escai_framework.models import EpistemicState, BehavioralPattern; print('Models imported successfully')"
           escai --version
+          pip list | grep escai
 
       - name: Lint with flake8
         run: |
@@ -89,8 +91,14 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379/0
+          PYTHONPATH: ${{ github.workspace }}
         run: |
+          echo "Verifying package installation before tests..."
+          python -c "import sys; print('Python path:', sys.path)"
+          python -c "import escai_framework; print('Package location:', escai_framework.__file__)"
+          echo "Running unit tests..."
           python tests/cli_test_runner.py --category unit
+          echo "Running integration tests..."
           python tests/cli_test_runner.py --category integration
 
       - name: Upload coverage reports

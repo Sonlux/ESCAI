@@ -1,5 +1,28 @@
 """
-Pytest configuration and fixtures for ESCAI Framework tests.
+Pytest configur# Import ESCAI models and components
+try:
+    from escai_framework.models.epistemic_state import EpistemicState, BeliefState, KnowledgeState, GoalState, GoalStatus
+    from escai_framework.models.behavioral_pattern import BehavioralPattern, ExecutionSequence, ExecutionStep, ExecutionStatus
+    from escai_framework.models.causal_relationship import CausalRelationship
+    from escai_framework.models.prediction_result import PredictionResult
+except ModuleNotFoundError as e:
+    # Provide detailed error message for debugging
+    import sys
+    print(f"\n" + "="*80)
+    print("ERROR: Could not import ESCAI models")
+    print(f"Python path: {sys.path}")
+    print(f"Current directory: {os.getcwd()}")
+    print(f"Original error: {e}")
+    print("="*80 + "\n")
+    print("\nPlease ensure the package is properly installed:")
+    print("  pip install -e .")
+    print("  or")
+    print("  pip install -e '.[test,dev]'")
+    print("\n" + "="*80)
+    raise ImportError(
+        f"Could not import ESCAI models. Original error: {e}\n"
+        f"Make sure you've installed the package with: pip install -e '.[test,dev]'"
+    ) from e fixtures for ESCAI Framework tests.
 """
 
 import sys
