@@ -109,7 +109,7 @@ class ValidationIntegration:
         
         # Apply additional validations from configuration
         errors = []
-        warnings = []
+        warnings: List[str] = []
         sanitized_value = result.sanitized_value
         
         # Length validation for strings

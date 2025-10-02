@@ -294,14 +294,10 @@ class CLILogManager:
         root_logger = logging.getLogger()
         if enabled:
             root_logger.setLevel(LogLevel.TRACE.value)
-            for handler in root_logger.handlers:
-                if isinstance(handler, RichHandler):
-                    handler.show_path = True
+            # RichHandler doesn't have show_path attribute in current version
         else:
             root_logger.setLevel(LogLevel.INFO.value)
-            for handler in root_logger.handlers:
-                if isinstance(handler, RichHandler):
-                    handler.show_path = False
+            # RichHandler doesn't have show_path attribute in current version
     
     def cleanup_old_logs(self, days_to_keep: int = 30):
         """Clean up log files older than specified days."""
@@ -326,15 +322,18 @@ class CLILogManager:
         
         for log_file in self.log_dir.glob("*.log*"):
             file_size = log_file.stat().st_size
-            stats["files"].append({
+            files_list: List[Dict[str, Any]] = stats["files"]  # type: ignore[assignment]
+            files_list.append({
                 "name": log_file.name,
                 "size_mb": round(file_size / (1024 * 1024), 2),
                 "modified": datetime.fromtimestamp(log_file.stat().st_mtime).isoformat()
             })
-            stats["total_size_mb"] += file_size / (1024 * 1024)
-            stats["total_files"] += 1
+            total_size: float = stats["total_size_mb"]  # type: ignore[assignment]
+            total_files: int = stats["total_files"]  # type: ignore[assignment]
+            stats["total_size_mb"] = total_size + (file_size / (1024 * 1024))
+            stats["total_files"] = total_files + 1
         
-        stats["total_size_mb"] = round(stats["total_size_mb"], 2)
+        stats["total_size_mb"] = round(float(stats["total_size_mb"]), 2)  # type: ignore[arg-type]
         return stats
 
 

@@ -85,10 +85,12 @@ def generate_paper(input_file: str, output_file: str, output_format: str,
         # Set default values
         if not title:
             title = "ESCAI Framework Analysis Results"
+        authors_list: List[str]
         if not authors:
-            authors = ["Research Team"]
+            authors_list = ["Research Team"]
+            authors = "Research Team"
         else:
-            authors = [author.strip() for author in authors.split(",")]
+            authors_list = [author.strip() for author in authors.split(",")]
         if not abstract:
             abstract = "This paper presents analysis results from the ESCAI Framework for autonomous agent monitoring and analysis."
         

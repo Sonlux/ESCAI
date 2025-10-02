@@ -311,7 +311,7 @@ class LogFileManager:
             self.logger.error(error_msg)
         
         maintenance_time = time.time() - maintenance_start
-        results['maintenance_time'] = maintenance_time
+        results['maintenance_time'] = str(maintenance_time)  # type: ignore[assignment]
         
         self.logger.info(
             f"Log maintenance completed in {maintenance_time:.2f}s: "
@@ -346,33 +346,40 @@ class LogFileManager:
         # Calculate statistics
         for log_file in log_files:
             size_mb = log_file.size_bytes / (1024 * 1024)
-            stats['total_size_mb'] += size_mb
+            total_size: float = stats['total_size_mb']  # type: ignore[assignment]
+            stats['total_size_mb'] = total_size + size_mb
             
             if log_file.archived:
-                stats['archived_files'] += 1
-                stats['archived_size_mb'] += size_mb
+                archived_files: int = stats['archived_files']  # type: ignore[assignment]
+                archived_size: float = stats['archived_size_mb']  # type: ignore[assignment]
+                stats['archived_files'] = archived_files + 1
+                stats['archived_size_mb'] = archived_size + size_mb
             else:
-                stats['active_files'] += 1
-                stats['active_size_mb'] += size_mb
+                active_files: int = stats['active_files']  # type: ignore[assignment]
+                active_size: float = stats['active_size_mb']  # type: ignore[assignment]
+                stats['active_files'] = active_files + 1
+                stats['active_size_mb'] = active_size + size_mb
             
             if log_file.compressed:
-                stats['compressed_files'] += 1
+                compressed: int = stats['compressed_files']  # type: ignore[assignment]
+                stats['compressed_files'] = compressed + 1
             
             # Track by file type
             file_type = log_file.path.suffix
-            if file_type not in stats['by_type']:
-                stats['by_type'][file_type] = {'count': 0, 'size_mb': 0}
-            stats['by_type'][file_type]['count'] += 1
-            stats['by_type'][file_type]['size_mb'] += size_mb
+            by_type: Dict[str, Dict[str, Any]] = stats['by_type']  # type: ignore[assignment]
+            if file_type not in by_type:
+                by_type[file_type] = {'count': 0, 'size_mb': 0}
+            by_type[file_type]['count'] += 1
+            by_type[file_type]['size_mb'] += size_mb
         
         # Find oldest and newest files
         stats['oldest_file'] = min(log_files, key=lambda f: f.created).created.isoformat()
         stats['newest_file'] = max(log_files, key=lambda f: f.modified).modified.isoformat()
         
         # Round sizes
-        stats['total_size_mb'] = round(stats['total_size_mb'], 2)
-        stats['active_size_mb'] = round(stats['active_size_mb'], 2)
-        stats['archived_size_mb'] = round(stats['archived_size_mb'], 2)
+        stats['total_size_mb'] = round(float(stats['total_size_mb']), 2)  # type: ignore[arg-type]
+        stats['active_size_mb'] = round(float(stats['active_size_mb']), 2)  # type: ignore[arg-type]
+        stats['archived_size_mb'] = round(float(stats['archived_size_mb']), 2)  # type: ignore[arg-type]
         
         return stats
     

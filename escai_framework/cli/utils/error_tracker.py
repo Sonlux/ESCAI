@@ -12,7 +12,7 @@ import json
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple, Set
+from typing import Dict, List, Any, Optional, Tuple, Set, Union
 from dataclasses import dataclass, asdict
 from collections import defaultdict, Counter
 import threading
@@ -439,7 +439,7 @@ def initialize_error_tracking(db_path: Optional[Path] = None) -> ErrorTracker:
     return _error_tracker
 
 
-def track_error(exc_type: type, exc_value: Exception, exc_traceback,
+def track_error(exc_type: type, exc_value: Union[Exception, BaseException], exc_traceback,
                session_id: Optional[str] = None,
                command: Optional[str] = None,
                user_input: Optional[str] = None,

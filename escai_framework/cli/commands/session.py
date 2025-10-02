@@ -494,7 +494,7 @@ def compare(session_ids: tuple, output: Optional[str]):
         
         if commands:
             # Show command frequency
-            command_counts = {}
+            command_counts: Dict[str, int] = {}
             for cmd in commands:
                 command_counts[cmd['command']] = command_counts.get(cmd['command'], 0) + 1
             

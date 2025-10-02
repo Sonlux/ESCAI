@@ -399,7 +399,8 @@ class ValidationConfigManager:
             
             # Convert command configurations
             for cmd_name, cmd_config in self.config.commands.items():
-                config_dict['commands'][cmd_name] = {
+                commands_dict: Dict[str, Any] = config_dict['commands']  # type: ignore[assignment]
+                commands_dict[cmd_name] = {
                     'description': cmd_config.description,
                     'security_level': cmd_config.security_level.value,
                     'allow_unknown_params': cmd_config.allow_unknown_params,
@@ -498,14 +499,15 @@ class ValidationConfigManager:
         if not self.config:
             return {}
         
-        schema = {
+        schema: Dict[str, Any] = {
             'policy': self.config.policy.value,
             'default_security_level': self.config.default_security_level.name,
             'commands': {}
         }
         
         for cmd_name, cmd_config in self.config.commands.items():
-            schema['commands'][cmd_name] = {
+            schema_commands: Dict[str, Any] = schema['commands']  # type: ignore[assignment]
+            schema_commands[cmd_name] = {
                 'description': cmd_config.description,
                 'security_level': cmd_config.security_level.name,
                 'parameters': {}
@@ -527,7 +529,8 @@ class ValidationConfigManager:
                 if param.max_value is not None:
                     param_schema['max_value'] = param.max_value
                 
-                schema['commands'][cmd_name]['parameters'][param.name] = param_schema
+                cmd_params: Dict[str, Any] = schema['commands'][cmd_name]['parameters']  # type: ignore[index]
+                cmd_params[param.name] = param_schema
         
         return schema
 

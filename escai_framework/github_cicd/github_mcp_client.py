@@ -78,9 +78,10 @@ class GitHubMCPClient:
             workflows = []
             if isinstance(workflows_response, list):
                 for item in workflows_response:
-                    if item.get('type') == 'file' and item.get('name', '').endswith(('.yml', '.yaml')):
+                    item_name: str = str(item.get('name', ''))
+                    if item.get('type') == 'file' and item_name.endswith(('.yml', '.yaml')):
                         workflow_info = {
-                            'name': item.get('name', '').replace('.yml', '').replace('.yaml', ''),
+                            'name': item_name.replace('.yml', '').replace('.yaml', ''),
                             'path': item.get('path', ''),
                             'sha': item.get('sha', ''),
                             'size': item.get('size', 0),
