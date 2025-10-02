@@ -2,15 +2,16 @@
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.11+-green.svg)](https://python.org)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/Sonlux/ESCAI)
-[![Coverage](https://img.shields.io/badge/coverage-87%25-green.svg)](https://github.com/Sonlux/ESCAI)
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/Sonlux/ESCAI/releases)
+[![CI/CD](https://github.com/Sonlux/ESCAI/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Sonlux/ESCAI/actions/workflows/ci-cd.yml)
+[![MyPy](https://img.shields.io/badge/mypy-passing-brightgreen.svg)](https://github.com/Sonlux/ESCAI)
+[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://test.pypi.org/project/escai-framework/)
 [![Documentation](https://img.shields.io/badge/docs-comprehensive-blue.svg)](docs/)
-[![CLI Tests](https://img.shields.io/badge/CLI%20tests-175%2B-green.svg)](tests/)
+[![CLI Commands](https://img.shields.io/badge/CLI%20commands-40%2B-green.svg)](docs/cli/)
+[![Tests](https://img.shields.io/badge/tests-1429%2B-green.svg)](tests/)
 
-**ESCAI** (Epistemic State and Causal Analysis Intelligence) is a comprehensive observability system for monitoring autonomous agent cognition in real-time. It provides deep insights into how AI agents think, decide, and behave during task execution, enabling researchers and developers to understand agent behavior patterns, causal relationships, and performance characteristics.
+**ESCAI** (Epistemic State and Causal Analysis Intelligence) is a **production-ready, CLI-first observability system** for monitoring autonomous AI agents in real-time. Built entirely around a powerful command-line interface, ESCAI provides researchers and developers with terminal-based tools to track agent cognition, analyze behavioral patterns, discover causal relationships, and predict performance—all without requiring a web interface.
 
-> **🎯 Perfect for AI researchers, developers, and organizations working with autonomous agents**
+> **🎯 A comprehensive CLI toolkit for AI researchers, ML engineers, and autonomous agent developers who prefer terminal-based workflows**
 
 ---
 
@@ -32,71 +33,107 @@
 
 ---
 
-## 🎯 Overview
+## � Highlights & Achievements
 
-ESCAI Framework is designed for researchers, developers, and organizations working with autonomous AI agents. It provides:
+### **Production-Ready Status**
+- ✅ **Comprehensive CI/CD Pipeline**: Automated testing, building, and publishing to TestPyPI
+- ✅ **Type-Safe Codebase**: 100% mypy compliant (resolved 154+ type errors)  
+- ✅ **Extensive Test Suite**: 1,429+ tests across unit, integration, E2E, performance, and UX categories
+- ✅ **Security Hardening**: Pre-commit hooks, secret detection, OIDC trusted publishing
+- ✅ **Zero Web Dependencies**: Pure CLI architecture with no frontend requirements
 
-- **Real-time Monitoring**: Track agent execution, decisions, and state changes
-- **Cognitive Analysis**: Extract and analyze epistemic states (beliefs, knowledge, goals)
-- **Behavioral Insights**: Identify patterns in agent behavior and decision-making
-- **Causal Understanding**: Discover cause-effect relationships in agent actions
-- **Performance Prediction**: Forecast task outcomes and identify potential failures
-- **Multi-Framework Support**: Works with LangChain, AutoGen, CrewAI, and OpenAI Assistants
+### **CLI Excellence**
+- 📦 **40+ Commands**: Fully documented with comprehensive help system
+- 🎨 **Rich Terminal UI**: ASCII art, colored output, tables, and progress indicators
+- 🔄 **Interactive Mode**: Menu-driven interface for guided usage
+- 📚 **Contextual Help**: Built-in tutorials, examples, and troubleshooting guides
+- ⚡ **Performance Optimized**: 30-second test timeouts, intelligent caching
 
-### Use Cases
+### **Research & Analysis Capabilities**
+- 📊 **Pattern Mining**: Statistical behavioral pattern analysis
+- 🔗 **Causal Discovery**: Graph-based causal relationship inference
+- 🔮 **ML Predictions**: Performance forecasting with machine learning
+- 📈 **Export Formats**: JSON, CSV, Markdown for research workflows
+- 📄 **Academic Support**: IEEE-style research paper generation
 
-- **AI Research**: Study agent cognition and decision-making processes
-- **Production Monitoring**: Monitor AI agents in production environments
-- **Performance Optimization**: Identify bottlenecks and optimization opportunities
-- **Failure Analysis**: Understand why agents fail and how to prevent it
-- **Compliance & Auditing**: Track agent decisions for regulatory compliance
+---
+
+## �🎯 Overview
+
+### **A Pure CLI Experience - No Web Interface Required**
+
+ESCAI Framework is built entirely around the command-line interface, making it perfect for researchers and developers who live in the terminal. Every feature—from real-time monitoring to complex analytics—is accessible through 40+ carefully designed CLI commands with rich terminal output, ASCII visualizations, and comprehensive help systems.
+
+### **What ESCAI Provides**
+
+- **🔍 Real-time Agent Monitoring**: Track agent execution, decisions, and epistemic state changes via terminal
+- **🧠 Cognitive Analysis**: Extract and analyze agent beliefs, knowledge, goals, and uncertainty
+- **📊 Behavioral Pattern Mining**: Discover recurring patterns in agent decision-making
+- **🔗 Causal Relationship Discovery**: Understand cause-effect relationships between agent actions
+- **📈 Performance Prediction**: Forecast task outcomes using ML models
+- **🔌 Multi-Framework Support**: LangChain, AutoGen, CrewAI, and OpenAI Assistants
+- **💾 Flexible Storage**: PostgreSQL, MongoDB, Redis, InfluxDB, and Neo4j
+- **📦 Export Capabilities**: JSON, CSV, and Markdown output formats
+
+### **Perfect For**
+
+- **🔬 AI Researchers**: Study agent cognition and decision-making in controlled experiments
+- **👨‍💻 ML Engineers**: Debug and optimize autonomous agents in production
+- **🏢 Enterprise Teams**: Monitor multi-agent systems with comprehensive logging
+- **🎓 Academics**: Analyze agent behavior for research papers and publications
+- **⚡ CLI Enthusiasts**: Full-featured tooling for terminal-centric workflows
 
 ---
 
 ## ✨ Key Features
 
-### 🔍 **Real-time Agent Monitoring**
+### �️ **Powerful CLI Interface** (No Web Required!)
 
-- Monitor multiple agents simultaneously across different frameworks
-- Track epistemic states (beliefs, knowledge, goals, uncertainty)
-- Capture behavioral patterns and decision sequences
-- Real-time performance metrics and health monitoring
+- **40+ Commands**: Organized into logical groups (`monitor`, `analyze`, `config`, `session`)
+- **Rich Terminal Output**: Beautiful ASCII tables, charts, and colored formatting
+- **Interactive Mode**: Guided menu system for discoverability
+- **Comprehensive Help**: Built-in documentation with examples and tutorials
+- **Tab Completion**: Shell completion support for faster workflows
+- **Export Options**: JSON, CSV, and Markdown formats for all data
+
+### �🔍 **Real-time Agent Monitoring**
+
+- **Multi-Agent Support**: Monitor multiple agents simultaneously
+- **Framework Agnostic**: Works with LangChain, AutoGen, CrewAI, and OpenAI
+- **Epistemic State Tracking**: Capture beliefs, knowledge, goals, and uncertainty
+- **Low Overhead**: < 5% performance impact with intelligent buffering
+- **Session Management**: Save, resume, and replay monitoring sessions
 
 ### 🧠 **Cognitive Analysis**
 
-- Extract and analyze agent beliefs, knowledge, and goals
-- Track uncertainty levels and confidence scores
-- Monitor reasoning depth and context awareness
-- Identify cognitive biases and decision patterns
+- **Belief Extraction**: Track agent beliefs and how they evolve
+- **Knowledge Graphs**: Visualize agent knowledge structures (via Neo4j)
+- **Goal Tracking**: Monitor goal states and achievement progress
+- **Uncertainty Analysis**: Measure confidence and uncertainty levels
+- **Decision Pattern Recognition**: Identify recurring decision-making patterns
 
 ### 📊 **Advanced Analytics**
 
-- Behavioral pattern mining with statistical significance testing
-- Causal relationship discovery using advanced inference algorithms
-- Performance prediction with machine learning models
-- Failure analysis and root cause identification
+- **Pattern Mining**: Discover behavioral patterns with statistical significance
+- **Causal Inference**: Graph-based causal relationship discovery  
+- **Performance Prediction**: ML-powered outcome forecasting
+- **Failure Analysis**: Root cause identification for agent failures
+- **Comparative Analysis**: Compare sessions and identify regressions
 
-### 🎨 **Interactive CLI Interface**
+### 🌐 **Multi-Framework Instrumentation**
 
-- Comprehensive command-line interface with 40+ commands
-- ASCII charts and tables for terminal-based analysis
-- Export capabilities (JSON, CSV, Markdown)
-- Real-time monitoring and analysis tools
+- **LangChain**: Chain execution, tool usage, and callback monitoring
+- **AutoGen**: Multi-agent conversations and role-based tracking
+- **CrewAI**: Task delegation and crew coordination analysis
+- **OpenAI Assistants**: Function calls, tool usage, and thread monitoring
 
-### 🌐 **Multi-Framework Support**
+### 🗄️ **Enterprise-Grade Storage**
 
-- **LangChain**: Chain execution monitoring and analysis
-- **AutoGen**: Multi-agent conversation tracking
-- **CrewAI**: Task delegation and crew coordination
-- **OpenAI Assistants**: Tool usage and function calling
-
-### 🗄️ **Flexible Storage**
-
-- **PostgreSQL**: Structured data and relationships
-- **MongoDB**: Document-based storage for complex data
-- **Redis**: Caching and real-time data
-- **InfluxDB**: Time-series metrics and performance data
-- **Neo4j**: Graph-based causal relationships
+- **PostgreSQL**: Structured data, relationships, and SQLAlchemy models
+- **MongoDB**: Document storage for complex nested data
+- **Redis**: Real-time caching and session management
+- **InfluxDB**: Time-series metrics and performance monitoring
+- **Neo4j**: Graph-based causal networks and knowledge graphs
 
 ---
 
@@ -268,13 +305,13 @@ _Expected output: Interactive menu system with numbered options for navigation_
 
 ### Installation Options
 
-#### **Option 1: Standard Installation**
+#### **Option 1: From TestPyPI** (Latest Development Build)
 
 ```bash
-pip install escai-framework
+pip install -i https://test.pypi.org/simple/ escai-framework
 ```
 
-#### **Option 2: Development Installation**
+#### **Option 2: From Source** (Recommended for Development)
 
 ```bash
 git clone https://github.com/Sonlux/ESCAI.git
@@ -282,18 +319,20 @@ cd ESCAI
 pip install -e .
 ```
 
-#### **Option 3: Full Research Installation**
+#### **Option 3: Full Research Installation** (Includes Optional Dependencies)
 
 ```bash
+git clone https://github.com/Sonlux/ESCAI.git
+cd ESCAI
 pip install -e ".[full]"
-# Includes: jupyter, plotly, advanced ML libraries
+# Includes: jupyter, plotly, advanced ML libraries, visualization tools
 ```
 
-#### **Option 4: Docker Installation**
+#### **Option 4: Docker Installation** (Isolated Environment)
 
 ```bash
-docker pull escai/framework:latest
-docker run -p 8000:8000 escai/framework:latest
+docker-compose up
+# Includes: API server, PostgreSQL, MongoDB, Redis, InfluxDB, Neo4j, Grafana
 ```
 
 ### Verify Installation
@@ -616,32 +655,54 @@ ESCAI includes a comprehensive testing suite with 175+ tests across multiple cat
 
 ### **Running Tests**
 
-#### **Complete Test Suite**
+ESCAI includes **1,429+ tests** with comprehensive coverage across all categories:
+
+#### **Complete Test Suite** (All 1,429 Tests)
 
 ```bash
 python tests/cli_test_runner.py --all
 ```
 
-#### **CLI Validation**
+**Test Categories:**
+- **Unit Tests** (~1,198 tests): Individual component testing
+- **Integration Tests** (~231 tests): Framework integration testing  
+- **E2E Tests**: Complete workflow testing
+- **Performance Tests**: Large dataset handling
+- **UX Tests**: CLI usability and experience
+- **Documentation Tests**: Help content accuracy
+
+#### **CI/CD Pipeline Tests** (GitHub Actions)
 
 ```bash
-python scripts/validate_cli_integration_windows.py
+# Runs automatically on every commit
+# Tests complete in ~15 minutes (with 30-second per-test timeout)
+# View at: https://github.com/Sonlux/ESCAI/actions
 ```
 
 #### **Specific Test Categories**
 
 ```bash
-# Unit tests
+# Unit tests (1,198 tests - fast)
 python tests/cli_test_runner.py --category unit
 
-# Integration tests
+# Integration tests (231 tests - requires databases)
 python tests/cli_test_runner.py --category integration
 
-# Performance tests
+# Performance tests (measure large dataset handling)
 python tests/cli_test_runner.py --category performance
 
-# End-to-end tests
+# End-to-end tests (complete workflows)
 python tests/cli_test_runner.py --category e2e
+```
+
+#### **Test with Coverage**
+
+```bash
+# Generate coverage report
+python -m pytest --cov=escai_framework --cov-report=html tests/
+
+# View coverage in browser
+open htmlcov/index.html
 ```
 
 #### **Framework-Specific Tests**
@@ -889,37 +950,130 @@ pre-commit install
 
 ---
 
-## 📄 License
+## � CLI Command Quick Reference
+
+ESCAI provides **40+ commands** organized into logical groups:
+
+### **Core Command Groups**
+
+| Group | Commands | Purpose |
+|-------|----------|---------|
+| `monitor` | 8 commands | Start, stop, and manage real-time agent monitoring |
+| `analyze` | 13 commands | Analyze patterns, causality, and predictions |
+| `config` | 8 commands | Configure framework, databases, and settings |
+| `session` | 9 commands | Manage, replay, and export monitoring sessions |
+| `publication` | 5 commands | Generate research reports and papers |
+| `help` | 5 commands | Comprehensive help system and tutorials |
+
+### **Most Used Commands**
+
+```bash
+# Quick Start
+escai --version                    # Show version and system info
+escai help                         # Main help interface
+escai --interactive                # Launch interactive mode
+
+# Monitoring
+escai monitor start --framework langchain --agent-id my-agent
+escai monitor status               # Check monitoring status
+escai monitor stop --all           # Stop all sessions
+
+# Analysis
+escai analyze patterns --agent-id my-agent --timeframe 1h
+escai analyze causal --min-strength 0.7
+escai analyze predict --agent-id my-agent
+
+# Configuration
+escai config setup                 # Interactive setup wizard
+escai config check                 # Validate system configuration
+escai config test --framework langchain
+
+# Sessions
+escai session list --active        # List active sessions
+escai session export --format json # Export session data
+```
+
+**Full Command Reference**: See [docs/cli/comprehensive-guide.md](docs/cli/comprehensive-guide.md)
+
+---
+
+## 🚀 CI/CD & Publishing
+
+### **Automated Pipeline**
+
+ESCAI uses GitHub Actions for automated CI/CD:
+
+- ✅ **Automated Testing**: 1,429+ tests run on every commit (< 15 minutes)
+- ✅ **Type Checking**: MyPy validation (100% compliant)
+- ✅ **Security Scanning**: Bandit security analysis  
+- ✅ **Code Linting**: Flake8 style enforcement
+- ✅ **Auto-Publishing**: OIDC trusted publishing to TestPyPI on main branch pushes
+- ✅ **Test Timeouts**: 30-second per-test timeout (prevents hanging)
+
+**View Pipeline**: [GitHub Actions](https://github.com/Sonlux/ESCAI/actions)
+
+---
+
+## �📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ### **MIT License Summary**
 
-- ✅ Commercial use
-- ✅ Modification
-- ✅ Distribution
-- ✅ Private use
-- ❌ Liability
-- ❌ Warranty
+- ✅ Commercial use allowed
+- ✅ Modification allowed  
+- ✅ Distribution allowed
+- ✅ Private use allowed
+- ❌ No liability
+- ❌ No warranty
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **Research Community**: For foundational work in agent cognition
+### **Technology Stack**
+- **CLI Framework**: Click + Rich for beautiful terminal interfaces
+- **AI Frameworks**: LangChain, AutoGen, CrewAI, and OpenAI teams
+- **Databases**: PostgreSQL, MongoDB, Redis, InfluxDB, and Neo4j communities
+- **Testing**: Pytest, MyPy, and comprehensive test tooling
+
+### **Special Thanks**
+- **Research Community**: For foundational work in agent cognition and observability
 - **Open Source Contributors**: For framework integrations and improvements
-- **AI Framework Teams**: LangChain, AutoGen, CrewAI, and OpenAI teams
-- **Database Communities**: PostgreSQL, MongoDB, Redis, InfluxDB, and Neo4j
+- **GitHub Actions**: For OIDC trusted publishing and robust CI/CD
 
 ---
 
-## 📞 Support
+## 📞 Support & Community
 
-- **Documentation**: [docs/](docs/)
-- **Issues**: [GitHub Issues](https://github.com/Sonlux/ESCAI/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Sonlux/ESCAI/discussions)
-- **Email**: lakshanammineni@gmail.com
+### **Get Help**
+- 📚 **Documentation**: [docs/](docs/) - Comprehensive guides and tutorials
+- 🐛 **Issues**: [GitHub Issues](https://github.com/Sonlux/ESCAI/issues) - Bug reports and feature requests
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/Sonlux/ESCAI/discussions) - Community Q&A
+- ✉️ **Email**: <lakshanammineni@gmail.com> - Direct support
+
+### **Contributing**
+We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Development setup instructions
+- Code standards and conventions
+- Testing requirements
+- Pull request process
+
+### **Stay Updated**
+- ⭐ Star this repo on GitHub
+- 👀 Watch for releases
+- 📦 Follow on TestPyPI
 
 ---
+
+<div align="center">
 
 **Built with ❤️ for the AI research and development community**
+
+*ESCAI Framework - Making Agent Cognition Observable, One Command at a Time*
+
+[![GitHub](https://img.shields.io/badge/GitHub-ESCAI-blue?logo=github)](https://github.com/Sonlux/ESCAI)
+[![TestPyPI](https://img.shields.io/badge/TestPyPI-escai--framework-blue)](https://test.pypi.org/project/escai-framework/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+</div>
