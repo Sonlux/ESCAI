@@ -287,11 +287,12 @@ class StatisticalAnalyzer:
                 treatment_group = data[data['intervention'] == True]['outcome']  # type: ignore[index,comparison-overlap]
                 
                 # Cohen's d
-                pooled_std = np.sqrt(  # type: ignore[assignment,call-overload]
-                    ((len(control_group) - 1) * control_group.var() +  # type: ignore[arg-type,attr-defined,operator]
-                     (len(treatment_group) - 1) * treatment_group.var()) /  # type: ignore[arg-type,attr-defined,operator]
-                    (len(control_group) + len(treatment_group) - 2)  # type: ignore[arg-type,operator]
+                variance_sum = float(  # type: ignore[arg-type]
+                    (len(control_group) - 1) * control_group.var() +  # type: ignore[arg-type,attr-defined,operator]
+                    (len(treatment_group) - 1) * treatment_group.var()  # type: ignore[arg-type,attr-defined,operator]
                 )
+                n_total = float(len(control_group) + len(treatment_group) - 2)  # type: ignore[arg-type,operator]
+                pooled_std = np.sqrt(variance_sum / n_total)  # type: ignore[arg-type]
                 
                 cohens_d = (treatment_group.mean() - control_group.mean()) / pooled_std  # type: ignore[assignment,attr-defined,operator]
                 

@@ -139,7 +139,7 @@ class WorkflowManager(WorkflowManagerInterface):
                 workflow_run_id=run_response.get('id'),
                 repository=f"{repo_owner}/{repo_name}",
                 started_at=datetime.utcnow(),
-                status=AutomationSessionStatus.RUNNING,
+                status=AutomationSessionStatus.ACTIVE,
                 commits_made=[],
                 rollback_point=None,
                 error_log=[]
@@ -312,8 +312,7 @@ class WorkflowManager(WorkflowManagerInterface):
             )
             
             if success:
-                from .interfaces import AutomationSessionStatus
-                session.status = AutomationSessionStatus.CANCELLED
+                session.status = "cancelled"  # Status as string for now
                 self._logger.info(f"Workflow cancelled for session {session_id}")
             
             return success

@@ -113,7 +113,7 @@ class ErrorTracker:
     
     def track_error(self, 
                    exc_type: type, 
-                   exc_value: Exception, 
+                   exc_value: Union[Exception, BaseException], 
                    exc_traceback,
                    session_id: Optional[str] = None,
                    command: Optional[str] = None,
