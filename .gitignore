@@ -207,13 +207,18 @@ datasets/
 *.json.gz
 *.parquet
 
-# Model files
-models/
+# Machine Learning Model files (trained models, NOT source code!)
+# NOTE: Do NOT use 'models/' as it excludes escai_framework/models/ source code
+# Use specific patterns or paths instead
+/models/
 checkpoints/
 *.pkl
 *.joblib
 *.h5
 *.pb
+# If you have ML models in specific locations, add them explicitly:
+# /training/models/
+# /experiments/models/
 
 # Jupyter notebook checkpoints
 .ipynb_checkpoints/
