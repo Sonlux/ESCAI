@@ -362,7 +362,7 @@ class BaselinePredictor(FallbackProvider):
 class FallbackManager:
     """Manages fallback strategies for different types of processing failures."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.providers: List[FallbackProvider] = [
             RuleBasedEpistemicExtractor(),
             StatisticalPatternAnalyzer(),
@@ -371,7 +371,7 @@ class FallbackManager:
         ]
         self._cache: Dict[str, FallbackResult] = {}
     
-    def register_provider(self, provider: FallbackProvider):
+    def register_provider(self, provider: FallbackProvider) -> None:
         """Register a new fallback provider."""
         self.providers.append(provider)
         logger.info(f"Registered fallback provider: {provider.__class__.__name__}")

@@ -209,7 +209,7 @@ class Citation:
 class CitationDatabase:
     """Database of citations for ESCAI Framework methodologies."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.citations: Dict[str, Citation] = {}
         self._load_default_citations()
     

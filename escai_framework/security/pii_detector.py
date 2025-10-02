@@ -282,7 +282,7 @@ class PIIDetector:
 class PIIMasker:
     """Masks detected PII in text"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.masking_rules: Dict[PIIType, MaskingRule] = self._initialize_default_rules()
         self.hash_salt = secrets.token_hex(16)
     

@@ -71,7 +71,7 @@ class AutoCompleteRule:
 class AutoCompleter:
     """Intelligent auto-completion system"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.rules: List[AutoCompleteRule] = []
         self.command_history = CommandHistory()
         self._setup_default_rules()
@@ -186,7 +186,7 @@ class ThemeConfig:
 class ThemeManager:
     """Theme and color scheme management"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.themes: Dict[str, ThemeConfig] = {}
         self.current_theme = "default"
         self._setup_default_themes()
@@ -309,7 +309,7 @@ class ConfigProfile:
 class ProfileManager:
     """Configuration profile management"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.profiles: Dict[str, ConfigProfile] = {}
         self.current_profile = "default"
         self._setup_default_profiles()
@@ -445,7 +445,7 @@ class Macro:
 class MacroSystem:
     """Macro recording and playback system"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.macros: Dict[str, Macro] = {}
         self.recording: bool = False
         self.current_recording: Optional[Macro] = None
@@ -506,7 +506,7 @@ class MacroSystem:
 class WorkspaceManager:
     """Workspace management for organizing projects"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.workspaces: Dict[str, Dict[str, Any]] = {}
         self.current_workspace = "default"
         self._setup_default_workspace()
@@ -580,7 +580,7 @@ class WorkspaceManager:
 class AccessibilityFeatures:
     """Accessibility features for screen readers and keyboard navigation"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.screen_reader_mode = False
         self.high_contrast_mode = False
         self.keyboard_only_mode = False
