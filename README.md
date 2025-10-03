@@ -999,23 +999,6 @@ escai session export --format json # Export session data
 
 ---
 
-## 🚀 CI/CD & Publishing
-
-### **Automated Pipeline**
-
-ESCAI uses GitHub Actions for automated CI/CD:
-
-- ✅ **Automated Testing**: 1,429+ tests run on every commit (< 15 minutes)
-- ✅ **Type Checking**: MyPy validation (100% compliant)
-- ✅ **Security Scanning**: Bandit security analysis
-- ✅ **Code Linting**: Flake8 style enforcement
-- ✅ **Auto-Publishing**: OIDC trusted publishing to TestPyPI on main branch pushes
-- ✅ **Test Timeouts**: 30-second per-test timeout (prevents hanging)
-
-**View Pipeline**: [GitHub Actions](https://github.com/Sonlux/ESCAI/actions)
-
----
-
 ## �📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
