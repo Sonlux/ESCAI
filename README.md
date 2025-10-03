@@ -33,7 +33,7 @@
 
 ---
 
-## � Highlights & Achievements
+## 🌟 Highlights & Achievements
 
 ### **Production-Ready Status**
 
@@ -61,7 +61,7 @@
 
 ---
 
-## �🎯 Overview
+## 🎯 Overview
 
 ### **A Pure CLI Experience - No Web Interface Required**
 
@@ -90,7 +90,7 @@ ESCAI Framework is built entirely around the command-line interface, making it p
 
 ## ✨ Key Features
 
-### �️ **Powerful CLI Interface** (No Web Required!)
+### 💻 **Powerful CLI Interface** (No Web Required!)
 
 - **40+ Commands**: Organized into logical groups (`monitor`, `analyze`, `config`, `session`)
 - **Rich Terminal Output**: Beautiful ASCII tables, charts, and colored formatting
@@ -99,7 +99,7 @@ ESCAI Framework is built entirely around the command-line interface, making it p
 - **Tab Completion**: Shell completion support for faster workflows
 - **Export Options**: JSON, CSV, and Markdown formats for all data
 
-### �🔍 **Real-time Agent Monitoring**
+### 🔍 **Real-time Agent Monitoring**
 
 - **Multi-Agent Support**: Monitor multiple agents simultaneously
 - **Framework Agnostic**: Works with LangChain, AutoGen, CrewAI, and OpenAI
@@ -952,7 +952,7 @@ pre-commit install
 
 ---
 
-## � CLI Command Quick Reference
+## ⌨️ CLI Command Quick Reference
 
 ESCAI provides **40+ commands** organized into logical groups:
 
@@ -999,7 +999,7 @@ escai session export --format json # Export session data
 
 ---
 
-## �📄 License
+## � License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
